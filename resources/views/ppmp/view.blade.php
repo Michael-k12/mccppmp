@@ -81,7 +81,7 @@
                                 <td>{{ number_format($ppmp->price, 2) }}</td>
                                 <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
                                 <td>{{$ppmp->mode_of_procurement}}</td>
-                                <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('F d, Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('Y F') }}</td>
                             </tr>
                         @empty
                             <tr>

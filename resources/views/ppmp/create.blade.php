@@ -1,6 +1,7 @@
 <x-layouts.app :title="'Create PPMP'">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+{{-- Success & Error Notifications --}}
 @if(session('duplicate_error'))
 <script>
 Swal.fire({
@@ -39,9 +40,7 @@ h2 {
     font-weight: bold;
     margin: 0;
 }
-.search-wrapper {
-    position: relative;
-}
+.search-wrapper { position: relative; }
 .search-bar {
     width: 600px;
     padding: 8px 35px 8px 12px;
@@ -68,6 +67,7 @@ h2 {
 .dots-loader span:nth-child(2) { animation-delay: 0.2s; }
 .dots-loader span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { to { transform: translateY(-5px); opacity: 0.5; } }
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -81,10 +81,7 @@ th, td {
     text-align: left;
     font-size: 14px;
 }
-th {
-    background-color: #f9fafb;
-    font-weight: bold;
-}
+th { background-color: #f9fafb; font-weight: bold; }
 .btn {
     padding: 6px 12px;
     border: none;
@@ -95,15 +92,14 @@ th {
     font-size: 14px;
 }
 .btn:hover { background-color: #1d4ed8; }
+
 .modal {
     display: none;
     position: fixed;
     z-index: 99;
     padding-top: 60px;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
     overflow: auto;
     background-color: rgba(0,0,0,0.4);
 }
@@ -121,12 +117,13 @@ th {
     font-size: 18px;
     margin-bottom: 10px;
 }
-.modal input {
+.modal input, .modal select {
     width: 100%;
     margin-bottom: 10px;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    font-size: 14px;
 }
 .modal-footer { text-align: right; }
 .close { cursor: pointer; font-size: 20px; }
@@ -195,14 +192,45 @@ th {
             <input type="hidden" name="price" id="modal_price">
             <input type="hidden" name="department" value="{{ auth()->user()->department }}">
 
+            <!-- Quantity -->
             <label>Quantity</label>
             <input type="number" name="quantity" id="modal_quantity" required oninput="calculateBudget()">
 
+            <!-- Estimated Budget -->
             <label>Estimated Budget</label>
             <input type="text" name="estimated_budget" id="modal_budget" readonly>
 
+            <!-- Mode of Procurement Dropdown -->
             <label>Mode of Procurement</label>
-            <input type="text" name="mode_of_procurement" id="modal_procurement" readonly>
+            <select name="mode_of_procurement" id="modal_procurement" required>
+                <option value="">-- Select Procurement Mode --</option>
+                <option value="Small Value Procurement">Small Value Procurement</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Bidding">Bidding</option>
+            </select>
+
+            <!-- Schedule / Milestone -->
+<label>Schedule / Milestone</label>
+<select name="milestone_month" id="modal_milestone_date" class="form-control" required>
+    <option value="">-- Select Month --</option>
+    @foreach ([
+        '01' => 'January',
+        '02' => 'February',
+        '03' => 'March',
+        '04' => 'April',
+        '05' => 'May',
+        '06' => 'June',
+        '07' => 'July',
+        '08' => 'August',
+        '09' => 'September',
+        '10' => 'October',
+        '11' => 'November',
+        '12' => 'December'
+    ] as $num => $month)
+        <option value="{{ $num }}">{{ $month }}</option>
+    @endforeach
+</select>
+
 
             <div class="modal-footer">
                 <button type="button" class="btn" style="background-color: #6b7280;" onclick="closeModal()">Cancel</button>
@@ -243,10 +271,13 @@ function openModal(id, description, classification, unit, price) {
     document.getElementById('modal_quantity').value = '';
     document.getElementById('modal_budget').value = '';
     document.getElementById('modal_procurement').value = '';
+    document.getElementById('modal_milestone_date').value = localStorage.getItem('selectedMonth') || '';
     document.getElementById('addModal').style.display = 'block';
 }
 
-function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+function closeModal() {
+    document.getElementById('addModal').style.display = 'none';
+}
 
 function calculateBudget() {
     const quantity = parseFloat(document.getElementById('modal_quantity').value) || 0;
@@ -256,10 +287,7 @@ function calculateBudget() {
 
     document.getElementById('modal_budget').value = budget.toFixed(2);
 
-    const procurementInput = document.getElementById('modal_procurement');
-    if (budget < 100000) procurementInput.value = "Small Value Procurement";
-    else if (budget < 500000) procurementInput.value = "Shopping";
-    else procurementInput.value = "Bidding";
+    
 
     const addButton = document.querySelector('#addModal button[type="submit"]');
 
@@ -268,26 +296,21 @@ function calculateBudget() {
         addButton.style.backgroundColor = '#9ca3af';
         document.getElementById('modal_budget').style.borderColor = 'red';
 
-        if (!document.getElementById('budgetAlertShown')) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Budget Exceeded',
-                text: 'The item exceeds your remaining budget of ₱' + remainingBudget.toFixed(2)
-            });
-            const alertFlag = document.createElement('input');
-            alertFlag.type = 'hidden';
-            alertFlag.id = 'budgetAlertShown';
-            document.getElementById('addModal').appendChild(alertFlag);
-        }
+        Swal.fire({
+            icon: 'error',
+            title: 'Budget Exceeded',
+            text: 'The item exceeds your remaining budget of ₱' + remainingBudget.toFixed(2)
+        });
     } else {
         addButton.disabled = false;
         addButton.style.backgroundColor = '#1e40af';
         document.getElementById('modal_budget').style.borderColor = '#ccc';
-
-        const existingFlag = document.getElementById('budgetAlertShown');
-        if (existingFlag) existingFlag.remove();
     }
 }
+
+document.getElementById('modal_milestone_date').addEventListener('change', function() {
+    localStorage.setItem('selectedMonth', this.value);
+});
 
 let searchTimeout;
 function filterTable() {

@@ -23,22 +23,62 @@ public function manage()
 {
     $userDepartment = Auth::user()->role;
 
+    // Get user's PPMP items (excluding submitted and approved)
     $ppmps = Ppmp::where('department', $userDepartment)
                  ->whereNotIn('status', ['Submitted', 'Approved'])
                  ->get();
 
-    // Get active budget and allocate per department
+    // Get active budget
     $activeBudget = Budget::where('is_ended', false)->latest()->first();
-    $departments = ['BSIT','BSBA','BSED','BSHM','NURSE','LIBRARY'];
-    $allocatedBudget = $activeBudget ? round($activeBudget->amount / count($departments), 2) : 0;
+    $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
 
-    // Add allocated budget to each PPMP for use in Blade
+    // Default values
+    $allocatedBudget = 0;
+    $remainingBudget = 0;
+
+    if ($activeBudget && $activeBudget->amount > 0) {
+        // Divide budget equally per department
+        $allocatedBudget = round($activeBudget->amount / count($departments), 2);
+
+        // Calculate total spent by user's department
+        $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
+
+        // Calculate remaining budget
+        $remainingBudget = $allocatedBudget - $spent;
+    }
+
     foreach ($ppmps as $ppmp) {
         $ppmp->allocated_budget = $allocatedBudget;
     }
 
-    return view('ppmp.manage', compact('ppmps'));
+    return view('ppmp.manage', compact('ppmps', 'allocatedBudget', 'remainingBudget'));
 }
+
+// AJAX endpoint for updating remaining budget dynamically
+public function getRemainingBudget()
+{
+    $userDepartment = Auth::user()->role;
+
+    $activeBudget = Budget::where('is_ended', false)->latest()->first();
+    $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+
+    if (!$activeBudget) {
+        return response()->json([
+            'allocatedBudget' => 0,
+            'remainingBudget' => 0
+        ]);
+    }
+
+    $allocatedBudget = round($activeBudget->amount / count($departments), 2);
+    $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
+    $remainingBudget = $allocatedBudget - $spent;
+
+    return response()->json([
+        'allocatedBudget' => $allocatedBudget,
+        'remainingBudget' => $remainingBudget
+    ]);
+}
+
 
 
 
@@ -53,6 +93,7 @@ public function updateQuantity(Request $request, $id)
     $request->validate([
         'adjustment' => 'required|numeric',
         'current_quantity' => 'required|numeric',
+        'mode' => 'required|in:add,subtract',
     ]);
 
     $ppmp = Ppmp::findOrFail($id);
@@ -72,35 +113,37 @@ public function updateQuantity(Request $request, $id)
                 ->where('id', '!=', $ppmp->id)
                 ->sum('estimated_budget');
 
-    // New quantity and budget
-    $newQty = $request->current_quantity + $request->adjustment;
-    if ($newQty < 0) $newQty = 0;
+    // Handle add or subtract mode ✅
+    $adjustment = abs($request->adjustment); // Always positive
+    if ($request->mode === 'add') {
+        $newQty = $request->current_quantity + $adjustment;
+    } else {
+        $newQty = $request->current_quantity - $adjustment;
+        if ($newQty < 0) $newQty = 0; // Prevent negative quantity
+    }
 
+    // New estimated budget
     $newEstimatedBudget = $newQty * $ppmp->price;
 
     // Prevent exceeding allocated budget
     if (($spent + $newEstimatedBudget) > $allocatedBudget) {
         return redirect()->back()->with('duplicate_error', 
-            "Cannot update. Estimated budget ₱{$newEstimatedBudget} exceeds remaining department budget ₱" . ($allocatedBudget - $spent) . "."
+            "Cannot update. Estimated budget ₱{$newEstimatedBudget} exceeds remaining department budget ₱" . 
+            number_format($allocatedBudget - $spent, 2)
         );
     }
 
     // Update PPMP
     $ppmp->quantity = $newQty;
     $ppmp->estimated_budget = $newEstimatedBudget;
-    $ppmp->mode_of_procurement = $this->getProcurementMode($newEstimatedBudget);
     $ppmp->save();
 
     return redirect()->back()->with('success', 'Quantity updated and budget recalculated.');
 }
 
 
-private function getProcurementMode($budget)
-{
-    if ($budget <= 50000) return 'Shopping';
-    elseif ($budget <= 250000) return 'Small Value Procurement';
-    else return 'Public Bidding';
-}
+
+
 
 
 
@@ -162,6 +205,7 @@ public function store(Request $request)
         'quantity' => 'required|integer|min:1',
         'estimated_budget' => 'required|numeric|min:0',
         'mode_of_procurement' => 'required|string|max:255',
+        'milestone_month' => 'required|string'
     ]);
 
     $department = auth()->user()->role;
@@ -171,7 +215,8 @@ public function store(Request $request)
         return redirect()->back()->withErrors(['milestone' => 'No active budget found.']);
     }
 
-    $milestoneDate = $activeBudget->milestone_date ?? $activeBudget->year . '-01-01';
+    // Combine active budget year + selected month
+    $milestoneDate = $activeBudget->year . '-' . $request->milestone_month;
 
     // Duplicate check
     $existing = Ppmp::where('description', $request->description)
@@ -189,7 +234,7 @@ public function store(Request $request)
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
     $equalShare = $activeBudget->amount / count($departments);
 
-    $departmentRemaining = $equalShare - 
+    $departmentRemaining = $equalShare -
         Ppmp::where('department', $department)
             ->whereYear('milestone_date', $activeBudget->year)
             ->sum('estimated_budget');
@@ -213,8 +258,11 @@ public function store(Request $request)
         'department' => $department,
     ]);
 
-    return redirect()->back()->with('success', 'Item added successfully!');
+    // ✅ Redirect to manage page after success
+    return redirect()->route('ppmp.manage')
+        ->with('success', 'Item added successfully!');
 }
+
 
 
 
@@ -288,15 +336,63 @@ public function view()
 
 public function batchApprove(Request $request)
 {
-    $request->validate([
-        'ppmp_ids' => 'required|array',
-    ]);
+    // Get latest budget
+    $latestBudget = \App\Models\Budget::latest()->first();
+    $ppmpTotal = \App\Models\Ppmp::sum('estimated_budget');
 
-    Ppmp::whereIn('id', $request->ppmp_ids)
-        ->update(['status' => 'Approved']);
+    // Check if there’s no budget
+    if (!$latestBudget) {
+        return redirect()->back()->with('error', 'No allocated budget set.');
+    }
 
-    return back()->with('approved', 'Project plan approved successfully.');
+    // Check if budgets mismatch
+    if ($ppmpTotal != $latestBudget->amount) {
+        return redirect()->back()->with('error', 'Approval denied! Purpose budget must match allocated budget.');
+    }
+
+    // Approve all PPMPs
+    \App\Models\Ppmp::whereIn('id', $request->ppmp_ids)
+        ->update(['status' => 'approved']);
+
+    // If approved, set remaining budget to zero
+    $latestBudget->amount = $ppmpTotal; // allocated equals purpose
+    $latestBudget->save();
+
+    return redirect()->back()->with('approved', true);
 }
+
+
+public function realign(Request $request)
+{
+    try {
+        // Validate input
+        $request->validate([
+            'adjustment' => 'required|numeric',
+        ]);
+
+        // Get latest budget
+        $latestBudget = \App\Models\Budget::latest()->first();
+        if (!$latestBudget) {
+            return response()->json(['status' => 'error', 'message' => 'No budget set'], 404);
+        }
+
+        // Update allocated budget
+        $latestBudget->amount += $request->adjustment;
+        $latestBudget->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Budget realigned successfully!',
+            'new_budget' => number_format($latestBudget->amount, 2)
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Something went wrong. ' . $e->getMessage()
+        ], 500);
+    }
+}
+
 public function approved(Request $request)
 {
     $selectedYear = $request->get('year');

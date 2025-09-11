@@ -96,3 +96,7 @@ Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store')
 Route::post('/budget/end/{id}', [BudgetController::class, 'end'])->name('budget.end');
 
 Route::put('/ppmps/{id}/update-quantity', [PpmpController::class, 'updateQuantity'])->name('ppmps.updateQuantity');
+
+
+Route::post('/ppmp/realign', [PpmpController::class, 'realign'])->name('ppmp.realign');
+Route::get('/ppmp/remaining-budget', [App\Http\Controllers\PpmpController::class, 'getRemainingBudget'])->name('ppmp.remaining-budget');
