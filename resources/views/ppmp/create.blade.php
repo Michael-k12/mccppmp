@@ -133,7 +133,7 @@ th { background-color: #f9fafb; font-weight: bold; }
 @if ($isProposalActive)
     <!-- Header Row -->
     <div class="header-row">
-        <h2>Procurement Item's List</h2>
+        <h2>Directory of Item's</h2>
         <div class="search-wrapper">
             <input type="text" class="search-bar" placeholder="Search..." onkeyup="filterTable()" id="searchInput">
             <div class="dots-loader" id="dotsLoader">
@@ -212,7 +212,7 @@ th { background-color: #f9fafb; font-weight: bold; }
             <!-- Schedule / Milestone -->
 <label>Schedule / Milestone</label>
 <select name="milestone_month" id="modal_milestone_date" class="form-control" required>
-    <option value="">-- Select Month --</option>
+    <option value="">Select Month</option>
     @foreach ([
         '01' => 'January',
         '02' => 'February',

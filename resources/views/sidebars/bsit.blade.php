@@ -11,5 +11,5 @@
     Submit 
 </flux:navlist.item>
 <flux:navlist.item icon="table-cells" :href="route('ppmp.bsit')" wire:navigate>
-    Recent Project Plan
+    Procurement Records
 </flux:navlist.item>
