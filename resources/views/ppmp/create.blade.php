@@ -203,7 +203,7 @@ th { background-color: #f9fafb; font-weight: bold; }
             <!-- Mode of Procurement Dropdown -->
             <label>Mode of Procurement</label>
             <select name="mode_of_procurement" id="modal_procurement" required>
-                <option value="">-- Select Procurement Mode --</option>
+                <option value="">Select Mode</option>
                 <option value="Small Value Procurement">Small Value Procurement</option>
                 <option value="Shopping">Shopping</option>
                 <option value="Bidding">Bidding</option>
