@@ -14,7 +14,7 @@ use App\Http\Controllers\BudgetController;
 
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('register');
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
