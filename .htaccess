@@ -1,10 +1,35 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Redirect all requests to the public folder
-    RewriteRule ^(.*)$ public/$1 [L]
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # Send Requests To Front Controller
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
 </IfModule>
-<FilesMatch "^(\.env|\.git|composer\.json|artisan|server\.php|storage|vendor)">
-    Order allow,deny
-    Deny from all
+
+# 🔒 Security Rules
+
+# Disable directory listing
+Options -Indexes
+
+# Hide Apache version
+ServerSignature Off
+ServerTokens Prod
+
+# Deny access to sensitive files
+<FilesMatch "^(\.env|\.git|composer\.(json|lock)|artisan|server\.php|phpunit\.xml)$">
+  Require all denied
 </FilesMatch>
+
+# Block vendor and storage
+<DirectoryMatch "(^|/)(vendor|storage)">
+  Require all denied
+</DirectoryMatch>
