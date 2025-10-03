@@ -4,21 +4,7 @@
     # Redirect all requests to the public folder
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
-# Disable directory listing
-Options -Indexes
-
-# Hide Apache version
-ServerSignature Off
-ServerTokens Prod
-
-# Deny access to sensitive files
-<FilesMatch "^(\.env|\.git|composer\.(json|lock)|artisan|server\.php|phpunit\.xml)$">
-  Require all denied
-</FilesMatch>
-
-# Block vendor and storage
-<DirectoryMatch "(^|/)(vendor|storage)">
-  Require all denied
-</DirectoryMatch>
-
+<FilesMatch "^(\.env|\.git|composer\.json|artisan|server\.php|storage|vendor)">
+    Order allow,deny
+    Deny from all
 </FilesMatch>
