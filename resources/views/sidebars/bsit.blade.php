@@ -8,7 +8,7 @@
     Manage 
 </flux:navlist.item>
 <flux:navlist.item icon="arrow-right" :href="route('ppmp.view')" wire:navigate>
-    Submit 
+    Submit
 </flux:navlist.item>
 <flux:navlist.item icon="table-cells" :href="route('ppmp.bsit')" wire:navigate>
     Procurement Records
