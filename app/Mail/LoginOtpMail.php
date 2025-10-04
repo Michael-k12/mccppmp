@@ -19,8 +19,10 @@ class LoginOtpMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Your Login OTP - Project Procurement Management System')
+        return $this->subject('Your Login OTP')
                     ->markdown('emails.login-otp')
-                    ->with(['otp' => $this->otp]);
+                    ->with([
+                        'otp' => $this->otp,
+                    ]);
     }
 }

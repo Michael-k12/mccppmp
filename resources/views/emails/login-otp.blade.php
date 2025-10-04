@@ -1,13 +1,13 @@
 @component('mail::message')
-# Your Login OTP
+# Your OTP Code
 
-Your one-time password (OTP) is:
+Your One-Time Password for login is:
 
 @component('mail::panel')
 {{ $otp }}
 @endcomponent
 
-It is valid for **5 minutes**. Do not share it with anyone.
+This OTP is valid for **5 minutes**. Do not share it with anyone.
 
 Thanks,<br>
 {{ config('app.name') }}
