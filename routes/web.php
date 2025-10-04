@@ -101,4 +101,3 @@ Route::put('/ppmps/{id}/update-quantity', [PpmpController::class, 'updateQuantit
 Route::post('/ppmp/realign', [PpmpController::class, 'realign'])->name('ppmp.realign');
 Route::get('/ppmp/remaining-budget', [App\Http\Controllers\PpmpController::class, 'getRemainingBudget'])->name('ppmp.remaining-budget');
 
-Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
