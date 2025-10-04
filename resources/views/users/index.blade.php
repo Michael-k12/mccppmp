@@ -58,7 +58,12 @@
                 <input type="text" name="name" placeholder="Name" required>
                 <input type="email" name="email" placeholder="Email" required>
                 <input type="password" name="password" placeholder="Password" required>
-                <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
+<small class="text-gray-500 text-sm">
+    Password must be at least 12 characters and include uppercase, lowercase, numbers, and symbols.
+</small>
+
+<input type="password" name="password_confirmation" placeholder="Confirm Password" required>
+
 
                 <select name="role" required>
                     <option value="">-- Select Role --</option>
@@ -145,6 +150,12 @@
             border: none;
             cursor: pointer;
         }
+        .modal-content small {
+    display: block;
+    margin-top: -5px;
+    margin-bottom: 10px;
+}
+
 
         /* Modal */
         .modal {
