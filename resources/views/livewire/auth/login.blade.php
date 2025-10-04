@@ -21,7 +21,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public bool $remember = false;
     public ?int $cooldown = null;
     public bool $locked = false;
-    public bool $showRecaptcha = false;
+    public bool $showRecaptcha = false; // show reCAPTCHA after lockout
 
     public function mount(): void
     {
@@ -31,12 +31,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public function login(): void
     {
         $this->validate();
-        $this->ensureIsNotRateLimited();
 
-        // ✅ If reCAPTCHA is required, validate it
-        if ($this->showRecaptcha) {
-            $this->validateRecaptcha();
-        }
+        $this->ensureIsNotRateLimited();
 
         if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey(), 20); // lock for 20 seconds after 3 fails
@@ -50,6 +46,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
             throw ValidationException::withMessages([
                 'email' => __('Invalid email or password.'),
             ]);
+        }
+
+        if ($this->showRecaptcha) {
+            $this->validateRecaptcha();
         }
 
         RateLimiter::clear($this->throttleKey());
@@ -106,7 +106,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         if (!$response) {
             throw ValidationException::withMessages([
-                'email' => 'Please complete the reCAPTCHA before continuing.',
+                'email' => 'Please confirm you are not a robot.',
             ]);
         }
 
@@ -128,7 +128,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
 
-    <form wire:submit="login" class="flex flex-col gap-6">
+    <form wire:submit="login" class="flex flex-col gap-6" id="loginForm">
         <!-- Email Address -->
         <flux:input
             wire:model="email"
@@ -160,11 +160,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         <!-- Google reCAPTCHA -->
         @if ($showRecaptcha)
-            <div class="mt-4 text-center">
-                <div class="g-recaptcha mx-auto" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+            <div class="text-center mt-2">
+                <div class="g-recaptcha inline-block" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
             </div>
         @endif
 
+        <!-- Submit Button -->
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full" :disabled="$locked">
                 {{ $locked ? __('Please wait...') : __('Log in') }}
@@ -180,29 +181,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     @if (Route::has('register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __("Don't have an account?") }}
+            {{ __('Don\'t have an account?') }}
             <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
         </div>
     @endif
 </div>
 
-<script src="https://www.google.com/recaptcha/api.js?onload=recaptchaRenderCallback&render=explicit" async defer></script>
-
-<script>
-    let recaptchaWidgetId = null;
-
-    function recaptchaRenderCallback() {
-        const el = document.querySelector('.g-recaptcha');
-        if (el && !recaptchaWidgetId) {
-            recaptchaWidgetId = grecaptcha.render(el, {
-                'sitekey': '{{ env('RECAPTCHA_SITE_KEY') }}'
-            });
-        }
-    }
-
-    // Re-render reCAPTCHA every time Livewire updates the DOM
-    document.addEventListener("livewire:navigated", recaptchaRenderCallback);
-    document.addEventListener("livewire:load", recaptchaRenderCallback);
-    document.addEventListener("livewire:update", recaptchaRenderCallback);
-</script>
-
+<!-- ✅ reCAPTCHA Script -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
