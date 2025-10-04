@@ -16,7 +16,7 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('users.create'); // create.blade.php
+        return view('users.create');
     }
 
     public function store(Request $request)
@@ -25,13 +25,9 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => [
-                'required',
-                'string',
-                'min:12',
-                'regex:/[a-z]/',
-                'regex:/[A-Z]/',
-                'regex:/[0-9]/',
-                'regex:/[@$!%*?&#]/',
+                'required', 'string', 'min:12',
+                'regex:/[a-z]/', 'regex:/[A-Z]/',
+                'regex:/[0-9]/', 'regex:/[@$!%*?&#]/',
                 'confirmed',
             ],
             'role' => 'required|string',
@@ -47,19 +43,21 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User added successfully.');
     }
 
+    // ✅ Add this edit method
+    public function edit(User $user)
+    {
+        return view('users.edit', compact('user'));
+    }
+
     public function update(Request $request, User $user)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => [
-                'nullable',
-                'string',
-                'min:12',
-                'regex:/[a-z]/',
-                'regex:/[A-Z]/',
-                'regex:/[0-9]/',
-                'regex:/[@$!%*?&#]/',
+                'nullable', 'string', 'min:12',
+                'regex:/[a-z]/', 'regex:/[A-Z]/',
+                'regex:/[0-9]/', 'regex:/[@$!%*?&#]/',
                 'confirmed',
             ],
         ]);
