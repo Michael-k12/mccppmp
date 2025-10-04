@@ -186,4 +186,23 @@ new #[Layout('components.layouts.auth')] class extends Component {
     @endif
 </div>
 
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=recaptchaRenderCallback&render=explicit" async defer></script>
+
+<script>
+    let recaptchaWidgetId = null;
+
+    function recaptchaRenderCallback() {
+        const el = document.querySelector('.g-recaptcha');
+        if (el && !recaptchaWidgetId) {
+            recaptchaWidgetId = grecaptcha.render(el, {
+                'sitekey': '{{ env('RECAPTCHA_SITE_KEY') }}'
+            });
+        }
+    }
+
+    // Re-render reCAPTCHA every time Livewire updates the DOM
+    document.addEventListener("livewire:navigated", recaptchaRenderCallback);
+    document.addEventListener("livewire:load", recaptchaRenderCallback);
+    document.addEventListener("livewire:update", recaptchaRenderCallback);
+</script>
+
