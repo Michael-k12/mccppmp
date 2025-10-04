@@ -31,21 +31,15 @@ new #[Layout('components.layouts.auth')] class extends Component
         $this->updateCaptchaStatus();
     }
 
-    /**
-     * Update $showCaptcha based on failed attempts
-     */
     protected function updateCaptchaStatus(): void
     {
         $attempts = Session::get('login_attempts_' . $this->throttleKey(), 0);
         $this->showCaptcha = $attempts >= 3;
     }
 
-    /**
-     * Handle login
-     */
     public function login(): void
     {
-        // Define validation rules
+        // Validation rules
         $rules = [
             'email' => 'required|string|email',
             'password' => 'required|string',
@@ -63,14 +57,12 @@ new #[Layout('components.layouts.auth')] class extends Component
             RateLimiter::hit($this->throttleKey());
             $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
 
-            // Update captcha status if threshold reached
+            // Show captcha if threshold reached
             if ($failedAttempts >= 3 && !$this->showCaptcha) {
                 $this->showCaptcha = true;
                 $this->js('resetRecaptchaWidget()');
-
             } elseif ($this->showCaptcha) {
                 $this->js('resetRecaptchaWidget()');
-
             }
 
             throw ValidationException::withMessages([
@@ -86,9 +78,6 @@ new #[Layout('components.layouts.auth')] class extends Component
         $this->redirectIntended(route('dashboard', absolute: false), true);
     }
 
-    /**
-     * Ensure the login request is not rate-limited
-     */
     protected function ensureIsNotRateLimited(): void
     {
         if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) return;
@@ -110,6 +99,7 @@ new #[Layout('components.layouts.auth')] class extends Component
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
 };
+
  ?>
 
 <div class="flex flex-col gap-6">
@@ -147,15 +137,14 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         {{-- CAPTCHA --}}
         <div class="mt-4" style="{{ $showCaptcha ? '' : 'display:none;' }}">
-    <div wire:ignore.self id="recaptcha-container" class="g-recaptcha" 
-        data-sitekey="{{ config('recaptcha.site_key') }}" 
-        data-callback="setRecaptchaValue">
-    </div>
+            <div wire:ignore.self id="recaptcha-container" class="g-recaptcha"
+                 data-sitekey="{{ config('recaptcha.site_key') }}"
+                 data-callback="setRecaptchaValue"></div>
 
-    @error('recaptcha')
-        <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
-    @enderror
-</div>
+            @error('recaptcha')
+                <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
+            @enderror
+        </div>
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">
@@ -174,12 +163,18 @@ new #[Layout('components.layouts.auth')] class extends Component
 
 {{-- Load reCAPTCHA script globally --}}
 @once
-    <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 @endonce
 
 <script>
     function setRecaptchaValue(response) {
         @this.set('recaptcha', response);
+    }
+
+    function resetRecaptchaWidget() {
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.reset();
+        }
     }
 
     function renderRecaptcha() {
@@ -199,6 +194,4 @@ new #[Layout('components.layouts.auth')] class extends Component
     Livewire.hook('message.processed', () => {
         if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
     });
-
 </script>
-
