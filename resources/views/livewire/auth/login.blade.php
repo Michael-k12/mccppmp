@@ -32,26 +32,28 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 
     public function login(): void
-    {
-        $this->validate();
-        $this->ensureIsNotRateLimited();
+{
+    $this->validate();
+    $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
-            RateLimiter::hit($this->throttleKey());
+    if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        RateLimiter::hit($this->throttleKey());
 
-            if (RateLimiter::attempts($this->throttleKey()) >= 3) {
-                $this->startCountdown();
-            }
-
-            throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
-            ]);
+        if (RateLimiter::attempts($this->throttleKey()) >= 3) {
+            $this->startCountdown();
         }
 
-        RateLimiter::clear($this->throttleKey());
-        Session::regenerate();
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        throw ValidationException::withMessages([
+            'email' => __('auth.failed'),
+        ]);
     }
+
+    RateLimiter::clear($this->throttleKey());
+
+    // ✅ No Session::regenerate() here — handled internally by Laravel/Livewire
+    $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+}
+
 
     protected function ensureIsNotRateLimited(): void
     {
