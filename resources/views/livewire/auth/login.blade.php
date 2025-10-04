@@ -167,7 +167,6 @@ new #[Layout('components.layouts.auth')] class extends Component
         <form wire:submit.prevent="login" class="flex flex-col gap-4">
             <flux:input wire:model="email" label="Email address" type="email" required />
             <flux:input wire:model="password" label="Password" type="password" required />
-            <flux:checkbox wire:model="remember" label="Remember me" />
 
             <div class="text-right text-sm">
                 <button type="button" wire:click="sendOtp" class="text-blue-600 hover:underline">
