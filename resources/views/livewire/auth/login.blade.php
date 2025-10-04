@@ -19,8 +19,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password = '';
 
     public bool $remember = false;
-    public ?int $cooldown = null; // seconds remaining
-    public bool $locked = false;  // lockout state
+    public ?int $cooldown = null;
+    public bool $locked = false;
+    public bool $showRecaptcha = false;
 
     public function mount(): void
     {
@@ -30,8 +31,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public function login(): void
     {
         $this->validate();
-
         $this->ensureIsNotRateLimited();
+
+        // ✅ If reCAPTCHA is required, validate it
+        if ($this->showRecaptcha) {
+            $this->validateRecaptcha();
+        }
 
         if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey(), 20); // lock for 20 seconds after 3 fails
@@ -39,6 +44,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             if (RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
                 $this->locked = true;
                 $this->cooldown = RateLimiter::availableIn($this->throttleKey());
+                $this->showRecaptcha = true;
             }
 
             throw ValidationException::withMessages([
@@ -60,11 +66,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $this->locked = true;
         $this->cooldown = RateLimiter::availableIn($this->throttleKey());
+        $this->showRecaptcha = true;
 
         event(new Lockout(request()));
 
         throw ValidationException::withMessages([
-            'email' => "Too many attempts. Please wait {$this->cooldown} seconds before retrying.",
+            'email' => "Too many attempts. Please wait {$this->cooldown} seconds and complete the reCAPTCHA before retrying.",
         ]);
     }
 
@@ -73,6 +80,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         if (RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
             $this->locked = true;
             $this->cooldown = RateLimiter::availableIn($this->throttleKey());
+            $this->showRecaptcha = true;
         }
     }
 
@@ -89,6 +97,26 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 $this->locked = false;
                 RateLimiter::clear($this->throttleKey());
             }
+        }
+    }
+
+    protected function validateRecaptcha(): void
+    {
+        $response = request('g-recaptcha-response');
+
+        if (!$response) {
+            throw ValidationException::withMessages([
+                'email' => 'Please complete the reCAPTCHA before continuing.',
+            ]);
+        }
+
+        $verify = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret=' . env('RECAPTCHA_SECRET_KEY') . '&response=' . $response);
+        $captcha_success = json_decode($verify);
+
+        if (!$captcha_success->success) {
+            throw ValidationException::withMessages([
+                'email' => 'reCAPTCHA verification failed. Please try again.',
+            ]);
         }
     }
 };
@@ -130,6 +158,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <!-- Remember Me -->
         <flux:checkbox wire:model="remember" :label="__('Remember me')" :disabled="$locked" />
 
+        <!-- Google reCAPTCHA -->
+        @if ($showRecaptcha)
+            <div class="mt-4 text-center">
+                <div class="g-recaptcha mx-auto" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+            </div>
+        @endif
+
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full" :disabled="$locked">
                 {{ $locked ? __('Please wait...') : __('Log in') }}
@@ -145,8 +180,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     @if (Route::has('register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __('Don\'t have an account?') }}
+            {{ __("Don't have an account?") }}
             <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
         </div>
     @endif
 </div>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
