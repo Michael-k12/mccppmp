@@ -66,9 +66,11 @@ new #[Layout('components.layouts.auth')] class extends Component
             // Update captcha status if threshold reached
             if ($failedAttempts >= 3 && !$this->showCaptcha) {
                 $this->showCaptcha = true;
-                $this->dispatchBrowserEvent('reset-recaptcha');
+                $this->js('resetRecaptchaWidget()');
+
             } elseif ($this->showCaptcha) {
-                $this->dispatchBrowserEvent('reset-recaptcha');
+                $this->js('resetRecaptchaWidget()');
+
             }
 
             throw ValidationException::withMessages([
@@ -179,9 +181,15 @@ new #[Layout('components.layouts.auth')] class extends Component
 @endonce
 
 <script>
-    <script>
+
     function setRecaptchaValue(response) {
         @this.set('recaptcha', response);
+    }
+
+    function resetRecaptchaWidget() {
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.reset();
+        }
     }
 
     function renderRecaptcha() {
@@ -194,20 +202,14 @@ new #[Layout('components.layouts.auth')] class extends Component
         }
     }
 
-    // Initial render if captcha is shown
+    // Initial render
     document.addEventListener('DOMContentLoaded', () => {
         if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
     });
 
-    // Re-render after Livewire updates (dynamic)
-    Livewire.hook('message.processed', (message, component) => {
+    // Re-render after Livewire updates
+    Livewire.hook('message.processed', () => {
         if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
     });
-
-    // Listen for PHP-triggered captcha resets
-    window.addEventListener('reset-recaptcha', () => {
-        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
-    });
 </script>
 
-</script>
