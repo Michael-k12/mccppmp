@@ -74,21 +74,47 @@
         </table>
     </div>
 
-    <!-- Modal -->
-    <div id="addUserModal" class="modal hidden">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">&times;</button>
-            <h2>Add New User</h2>
-            <form method="POST" action="{{ route('users.store') }}">
-                @csrf
-                <input type="text" name="name" placeholder="Name" value="{{ old('name') }}" required>
-                <input type="email" name="email" placeholder="Email" value="{{ old('email') }}" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <small class="text-gray-500 text-sm mb-2">
-                    Password must be at least 12 characters and include uppercase, lowercase, numbers, and symbols.
-                </small>
-                <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
+<!-- Modal -->
+<div id="addUserModal" class="modal hidden">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()">&times;</button>
 
+        <div class="modal-header">
+            <h2>Add New User</h2>
+            <p class="modal-subtitle">Fill in the details to create a new user</p>
+        </div>
+
+        <form method="POST" action="{{ route('users.store') }}" class="modal-form">
+            @csrf
+
+            <!-- Name -->
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" name="name" placeholder="Enter full name" value="{{ old('name') }}" required>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" placeholder="Enter email address" value="{{ old('email') }}" required>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" placeholder="Enter password" required>
+                <small>Password must be at least 12 characters, with uppercase, lowercase, number & symbol.</small>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label for="password_confirmation">Confirm Password</label>
+                <input type="password" name="password_confirmation" placeholder="Confirm password" required>
+            </div>
+
+            <!-- Role -->
+            <div class="form-group">
+                <label for="role">Role / Department</label>
                 <select name="role" required>
                     <option value="">-- Select Role --</option>
                     <option value="BSED" {{ old('role') == 'BSED' ? 'selected' : '' }}>BSED</option>
@@ -98,14 +124,16 @@
                     <option value="LIBRARY" {{ old('role') == 'LIBRARY' ? 'selected' : '' }}>Library</option>
                     <option value="NURSE" {{ old('role') == 'NURSE' ? 'selected' : '' }}>Nurse</option>
                 </select>
+            </div>
 
-                <div class="modal-actions">
-                    <button type="submit" class="submit-btn">Add User</button>
-                    <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
-                </div>
-            </form>
-        </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-submit">Add User</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
     </div>
+</div>
+
 
     <!-- Styles -->
     <style>
@@ -189,117 +217,145 @@
             background-color: #b91c1c;
         }
 
-        /* Modal */
-        .modal {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-        }
+/* Modal overlay */
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
 
-        .modal.hidden {
-            display: none;
-        }
+/* Hide modal */
+.modal.hidden {
+    display: none;
+}
 
-        .modal-content {
-            background: #fff;
-            padding: 30px 25px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 450px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
+/* Modal card */
+.modal-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    position: relative;
+    animation: slideDown 0.3s ease-out;
+}
 
-        .modal-content h2 {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #1f2937;
-        }
+/* Slide-down animation */
+@keyframes slideDown {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
 
-        .modal-content input, .modal-content select {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            width: 100%;
-            font-size: 14px;
-        }
+/* Close button */
+.close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 26px;
+    font-weight: 700;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: 0.2s;
+}
+.close-btn:hover {
+    color: #111827;
+}
 
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 8px;
-        }
+/* Modal header */
+.modal-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+.modal-header .modal-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
 
-        .submit-btn {
-            background-color: #22c55e;
-            color: #fff;
-            padding: 10px 18px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.2s;
-        }
+/* Form */
+.modal-form .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+.modal-form label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
+}
+.modal-form input,
+.modal-form select {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    transition: 0.2s;
+}
+.modal-form input:focus,
+.modal-form select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+.modal-form small {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
 
-        .submit-btn:hover {
-            background-color: #15803d;
-        }
-
-        .cancel-btn {
-            background-color: #e5e7eb;
-            padding: 10px 18px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-
-        .cancel-btn:hover {
-            background-color: #d1d5db;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 24px;
-            font-weight: 700;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #6b7280;
-            transition: 0.2s;
-        }
-
-        .close-btn:hover {
-            color: #111827;
-        }
-
-        .modal-content small {
-            color: #6b7280;
-            font-size: 13px;
-        }
+/* Actions */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+.btn-submit {
+    background: linear-gradient(90deg,#3b82f6,#2563eb);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.btn-submit:hover {
+    background: linear-gradient(90deg,#2563eb,#1e40af);
+}
+.btn-cancel {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+.btn-cancel:hover {
+    background: #d1d5db;
+}
     </style>
 
     <!-- Scripts -->
     <script>
         function openModal() {
-            document.getElementById('addUserModal').classList.remove('hidden');
-        }
+    document.getElementById('addUserModal').classList.remove('hidden');
+}
+function closeModal() {
+    document.getElementById('addUserModal').classList.add('hidden');
+}
 
-        function closeModal() {
-            document.getElementById('addUserModal').classList.add('hidden');
-        }
     </script>
 </x-layouts.app>
