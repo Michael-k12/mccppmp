@@ -105,8 +105,11 @@ class Login extends Component
 ?>
 
 <div class="flex flex-col gap-6 max-w-md mx-auto mt-10" x-data="{ countdown: @entangle('countdown'), captchaReady: @entangle('captchaReady') }"
-     x-init="
-        @if($showCaptcha)
+    x-init="
+    @this.$watch('showCaptcha', value => {
+        if(value){
+            countdown = 20;
+            captchaReady = false;
             let timer = setInterval(() => {
                 if(countdown > 0){
                     countdown--;
@@ -115,8 +118,10 @@ class Login extends Component
                     clearInterval(timer);
                 }
             }, 1000);
-        @endif
-     "
+        }
+    });
+"
+
 >
     <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
 
@@ -129,18 +134,22 @@ class Login extends Component
         <!-- Password -->
         <flux:input wire:model="password" type="password" required placeholder="Password" viewable />
 
-        <!-- CAPTCHA -->
-        @if($showCaptcha)
-            <div class="flex flex-col gap-2">
-                <template x-if="!captchaReady">
-                    <span class="text-red-500 font-bold">Please wait <span x-text="countdown"></span> seconds before CAPTCHA.</span>
-                </template>
+        <div x-data="{ showCaptcha: @entangle('showCaptcha'), countdown: @entangle('countdown'), captchaReady: @entangle('captchaReady') }">
+    <template x-if="showCaptcha">
+        <div class="flex flex-col gap-2">
+            <template x-if="!captchaReady">
+                <span class="text-red-500 font-bold">
+                    Please wait <span x-text="countdown"></span> seconds before CAPTCHA.
+                </span>
+            </template>
 
-                <template x-if="captchaReady">
-                    <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.key') }}" wire:model="captchaToken"></div>
-                </template>
-            </div>
-        @endif
+            <template x-if="captchaReady">
+                <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.key') }}" wire:model="captchaToken"></div>
+            </template>
+        </div>
+    </template>
+</div>
+
 
         <!-- Remember Me -->
         <flux:checkbox wire:model="remember" :label="'Remember me'" />
