@@ -20,6 +20,9 @@
     @if($errors->any())
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Open modal first
+            openModal();
+
             Swal.fire({
                 title: 'Error!',
                 html: `
@@ -78,8 +81,8 @@
             <h2>Add New User</h2>
             <form method="POST" action="{{ route('users.store') }}">
                 @csrf
-                <input type="text" name="name" placeholder="Name" required>
-                <input type="email" name="email" placeholder="Email" required>
+                <input type="text" name="name" placeholder="Name" value="{{ old('name') }}" required>
+                <input type="email" name="email" placeholder="Email" value="{{ old('email') }}" required>
                 <input type="password" name="password" placeholder="Password" required>
                 <small class="text-gray-500 text-sm mb-2">
                     Password must be at least 12 characters and include uppercase, lowercase, numbers, and symbols.
@@ -88,12 +91,12 @@
 
                 <select name="role" required>
                     <option value="">-- Select Role --</option>
-                    <option value="BSED">BSED</option>
-                    <option value="BSBA">BSBA</option>
-                    <option value="BSIT">BSIT</option>
-                    <option value="BSHM">BSHM</option>
-                    <option value="LIBRARY">Library</option>
-                    <option value="NURSE">Nurse</option>
+                    <option value="BSED" {{ old('role') == 'BSED' ? 'selected' : '' }}>BSED</option>
+                    <option value="BSBA" {{ old('role') == 'BSBA' ? 'selected' : '' }}>BSBA</option>
+                    <option value="BSIT" {{ old('role') == 'BSIT' ? 'selected' : '' }}>BSIT</option>
+                    <option value="BSHM" {{ old('role') == 'BSHM' ? 'selected' : '' }}>BSHM</option>
+                    <option value="LIBRARY" {{ old('role') == 'LIBRARY' ? 'selected' : '' }}>Library</option>
+                    <option value="NURSE" {{ old('role') == 'NURSE' ? 'selected' : '' }}>Nurse</option>
                 </select>
 
                 <div class="modal-actions">
