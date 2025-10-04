@@ -20,28 +20,33 @@ class UserController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => [
-                'required', 'string', 'min:12',
-                'regex:/[a-z]/', 'regex:/[A-Z]/',
-                'regex:/[0-9]/', 'regex:/[@$!%*?&#]/',
-                'confirmed',
-            ],
-            'role' => 'required|string',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => [
+            'required', 'string', 'min:12',
+            'regex:/[a-z]/', 'regex:/[A-Z]/',
+            'regex:/[0-9]/', 'regex:/[@$!%*?&#]/',
+            'confirmed',
+        ],
+        'role' => 'required|string',
+    ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+    $plainPassword = $request->password;
 
-        return redirect()->route('users.index')->with('success', 'User added successfully.');
-    }
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($plainPassword),
+        'role' => $request->role,
+    ]);
+
+    // ✅ Send Gmail notification
+    Mail::to($user->email)->send(new UserAccountCreatedMail($user, $plainPassword));
+
+    return redirect()->route('users.index')->with('success', 'User added successfully and email sent!');
+}
 
     // ✅ Add this edit method
     public function edit(User $user)
