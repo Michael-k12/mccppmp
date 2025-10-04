@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Livewire\Auth;
-
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -12,9 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 
-#[Layout('components.layouts.auth')]
-class Login extends Component
-{
+new #[Layout('components.layouts.auth')] class extends Component {
     #[Validate('required|string|email')]
     public string $email = '';
 
@@ -23,56 +20,69 @@ class Login extends Component
 
     public bool $remember = false;
 
-    public string $recaptcha = '';
+    // New property to hold the recaptcha response
+    public string $recaptcha = ''; 
+
+    // New property to control captcha visibility
     public bool $showCaptcha = false;
 
+    /**
+     * Mount the component to check if captcha should be shown.
+     */
     public function mount(): void
     {
         $this->checkIfCaptchaNeeded();
     }
 
+    /**
+     * Check failed attempts and set $showCaptcha.
+     */
     protected function checkIfCaptchaNeeded(): void
     {
+        // Use a simple session counter for the failed attempts for this email/IP
         $attempts = Session::get('login_attempts_' . $this->throttleKey(), 0);
         $this->showCaptcha = $attempts >= 3;
     }
 
+    /**
+     * Handle an incoming authentication request.
+     */
     public function login(): void
     {
-        // Pre-check failed attempts to show captcha
-        $failedAttempts = Session::get('login_attempts_' . $this->throttleKey(), 0);
-        if ($failedAttempts >= 3) {
-            $this->showCaptcha = true;
-        }
-
-        // Validation rules
+        // Add recaptcha to validation rules if needed
         $rules = [
             'email' => 'required|string|email',
             'password' => 'required|string',
         ];
 
         if ($this->showCaptcha) {
-            $rules['recaptcha'] = 'required|recaptcha';
+            // Reset the recaptcha value before validation
+            $this->recaptcha = ''; 
+            
+            // Note: This validation rule assumes the 'anhskohbo/no-captcha' package is installed.
+            $rules['recaptcha'] = 'required|recaptcha'; 
         }
 
         $this->validate($rules);
 
         $this->ensureIsNotRateLimited();
 
-        // Attempt authentication
         if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+            RateLimiter::hit($this->throttleKey());
 
-            // Increment failed attempts
+            // Increment failed attempts counter
             $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
-
-            // Show captcha if attempts >= 3
+            
+            // Re-check and update $showCaptcha status
             if ($failedAttempts >= 3 && ! $this->showCaptcha) {
-                $this->showCaptcha = true;
-            }
-
-            // Reset captcha widget if already visible
-            if ($this->showCaptcha) {
-                $this->dispatchBrowserEvent('resetRecaptcha');
+                // If the counter just crossed 3, set showCaptcha to true
+                $this->showCaptcha = true; 
+                
+                // Instruct the browser to reset the widget after the re-render to clear validation error.
+                $this->js('resetRecaptchaWidget()');
+            } elseif ($this->showCaptcha) {
+                // If CAPTCHA is already visible and submission failed (either auth or captcha), reset the widget
+                $this->js('resetRecaptchaWidget()');
             }
 
             throw ValidationException::withMessages([
@@ -80,19 +90,25 @@ class Login extends Component
             ]);
         }
 
-        // Successful login
+        // Authentication successful
         RateLimiter::clear($this->throttleKey());
-        Session::forget('login_attempts_' . $this->throttleKey());
+        Session::forget('login_attempts_' . $this->throttleKey()); // Clear failed attempts
         Session::regenerate();
 
-        $this->redirectIntended(route('dashboard'));
+        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 
+    /**
+     * Ensure the authentication request is not rate limited.
+     */
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) return;
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+            return;
+        }
 
         event(new Lockout(request()));
+
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
@@ -103,12 +119,13 @@ class Login extends Component
         ]);
     }
 
+    /**
+     * Get the authentication rate limiting throttle key.
+     */
     protected function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
-
-
 }; ?>
 
 <div class="flex flex-col gap-6">
@@ -144,35 +161,20 @@ class Login extends Component
 
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
-        @if ($showCaptcha)
-            <div class="mt-4">
-                <div 
-                    wire:ignore
-                    class="g-recaptcha" 
-                    data-sitekey="{{ config('recaptcha.site_key') }}"
-                    data-callback="setRecaptchaValue"
-                ></div>
+        {{-- CAPTCHA --}}
+        <div class="mt-4" style="{{ $showCaptcha ? '' : 'display:none;' }}">
+            <div 
+                wire:ignore 
+                id="recaptcha-container" 
+                class="g-recaptcha" 
+                data-sitekey="{{ config('recaptcha.site_key') }}"
+                data-callback="setRecaptchaValue"
+            ></div>
 
-                @error('recaptcha')
-                    <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
-                @enderror
-            </div>
-
-            @once
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-                <script>
-                    function setRecaptchaValue(response) {
-                        @this.set('recaptcha', response);
-                    }
-
-                    window.addEventListener('resetRecaptcha', () => {
-                        if (typeof grecaptcha !== 'undefined') {
-                            grecaptcha.reset();
-                        }
-                    });
-                </script>
-            @endonce
-        @endif
+            @error('recaptcha')
+                <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
+            @enderror
+        </div>
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">
@@ -183,8 +185,48 @@ class Login extends Component
 
     @if (Route::has('register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __("Don't have an account?") }}
+            {{ __('Don\'t have an account?') }}
             <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
         </div>
     @endif
 </div>
+
+{{-- Load reCAPTCHA script globally --}}
+@once
+    <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
+@endonce
+
+<script>
+    function setRecaptchaValue(response) {
+        @this.set('recaptcha', response);
+    }
+
+    function resetRecaptchaWidget() {
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.reset();
+        }
+    }
+
+    function renderRecaptcha() {
+        if (document.getElementById('recaptcha-container') && typeof grecaptcha !== 'undefined') {
+            grecaptcha.render('recaptcha-container', {
+                'sitekey': '{{ config('recaptcha.site_key') }}',
+                'callback': setRecaptchaValue
+            });
+        }
+    }
+
+    // Render reCAPTCHA after Livewire renders dynamic content
+    Livewire.hook('message.processed', (message, component) => {
+        if ({{ $showCaptcha ? 'true' : 'false' }}) {
+            renderRecaptcha();
+        }
+    });
+
+    // Optional: on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        if ({{ $showCaptcha ? 'true' : 'false' }}) {
+            renderRecaptcha();
+        }
+    });
+</script>
