@@ -150,18 +150,18 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
-        {{-- reCAPTCHA wrapper --}}
         <div id="recaptcha-wrapper" style="display:none;" class="mt-4">
-            <div wire:ignore.self id="recaptcha-container" class="g-recaptcha"
-                 data-sitekey="{{ config('recaptcha.site_key') }}"
-                 data-callback="setRecaptchaValue">
-            </div>
-            <div id="recaptcha-countdown" class="text-sm text-zinc-600 mt-2"></div>
+    <div wire:ignore.self id="recaptcha-container" class="g-recaptcha"
+         data-sitekey="{{ config('recaptcha.site_key') }}"
+         data-callback="setRecaptchaValue">
+    </div>
 
-            @error('recaptcha')
-                <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
-            @enderror
-        </div>
+    <div id="recaptcha-countdown" class="text-sm text-zinc-600 mt-2"></div>
+
+    @error('recaptcha')
+        <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
+    @enderror
+</div>
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">
@@ -192,5 +192,30 @@ function resetRecaptchaWidget() {
     if (typeof grecaptcha !== 'undefined') {
         grecaptcha.reset();
     }
+}
+
+// Volt component triggers this JS via $this->js()
+function startRecaptchaCountdown(seconds) {
+    const wrapper = document.getElementById('recaptcha-wrapper');
+    const countdownEl = document.getElementById('recaptcha-countdown');
+    wrapper.style.display = 'block';
+    let time = seconds; // define time in JS
+    countdownEl.innerText = `Please wait ${time} seconds...`;
+
+    const interval = setInterval(() => {
+        time--;
+        countdownEl.innerText = `Please wait ${time} seconds...`;
+
+        if (time <= 0) {
+            clearInterval(interval);
+            countdownEl.innerText = '';
+            if (typeof grecaptcha !== 'undefined') {
+                grecaptcha.render('recaptcha-container', {
+                    sitekey: '{{ config('recaptcha.site_key') }}',
+                    callback: setRecaptchaValue
+                });
+            }
+        }
+    }, 1000);
 }
 </script>
