@@ -20,9 +20,21 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password = '';
 
     public bool $remember = false;
-    public bool $showRecaptcha = false; // will show after countdown
+    public bool $showRecaptcha = false;
     public int $remainingSeconds = 0;
     public ?string $recaptchaResponse = null;
+
+    // 🔁 Automatically called every second to update countdown
+    public function tick(): void
+    {
+        if ($this->remainingSeconds > 0) {
+            $this->remainingSeconds--;
+
+            if ($this->remainingSeconds === 0) {
+                $this->showRecaptcha = true;
+            }
+        }
+    }
 
     public function login(): void
     {
@@ -47,15 +59,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
-
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 
     protected function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
-        }
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) return;
 
         event(new Lockout(request()));
         $seconds = RateLimiter::availableIn($this->throttleKey());
@@ -86,14 +95,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public function startCountdown(): void
     {
         $this->remainingSeconds = 20;
-        $this->showRecaptcha = false; // hide at start
-        $this->dispatch('start-countdown');
-    }
-
-    // called after countdown done (from JS)
-    public function showRecaptchaNow(): void
-    {
-        $this->showRecaptcha = true;
+        $this->showRecaptcha = false;
     }
 
     protected function throttleKey(): string
@@ -102,7 +104,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
     }
 };
 ?>
-<div class="flex flex-col gap-6" x-data="{showRecaptcha: @entangle('showRecaptcha')}">
+
+<!-- 🔁 wire:poll.1s makes countdown live -->
+<div class="flex flex-col gap-6" wire:poll.1s="tick">
     <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
 
     <form wire:submit.prevent="login" class="flex flex-col gap-6">
@@ -110,19 +114,19 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <flux:input wire:model="password" label="Password" type="password" required />
         <flux:checkbox wire:model="remember" label="Remember me" />
 
-        <!-- Countdown -->
+        <!-- Live countdown -->
         @if ($remainingSeconds > 0)
             <div class="text-center text-red-500">
-                Please wait <span id="countdown">{{ $remainingSeconds }}</span> seconds before next attempt.
+                Please wait <b>{{ $remainingSeconds }}</b> seconds before next attempt.
             </div>
         @endif
 
-        <!-- reCAPTCHA appears only after countdown ends -->
-        <template x-if="showRecaptcha">
-            <div class="flex justify-center mt-4">
+        <!-- reCAPTCHA appears after countdown -->
+        @if ($showRecaptcha)
+            <div class="flex justify-center mt-4" wire:ignore>
                 <div class="g-recaptcha"
                      data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"
-                     wire:ignore
+                     x-data
                      x-init="
                         window.recaptchaCallback = (response) => {
                             $wire.set('recaptchaResponse', response);
@@ -130,31 +134,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
                      ">
                 </div>
             </div>
-        </template>
+        @endif
 
-        <flux:button variant="primary" type="submit" class="w-full">Log in</flux:button>
+        <flux:button variant="primary" type="submit" class="w-full">
+            Log in
+        </flux:button>
     </form>
 </div>
 
 <!-- Google reCAPTCHA -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-<!-- Live countdown logic -->
-<script>
-document.addEventListener('livewire:init', () => {
-    Livewire.on('start-countdown', () => {
-        let countdown = document.getElementById('countdown');
-        if (!countdown) return;
-        let seconds = parseInt(countdown.textContent);
-        const interval = setInterval(() => {
-            seconds--;
-            countdown.textContent = seconds;
-            if (seconds <= 0) {
-                clearInterval(interval);
-                // Tell Livewire to show the reCAPTCHA after countdown ends
-                Livewire.dispatch('call', { method: 'showRecaptchaNow' });
-            }
-        }, 1000);
-    });
-});
-</script>
