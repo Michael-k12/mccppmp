@@ -10,13 +10,10 @@ use App\Http\Controllers\PdfExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\BudgetController;
-use App\Http\Livewire\Auth\Login;
 
-Route::get('/login', Login::class)->name('login');
-
-Route::get('/', function () {
-    return redirect()->route('login');
-})->name('home');
+Route::get('/login', function () {
+    return view('auth.login');
+})->name('login');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
