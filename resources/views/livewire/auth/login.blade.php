@@ -147,18 +147,15 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         {{-- CAPTCHA --}}
         <div class="mt-4" style="{{ $showCaptcha ? '' : 'display:none;' }}">
-            <div 
-                wire:ignore 
-                id="recaptcha-container" 
-                class="g-recaptcha" 
-                data-sitekey="{{ config('recaptcha.site_key') }}"
-                data-callback="setRecaptchaValue"
-            ></div>
+    <div wire:ignore.self id="recaptcha-container" class="g-recaptcha" 
+        data-sitekey="{{ config('recaptcha.site_key') }}" 
+        data-callback="setRecaptchaValue">
+    </div>
 
-            @error('recaptcha')
-                <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
-            @enderror
-        </div>
+    @error('recaptcha')
+        <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
+    @enderror
+</div>
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">
@@ -181,35 +178,27 @@ new #[Layout('components.layouts.auth')] class extends Component
 @endonce
 
 <script>
-
     function setRecaptchaValue(response) {
         @this.set('recaptcha', response);
-    }
-
-    function resetRecaptchaWidget() {
-        if (typeof grecaptcha !== 'undefined') {
-            grecaptcha.reset();
-        }
     }
 
     function renderRecaptcha() {
         const container = document.getElementById('recaptcha-container');
         if (container && typeof grecaptcha !== 'undefined') {
             grecaptcha.render(container, {
-                'sitekey': '{{ config('recaptcha.site_key') }}',
-                'callback': setRecaptchaValue
+                sitekey: '{{ config('recaptcha.site_key') }}',
+                callback: setRecaptchaValue
             });
         }
     }
 
-    // Initial render
     document.addEventListener('DOMContentLoaded', () => {
         if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
     });
 
-    // Re-render after Livewire updates
     Livewire.hook('message.processed', () => {
         if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
     });
+
 </script>
 
