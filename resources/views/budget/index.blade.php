@@ -78,54 +78,53 @@
         </div>
 
 <div class="mt-8">
-    <div class="flex justify-between items-center mb-3">
-        <h3 class="text-2xl font-semibold text-gray-800">Previous Budgets</h3>
-        <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
-            @csrf
-            @method('DELETE')
-            <button type="submit" id="deleteSelectedBtn" 
-                class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden">
-                Delete Selected
-            </button>
-        </form>
+    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-between">
+        Previous Budgets
+
+       <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
+    @csrf
+    @method('DELETE')
+
+    <div class="flex justify-between items-center mb-2">
+        <h3 class="text-2xl font-semibold">Previous Budgets</h3>
+        <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden">
+            Delete Selected
+        </button>
     </div>
 
-    <form id="budgetsForm" method="POST" action="{{ route('budget.deleteSelected') }}">
-        @csrf
-        @method('DELETE')
-        <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
-            <table class="w-full border-collapse">
-                <thead class="bg-gray-100 text-gray-700">
-                    <tr>
-                        <th class="px-5 py-3">
-                            <input type="checkbox" id="selectAll">
-                        </th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
-                        <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
-                        <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
+    <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full border-collapse">
+            <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                    <th class="px-5 py-3">
+                        <input type="checkbox" id="selectAll">
+                    </th>
+                    <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
+                    <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
+                    <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($budgets as $budget)
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="px-5 py-3">
+                            <input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox">
+                        </td>
+                        <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
+                        <td class="px-5 py-3 text-green-600 font-semibold">₱{{ number_format($budget->amount, 2) }}</td>
+                        <td class="px-5 py-3 text-center">
+                            @if (!$budget->is_ended)
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
+                            @else
+                                <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
+                            @endif
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach ($budgets as $budget)
-                        <tr class="border-b hover:bg-gray-50 transition">
-                            <td class="px-5 py-3">
-                                <input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox">
-                            </td>
-                            <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
-                            <td class="px-5 py-3 text-green-600 font-semibold">₱{{ number_format($budget->amount, 2) }}</td>
-                            <td class="px-5 py-3 text-center">
-                                @if (!$budget->is_ended)
-                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
-                                @else
-                                    <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </form>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</form>
 </div>
 
     <!-- ✅ Styles -->
