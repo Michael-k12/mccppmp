@@ -19,21 +19,30 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password = '';
 
     public bool $remember = false;
+    public ?int $cooldown = null; // seconds remaining
+    public bool $locked = false;  // lockout state
 
-    /**
-     * Handle an incoming authentication request.
-     */
+    public function mount(): void
+    {
+        $this->checkCooldown();
+    }
+
     public function login(): void
     {
         $this->validate();
 
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
-            RateLimiter::hit($this->throttleKey());
+        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+            RateLimiter::hit($this->throttleKey(), 20); // lock for 20 seconds after 3 fails
+
+            if (RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
+                $this->locked = true;
+                $this->cooldown = RateLimiter::availableIn($this->throttleKey());
+            }
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'email' => __('Invalid email or password.'),
             ]);
         }
 
@@ -43,37 +52,49 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 
-    /**
-     * Ensure the authentication request is not rate limited.
-     */
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
             return;
         }
 
+        $this->locked = true;
+        $this->cooldown = RateLimiter::availableIn($this->throttleKey());
+
         event(new Lockout(request()));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
-
         throw ValidationException::withMessages([
-            'email' => __('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'email' => "Too many attempts. Please wait {$this->cooldown} seconds before retrying.",
         ]);
     }
 
-    /**
-     * Get the authentication rate limiting throttle key.
-     */
+    protected function checkCooldown(): void
+    {
+        if (RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
+            $this->locked = true;
+            $this->cooldown = RateLimiter::availableIn($this->throttleKey());
+        }
+    }
+
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip());
     }
-}; ?>
 
-<div class="flex flex-col gap-6">
+    public function tick(): void
+    {
+        if ($this->cooldown !== null && $this->cooldown > 0) {
+            $this->cooldown--;
+            if ($this->cooldown <= 0) {
+                $this->locked = false;
+                RateLimiter::clear($this->throttleKey());
+            }
+        }
+    }
+};
+?>
+
+<div class="flex flex-col gap-6" wire:poll.1s="tick">
     <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
 
     <!-- Session Status -->
@@ -89,6 +110,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             autofocus
             autocomplete="email"
             placeholder="email@example.com"
+            :disabled="$locked"
         />
 
         <!-- Password -->
@@ -101,18 +123,25 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 autocomplete="current-password"
                 :placeholder="__('Password')"
                 viewable
+                :disabled="$locked"
             />
-
-            
         </div>
 
         <!-- Remember Me -->
-        <flux:checkbox wire:model="remember" :label="__('Remember me')" />
+        <flux:checkbox wire:model="remember" :label="__('Remember me')" :disabled="$locked" />
 
         <div class="flex items-center justify-end">
-            <flux:button variant="primary" type="submit" class="w-full">{{ __('Log in') }}</flux:button>
+            <flux:button variant="primary" type="submit" class="w-full" :disabled="$locked">
+                {{ $locked ? __('Please wait...') : __('Log in') }}
+            </flux:button>
         </div>
     </form>
+
+    @if ($locked)
+        <div class="text-center text-sm text-red-600 dark:text-red-400">
+            Too many attempts. Try again in <b>{{ $cooldown }}</b> seconds.
+        </div>
+    @endif
 
     @if (Route::has('register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
