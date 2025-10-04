@@ -51,6 +51,16 @@ public function end($id)
     return redirect()->back()->with('success', 'Proposal Ended!');
 }
 
+public function deleteSelected(Request $request)
+{
+    $ids = $request->input('selected', []);
+    if (count($ids) > 0) {
+        Budget::whereIn('id', $ids)->delete();
+        return redirect()->back()->with('success', 'Selected budgets deleted successfully.');
+    }
+
+    return redirect()->back()->with('warning', 'No budgets selected.');
+}
 
 
 }

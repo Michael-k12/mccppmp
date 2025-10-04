@@ -77,37 +77,54 @@
             </div>
         </div>
 
-        <!-- ✅ Previous Budgets -->
-        <div class="mt-8">
-            <h3 class="text-2xl font-semibold mb-3 text-gray-800">Previous Budgets</h3>
-            <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
-                <table class="w-full border-collapse">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
-                            <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
-                            <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($budgets as $budget)
-                            <tr class="border-b hover:bg-gray-50 transition">
-                                <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
-                                <td class="px-5 py-3 text-green-600 font-semibold">₱{{ number_format($budget->amount, 2) }}</td>
-                                <td class="px-5 py-3 text-center">
-                                    @if (!$budget->is_ended)
-                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
-                                    @else
-                                        <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="mt-8">
+    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-between">
+        Previous Budgets
+
+        <!-- Delete Button -->
+        <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
+            @csrf
+            @method('DELETE')
+            <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden">
+                Delete Selected
+            </button>
+        </form>
+    </h3>
+
+    <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full border-collapse">
+            <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                    <th class="px-5 py-3">
+                        <input type="checkbox" id="selectAll">
+                    </th>
+                    <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
+                    <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
+                    <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($budgets as $budget)
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="px-5 py-3">
+                            <input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox">
+                        </td>
+                        <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
+                        <td class="px-5 py-3 text-green-600 font-semibold">₱{{ number_format($budget->amount, 2) }}</td>
+                        <td class="px-5 py-3 text-center">
+                            @if (!$budget->is_ended)
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
+                            @else
+                                <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
+</div>
+
 
     <!-- ✅ Styles -->
     <style>
@@ -297,5 +314,32 @@
                 });
             @endif
         });
-    </script>
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const budgetCheckboxes = document.querySelectorAll('.budget-checkbox');
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+
+    selectAllCheckbox.addEventListener('change', function() {
+        budgetCheckboxes.forEach(cb => cb.checked = this.checked);
+        toggleDeleteBtn();
+    });
+
+    budgetCheckboxes.forEach(cb => {
+        cb.addEventListener('change', toggleDeleteBtn);
+    });
+
+    function toggleDeleteBtn() {
+        const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
+        deleteBtn.classList.toggle('hidden', !anyChecked);
+    }
+
+    // Submit the form with selected budgets
+    document.getElementById('deleteSelectedForm').addEventListener('submit', function(e) {
+        const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
+        if (!anyChecked) {
+            e.preventDefault();
+            alert('Please select at least one budget to delete.');
+        }
+    });
+</script>
+
 </x-layouts.app>

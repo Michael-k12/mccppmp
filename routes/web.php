@@ -101,3 +101,4 @@ Route::put('/ppmps/{id}/update-quantity', [PpmpController::class, 'updateQuantit
 Route::post('/ppmp/realign', [PpmpController::class, 'realign'])->name('ppmp.realign');
 Route::get('/ppmp/remaining-budget', [App\Http\Controllers\PpmpController::class, 'getRemainingBudget'])->name('ppmp.remaining-budget');
 
+Route::delete('/budget/delete-selected', [BudgetController::class, 'deleteSelected'])->name('budget.deleteSelected');
