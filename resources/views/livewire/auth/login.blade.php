@@ -20,10 +20,8 @@ new #[Layout('components.layouts.auth')] class extends Component
 
     public bool $remember = false;
 
-    // reCAPTCHA response
     public string $recaptcha = '';
 
-    // Controls whether CAPTCHA should be shown
     public bool $showCaptcha = false;
 
     public function mount(): void
@@ -39,7 +37,6 @@ new #[Layout('components.layouts.auth')] class extends Component
 
     public function login(): void
     {
-        // Validation rules
         $rules = [
             'email' => 'required|string|email',
             'password' => 'required|string',
@@ -57,12 +54,11 @@ new #[Layout('components.layouts.auth')] class extends Component
             RateLimiter::hit($this->throttleKey());
             $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
 
-            // Show captcha if threshold reached
             if ($failedAttempts >= 3 && !$this->showCaptcha) {
                 $this->showCaptcha = true;
-                $this->js('resetRecaptchaWidget()');
+                $this->js('document.getElementById("recaptcha-wrapper").style.display = "block"; resetRecaptchaWidget();');
             } elseif ($this->showCaptcha) {
-                $this->js('resetRecaptchaWidget()');
+                $this->js('resetRecaptchaWidget();');
             }
 
             throw ValidationException::withMessages([
@@ -70,7 +66,6 @@ new #[Layout('components.layouts.auth')] class extends Component
             ]);
         }
 
-        // Login success
         RateLimiter::clear($this->throttleKey());
         Session::forget('login_attempts_' . $this->throttleKey());
         Session::regenerate();
@@ -99,6 +94,7 @@ new #[Layout('components.layouts.auth')] class extends Component
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
 };
+
 
  ?>
 
@@ -135,11 +131,12 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
-        {{-- CAPTCHA --}}
-        <div class="mt-4" style="{{ $showCaptcha ? '' : 'display:none;' }}">
+        {{-- reCAPTCHA --}}
+        <div id="recaptcha-wrapper" style="display: {{ $showCaptcha ? 'block' : 'none' }};" class="mt-4">
             <div wire:ignore.self id="recaptcha-container" class="g-recaptcha"
                  data-sitekey="{{ config('recaptcha.site_key') }}"
-                 data-callback="setRecaptchaValue"></div>
+                 data-callback="setRecaptchaValue">
+            </div>
 
             @error('recaptcha')
                 <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
@@ -161,37 +158,39 @@ new #[Layout('components.layouts.auth')] class extends Component
     @endif
 </div>
 
-{{-- Load reCAPTCHA script globally --}}
+{{-- Load reCAPTCHA script --}}
 @once
 <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 @endonce
 
 <script>
-    function setRecaptchaValue(response) {
-        @this.set('recaptcha', response);
+function setRecaptchaValue(response) {
+    @this.set('recaptcha', response);
+}
+
+function resetRecaptchaWidget() {
+    if (typeof grecaptcha !== 'undefined') {
+        grecaptcha.reset();
     }
+}
 
-    function resetRecaptchaWidget() {
-        if (typeof grecaptcha !== 'undefined') {
-            grecaptcha.reset();
-        }
+function renderRecaptcha() {
+    const container = document.getElementById('recaptcha-container');
+    if (container && typeof grecaptcha !== 'undefined' && !container.hasChildNodes()) {
+        grecaptcha.render(container, {
+            sitekey: '{{ config('recaptcha.site_key') }}',
+            callback: setRecaptchaValue
+        });
     }
+}
 
-    function renderRecaptcha() {
-        const container = document.getElementById('recaptcha-container');
-        if (container && typeof grecaptcha !== 'undefined') {
-            grecaptcha.render(container, {
-                sitekey: '{{ config('recaptcha.site_key') }}',
-                callback: setRecaptchaValue
-            });
-        }
-    }
+// Initial render
+document.addEventListener('DOMContentLoaded', () => {
+    if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
+});
 
-    document.addEventListener('DOMContentLoaded', () => {
-        if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
-    });
-
-    Livewire.hook('message.processed', () => {
-        if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
-    });
+// Re-render after Livewire updates
+Livewire.hook('message.processed', () => {
+    if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
+});
 </script>
