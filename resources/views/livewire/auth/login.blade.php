@@ -131,7 +131,6 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
-        {{-- reCAPTCHA --}}
         <div id="recaptcha-wrapper" style="display: none;" class="mt-4">
     <div wire:ignore.self id="recaptcha-container" class="g-recaptcha"
          data-sitekey="{{ config('recaptcha.site_key') }}"
@@ -144,6 +143,27 @@ new #[Layout('components.layouts.auth')] class extends Component
         <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
     @enderror
 </div>
+
+        <div class="flex items-center justify-end">
+            <flux:button variant="primary" type="submit" class="w-full">
+                {{ __('Log in') }}
+            </flux:button>
+        </div>
+    </form>
+
+    @if (Route::has('register'))
+        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
+            {{ __('Don\'t have an account?') }}
+            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
+        </div>
+    @endif
+</div>
+
+{{-- Load reCAPTCHA script --}}
+@once
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
+@endonce
+
 
 <script>
 function setRecaptchaValue(response) {
