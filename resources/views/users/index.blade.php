@@ -1,5 +1,7 @@
 <x-layouts.app :title="'Manage Users'">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- SweetAlert Success -->
     @if(session('success'))
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -7,8 +9,28 @@
                 title: 'Success!',
                 text: @json(session('success')),
                 icon: 'success',
-                timer: 1000,
-                showConfirmButton: false
+                timer: 1500,
+                showConfirmButton: false,
+            });
+        });
+    </script>
+    @endif
+
+    <!-- SweetAlert Error -->
+    @if($errors->any())
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            Swal.fire({
+                title: 'Error!',
+                html: `
+                    <ul class="text-left">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                `,
+                icon: 'error',
+                confirmButtonText: 'OK',
             });
         });
     </script>
@@ -40,7 +62,7 @@
                         <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button onclick="return confirm('Delete this user?')" class="delete-btn">Delete</button>
+                            <button type="submit" onclick="return confirm('Delete this user?')" class="delete-btn">Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -52,18 +74,17 @@
     <!-- Modal -->
     <div id="addUserModal" class="modal hidden">
         <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
             <h2>Add New User</h2>
             <form method="POST" action="{{ route('users.store') }}">
                 @csrf
                 <input type="text" name="name" placeholder="Name" required>
                 <input type="email" name="email" placeholder="Email" required>
                 <input type="password" name="password" placeholder="Password" required>
-<small class="text-gray-500 text-sm">
-    Password must be at least 12 characters and include uppercase, lowercase, numbers, and symbols.
-</small>
-
-<input type="password" name="password_confirmation" placeholder="Confirm Password" required>
-
+                <small class="text-gray-500 text-sm mb-2">
+                    Password must be at least 12 characters and include uppercase, lowercase, numbers, and symbols.
+                </small>
+                <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
 
                 <select name="role" required>
                     <option value="">-- Select Role --</option>
@@ -76,14 +97,14 @@
                 </select>
 
                 <div class="modal-actions">
-                    <button type="submit" class="submit-btn">Add</button>
+                    <button type="submit" class="submit-btn">Add User</button>
                     <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Style -->
+    <!-- Styles -->
     <style>
         .header-row {
             display: flex;
@@ -93,82 +114,88 @@
         }
 
         .header-row h1 {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            color: #1f2937;
         }
 
         .add-button {
             background-color: #2563eb;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
             border: none;
             cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
         }
 
         .add-button:hover {
-            background-color: #1d4ed8;
+            background-color: #1e40af;
         }
 
         .user-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .user-table th, .user-table td {
-            padding: 12px;
-            border: 1px solid #ccc;
+            padding: 14px;
             text-align: left;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .user-table thead {
-            background-color: #6c9dffff;
+            background-color: #3b82f6;
+            color: #fff;
         }
 
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .edit-btn {
             background-color: #3b82f6;
-            color: white;
+            color: #fff;
             padding: 6px 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .edit-btn:hover {
+            background-color: #1e40af;
         }
 
         .delete-btn {
             background-color: #ef4444;
-            color: white;
+            color: #fff;
             padding: 6px 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
+            transition: 0.2s;
         }
-        .modal-content small {
-    display: block;
-    margin-top: -5px;
-    margin-bottom: 10px;
-}
 
+        .delete-btn:hover {
+            background-color: #b91c1c;
+        }
 
         /* Modal */
         .modal {
             position: fixed;
-            top: 0;
-            left: 0;
+            inset: 0;
             z-index: 50;
-            width: 100%;
-            height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 1rem;
         }
 
         .modal.hidden {
@@ -176,51 +203,93 @@
         }
 
         .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 400px;
+            background: #fff;
+            padding: 30px 25px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
 
         .modal-content h2 {
-            margin-bottom: 10px;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1f2937;
         }
 
         .modal-content input, .modal-content select {
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
             width: 100%;
+            font-size: 14px;
         }
 
         .modal-actions {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            margin-top: 8px;
         }
 
         .submit-btn {
             background-color: #22c55e;
-            color: white;
-            padding: 8px 16px;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
             border: none;
-            border-radius: 6px;
             cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #15803d;
         }
 
         .cancel-btn {
             background-color: #e5e7eb;
-            padding: 8px 16px;
+            padding: 10px 18px;
+            border-radius: 8px;
             border: none;
-            border-radius: 6px;
             cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .cancel-btn:hover {
+            background-color: #d1d5db;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            transition: 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #111827;
+        }
+
+        .modal-content small {
+            color: #6b7280;
+            font-size: 13px;
         }
     </style>
 
-    <!-- Script -->
+    <!-- Scripts -->
     <script>
         function openModal() {
             document.getElementById('addUserModal').classList.remove('hidden');
