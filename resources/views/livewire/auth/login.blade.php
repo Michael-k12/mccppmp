@@ -1,16 +1,16 @@
 <?php
 
-use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
+use Illuminate\Validation\ValidationException;
 
-new #[Layout('components.layouts.auth')] class extends Component {
+new #[Layout('components.layouts.auth')] class extends Component
+{
     #[Validate('required|string|email')]
     public string $email = '';
 
@@ -18,18 +18,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password = '';
 
     public bool $remember = false;
-
     public int $attemptsLeft = 3;
-    public ?int $secondsRemaining = null;
+    public ?int $lockoutSeconds = null;
     public string $g_recaptcha_response = '';
 
     public function mount(): void
     {
-        // If previously locked out, set secondsRemaining
-        $key = $this->throttleKey();
-        if (RateLimiter::tooManyAttempts($key, 3)) {
-            $this->secondsRemaining = RateLimiter::availableIn($key);
-        }
+        $this->updateAttempts();
     }
 
     public function login(): void
@@ -37,26 +32,19 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $this->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',
-            'g_recaptcha_response' => 'required|captcha',
+            'g_recaptcha_response' => 'required|captcha', // make sure recaptcha package installed
         ]);
 
         $key = $this->throttleKey();
 
         if (RateLimiter::tooManyAttempts($key, 3)) {
-            $this->secondsRemaining = RateLimiter::availableIn($key);
+            $this->lockoutSeconds = RateLimiter::availableIn($key);
             return;
         }
 
         if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
-            RateLimiter::hit($key, 60);
-            $this->attemptsLeft = 3 - RateLimiter::attempts($key);
-
-            if ($this->attemptsLeft === 0) {
-                $this->secondsRemaining = RateLimiter::availableIn($key);
-                $this->startCountdown();
-            }
-
-            $this->dispatchBrowserEvent('login-failed', ['attemptsLeft' => $this->attemptsLeft]);
+            RateLimiter::hit($key, 60); // lockout for 60 sec
+            $this->updateAttempts();
             return;
         }
 
@@ -67,21 +55,38 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::lower($this->email).'|'.request()->ip();
     }
 
-    public function startCountdown(): void
+    public function updateAttempts(): void
     {
-        $this->dispatchBrowserEvent('start-countdown', ['seconds' => $this->secondsRemaining]);
+        $key = $this->throttleKey();
+        $attempts = RateLimiter::attempts($key);
+        $this->attemptsLeft = max(0, 3 - $attempts);
+
+        if ($this->attemptsLeft === 0) {
+            $this->lockoutSeconds = RateLimiter::availableIn($key);
+        } else {
+            $this->lockoutSeconds = null;
+        }
+    }
+
+    public function tick(): void
+    {
+        if ($this->lockoutSeconds && $this->lockoutSeconds > 0) {
+            $this->lockoutSeconds--;
+        }
+
+        if ($this->lockoutSeconds === 0) {
+            $this->updateAttempts();
+        }
     }
 };
 ?>
 <div class="flex flex-col gap-6">
     <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below')" />
 
-    <x-auth-session-status class="text-center" :status="session('status')" />
-
-    <form wire:submit="login" class="flex flex-col gap-6">
+    <form wire:submit.prevent="login" wire:poll.1000ms="tick" class="flex flex-col gap-6">
         <flux:input
             wire:model="email"
             :label="__('Email address')"
@@ -103,22 +108,21 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <!-- Google reCAPTCHA -->
         <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
 
-        <!-- Countdown -->
-        @if($secondsRemaining)
+        @if($lockoutSeconds)
             <p class="text-red-500">
-                Too many attempts. Try again in <span id="countdown">{{ $secondsRemaining }}</span> seconds.
+                Too many attempts. Try again in <span>{{ $lockoutSeconds }}</span> seconds.
             </p>
         @endif
 
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
-        <flux:button variant="primary" type="submit" class="w-full" :disabled="$secondsRemaining > 0">
+        <flux:button variant="primary" type="submit" class="w-full" @if($lockoutSeconds) disabled @endif>
             {{ __('Log in') }}
         </flux:button>
     </form>
 
     @if(Route::has('register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
+        <div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
             {{ __('Don\'t have an account?') }}
             <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
         </div>
@@ -127,21 +131,4 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
 @push('scripts')
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-<script>
-    let countdownInterval;
-
-    Livewire.on('start-countdown', event => {
-        let countdownEl = document.getElementById('countdown');
-        let seconds = event.seconds;
-
-        countdownInterval = setInterval(() => {
-            countdownEl.innerText = seconds;
-            seconds--;
-            if(seconds < 0){
-                clearInterval(countdownInterval);
-                Livewire.emit('resetCountdown'); // optional: reset on component
-            }
-        }, 1000);
-    });
-</script>
 @endpush
