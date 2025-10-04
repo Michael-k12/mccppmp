@@ -20,34 +20,79 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public bool $remember = false;
 
+    // New property to hold the recaptcha response
+    public string $recaptcha = ''; 
+
+    // New property to control captcha visibility
+    public bool $showCaptcha = false;
+
+    /**
+     * Mount the component to check if captcha should be shown.
+     */
+    public function mount(): void
+    {
+        $this->checkIfCaptchaNeeded();
+    }
+
+    /**
+     * Check failed attempts and set $showCaptcha.
+     */
+    protected function checkIfCaptchaNeeded(): void
+    {
+        // Use a simple session counter for the failed attempts for this email/IP
+        $attempts = Session::get('login_attempts_' . $this->throttleKey(), 0);
+        $this->showCaptcha = $attempts >= 3;
+    }
+
     /**
      * Handle an incoming authentication request.
      */
     public function login(): void
     {
-        $this->validate();
+        // Add recaptcha to validation rules if needed
+        $rules = [
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ];
+
+        if ($this->showCaptcha) {
+            // Note: This validation rule assumes you are using the anhskohbo/no-captcha package.
+            // If you use a different package, change 'recaptcha' to the correct rule.
+            $rules['recaptcha'] = 'required|recaptcha'; 
+        }
+
+        $this->validate($rules);
 
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
+            // Increment failed attempts counter and check if captcha should be shown
+            $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
+            if ($failedAttempts >= 3) {
+                $this->showCaptcha = true; // Show captcha on the next render
+            }
+
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
         }
 
+        // Authentication successful
         RateLimiter::clear($this->throttleKey());
+        Session::forget('login_attempts_' . $this->throttleKey()); // Clear failed attempts
         Session::regenerate();
 
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 
     /**
-     * Ensure the authentication request is not rate limited.
+     * Ensure the authentication request is not rate limited. (Unchanged)
      */
     protected function ensureIsNotRateLimited(): void
     {
+        // ... (existing code for rate limiting)
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
@@ -65,7 +110,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     }
 
     /**
-     * Get the authentication rate limiting throttle key.
+     * Get the authentication rate limiting throttle key. (Unchanged)
      */
     protected function throttleKey(): string
     {
@@ -76,11 +121,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
 <div class="flex flex-col gap-6">
     <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
 
-    <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
 
     <form wire:submit="login" class="flex flex-col gap-6">
-        <!-- Email Address -->
         <flux:input
             wire:model="email"
             :label="__('Email address')"
@@ -91,7 +134,6 @@ new #[Layout('components.layouts.auth')] class extends Component {
             placeholder="email@example.com"
         />
 
-        <!-- Password -->
         <div class="relative">
             <flux:input
                 wire:model="password"
@@ -102,12 +144,35 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 :placeholder="__('Password')"
                 viewable
             />
-
-            
         </div>
 
-        <!-- Remember Me -->
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
+        
+        @if ($showCaptcha)
+            <div class="mt-4">
+                <div 
+                    wire:ignore
+                    class="g-recaptcha" 
+                    data-sitekey="{{ config('recaptcha.site_key') }}"
+                    data-callback="setRecaptchaValue"
+                ></div>
+                
+                @error('recaptcha')
+                    <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
+                @enderror
+            </div>
+
+            @once
+                {{-- Script to load reCAPTCHA and set its value on the Livewire component --}}
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                <script>
+                    function setRecaptchaValue(response) {
+                        // This uses Livewire's internal mechanism to set the value
+                        @this.set('recaptcha', response);
+                    }
+                </script>
+            @endonce
+        @endif
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">{{ __('Log in') }}</flux:button>
