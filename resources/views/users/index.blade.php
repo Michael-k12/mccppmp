@@ -62,11 +62,12 @@
                     <td>{{ $user->role }}</td>
                     <td class="action-buttons">
                         <a href="{{ route('users.edit', $user) }}" class="edit-btn">Edit</a>
-                        <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" onclick="return confirm('Delete this user?')" class="delete-btn">Delete</button>
-                        </form>
+                        <form action="{{ route('users.destroy', $user) }}" method="POST" class="delete-form inline">
+    @csrf
+    @method('DELETE')
+    <button type="button" class="delete-btn" onclick="confirmDelete(this)">Delete</button>
+</form>
+
                     </td>
                 </tr>
                 @endforeach
@@ -372,5 +373,22 @@
         function closeModal() {
             document.getElementById('addUserModal').classList.add('hidden');
         }
+        function confirmDelete(button) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This user will be permanently deleted.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Find the parent form and submit it
+            button.closest('form').submit();
+        }
+    });
+}
     </script>
 </x-layouts.app>
