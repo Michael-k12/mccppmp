@@ -3,6 +3,7 @@
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -19,19 +20,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public bool $remember = false;
 
-    // Google reCAPTCHA response
-    public string $g_recaptcha_response = '';
-
     /**
      * Handle an incoming authentication request.
      */
     public function login(): void
     {
-        $this->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-            'g_recaptcha_response' => 'required|captcha', // reCAPTCHA validation
-        ]);
+        $this->validate();
 
         $this->ensureIsNotRateLimited();
 
@@ -49,6 +43,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 
+    /**
+     * Ensure the authentication request is not rate limited.
+     */
     protected function ensureIsNotRateLimited(): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
@@ -67,12 +64,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ]);
     }
 
+    /**
+     * Get the authentication rate limiting throttle key.
+     */
     protected function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
-};
- ?>
+}; ?>
 
 <div class="flex flex-col gap-6">
     <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
@@ -106,12 +105,6 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
             
         </div>
-        <!-- Google reCAPTCHA -->
-<div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
-
-<!-- Add hidden input to bind Livewire -->
-<input type="hidden" wire:model="g_recaptcha_response" id="g_recaptcha_response">
-
 
         <!-- Remember Me -->
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
@@ -128,18 +121,3 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </div>
     @endif
 </div>
-@push('scripts')
-<script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY') }}"></script>
-<script>
-    grecaptcha.ready(function() {
-        document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY') }}', {action: 'login'}).then(function(token) {
-                @this.set('g_recaptcha_response', token);
-                @this.call('login');
-            });
-        });
-    });
-</script>
-@endpush
-
