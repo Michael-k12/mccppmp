@@ -56,8 +56,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ];
 
         if ($this->showCaptcha) {
-            // Note: This validation rule assumes you are using the anhskohbo/no-captcha package.
-            // If you use a different package, change 'recaptcha' to the correct rule.
+            // Reset the recaptcha value before validation
+            $this->recaptcha = ''; 
+            
+            // Note: This validation rule assumes the 'anhskohbo/no-captcha' package is installed.
             $rules['recaptcha'] = 'required|recaptcha'; 
         }
 
@@ -68,10 +70,19 @@ new #[Layout('components.layouts.auth')] class extends Component {
         if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
-            // Increment failed attempts counter and check if captcha should be shown
+            // Increment failed attempts counter
             $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
-            if ($failedAttempts >= 3) {
-                $this->showCaptcha = true; // Show captcha on the next render
+            
+            // Re-check and update $showCaptcha status
+            if ($failedAttempts >= 3 && ! $this->showCaptcha) {
+                // If the counter just crossed 3, set showCaptcha to true
+                $this->showCaptcha = true; 
+                
+                // Instruct the browser to reset the widget after the re-render to clear validation error.
+                $this->js('resetRecaptchaWidget()');
+            } elseif ($this->showCaptcha) {
+                // If CAPTCHA is already visible and submission failed (either auth or captcha), reset the widget
+                $this->js('resetRecaptchaWidget()');
             }
 
             throw ValidationException::withMessages([
@@ -88,11 +99,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
     }
 
     /**
-     * Ensure the authentication request is not rate limited. (Unchanged)
+     * Ensure the authentication request is not rate limited.
      */
     protected function ensureIsNotRateLimited(): void
     {
-        // ... (existing code for rate limiting)
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
@@ -110,7 +120,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     }
 
     /**
-     * Get the authentication rate limiting throttle key. (Unchanged)
+     * Get the authentication rate limiting throttle key.
      */
     protected function throttleKey(): string
     {
@@ -163,12 +173,19 @@ new #[Layout('components.layouts.auth')] class extends Component {
             </div>
 
             @once
-                {{-- Script to load reCAPTCHA and set its value on the Livewire component --}}
+                {{-- Script to load reCAPTCHA --}}
                 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                 <script>
                     function setRecaptchaValue(response) {
-                        // This uses Livewire's internal mechanism to set the value
+                        // Sets the recaptcha response token on the Livewire component
                         @this.set('recaptcha', response);
+                    }
+                    
+                    // GLOBAL FUNCTION called from the PHP component to clear the widget state
+                    function resetRecaptchaWidget() {
+                        if (typeof grecaptcha !== 'undefined') {
+                            grecaptcha.reset();
+                        }
                     }
                 </script>
             @endonce
