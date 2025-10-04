@@ -1,3 +1,8 @@
+@extends('layouts.app')
+
+@section('content')
+    <livewire:auth.login />
+@endsection
 
 <div class="flex flex-col gap-6 max-w-md mx-auto mt-10"
      x-data="{ showCaptcha: @entangle('showCaptcha'), countdown: @entangle('countdown'), captchaReady: @entangle('captchaReady') }"
