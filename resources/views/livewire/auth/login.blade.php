@@ -55,33 +55,10 @@ new #[Layout('components.layouts.auth')] class extends Component
             $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
 
             if ($failedAttempts >= 3 && !$this->showCaptcha) {
-                $this->showCaptcha = true;
+    $this->showCaptcha = true;
+    $this->js("startRecaptchaCountdown(20);");
+}
 
-                // Start 20-second countdown in browser using Volt JS
-                $this->js("
-                    const wrapper = document.getElementById('recaptcha-wrapper');
-                    const countdownEl = document.getElementById('recaptcha-countdown');
-                    wrapper.style.display = 'block';
-                    let time = 20;
-                    countdownEl.innerText = `Please wait ${time} seconds...`;
-                    const interval = setInterval(() => {
-                        time--;
-                        countdownEl.innerText = `Please wait ${time} seconds...`;
-                        if (time <= 0) {
-                            clearInterval(interval);
-                            countdownEl.innerText = '';
-                            if (typeof grecaptcha !== 'undefined') {
-                                grecaptcha.render('recaptcha-container', {
-                                    sitekey: '" . config('recaptcha.site_key') . "',
-                                    callback: function(response) {
-                                        @this.set('recaptcha', response);
-                                    }
-                                });
-                            }
-                        }
-                    }, 1000);
-                ");
-            }
 
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
