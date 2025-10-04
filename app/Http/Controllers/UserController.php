@@ -9,74 +9,76 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
-
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
-        'password' => [
-            'required',
-            'string',
-            'min:12',              // Minimum 12 characters
-            'regex:/[a-z]/',       // At least one lowercase
-            'regex:/[A-Z]/',       // At least one uppercase
-            'regex:/[0-9]/',       // At least one number
-            'regex:/[@$!%*?&#]/',  // At least one special character
-            'confirmed',           // Must match password_confirmation
-        ],
-        'role' => 'required|string',
-    ]);
-
-    User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password, [
-            'memory' => 1024, 
-            'time' => 2, 
-            'threads' => 2, 
-            'type' => PASSWORD_ARGON2ID
-        ]),
-        'role' => $request->role,
-    ]);
-
-    return redirect()->route('users.index')->with('success', 'User added successfully.');
-}
-
-public function update(Request $request, User $user)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,' . $user->id,
-        'password' => [
-            'nullable',
-            'string',
-            'min:12',
-            'regex:/[a-z]/',
-            'regex:/[A-Z]/',
-            'regex:/[0-9]/',
-            'regex:/[@$!%*?&#]/',
-            'confirmed',
-        ],
-    ]);
-
-    $user->name = $request->name;
-    $user->email = $request->email;
-
-    if ($request->filled('password')) {
-        $user->password = Hash::make($request->password, [
-            'memory' => 1024,
-            'time' => 2,
-            'threads' => 2,
-            'type' => PASSWORD_ARGON2ID
-        ]);
+    public function index()
+    {
+        $users = User::all();
+        return view('users.index', compact('users'));
     }
 
-    $user->save();
+    public function create()
+    {
+        return view('users.create'); // create.blade.php
+    }
 
-    return redirect()->route('users.index')->with('success', 'User updated successfully.');
-}
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(12)       // Minimum 12 characters
+                    ->letters()          // Must contain letters
+                    ->mixedCase()        // Upper and lower case
+                    ->numbers()          // Must contain numbers
+                    ->symbols()          // Must contain symbols
+            ],
+            'role' => 'required|string',
+        ]);
 
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password), // Uses Argon2id
+            'role' => $request->role,
+        ]);
+
+        return redirect()->route('users.index')->with('success', 'User added successfully.');
+    }
+
+    public function edit(User $user)
+    {
+        return view('users.edit', compact('user'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => [
+                'nullable',
+                'confirmed',
+                Password::min(12)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+            ],
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password); // Argon2id
+        }
+
+        $user->save();
+
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+    }
 
     public function destroy(User $user)
     {
