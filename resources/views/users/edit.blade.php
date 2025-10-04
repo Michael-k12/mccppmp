@@ -98,10 +98,8 @@
                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium">
                         Cancel
                     </a>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                        Update User
-                    </button>
+                   <button type="submit" class="update-btn">Update User</button>
+
                 </div>
             </form>
         </div>
@@ -110,6 +108,27 @@
     <style>
         input[readonly] {
             cursor: not-allowed;
-        }
+        }.update-btn {
+    background-color: #2563eb;       /* Blue color */
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.update-btn:hover {
+    background-color: #1e40af;       /* Darker blue on hover */
+    transform: translateY(-1px);
+}
+
+.update-btn:active {
+    background-color: #1d4ed8;       /* Slightly lighter blue when clicked */
+    transform: translateY(1px);
+}
+
     </style>
 </x-layouts.app>
