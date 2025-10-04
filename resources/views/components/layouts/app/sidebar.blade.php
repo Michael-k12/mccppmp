@@ -1,59 +1,52 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
-<head>
-    @include('partials.head')
-</head>
-<body class="min-h-screen bg-white dark:bg-zinc-800">
+    <head>
+        @include('partials.head')
+    </head>
+    <body class="min-h-screen bg-white dark:bg-zinc-800">
+        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-    {{-- Sidebar --}}
-    <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-        <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+                <x-app-logo />
+            </a>
 
-        <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
-            <x-app-logo />
-        </a>
-
-        <flux:navlist variant="outline">
+            <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Menu')" class="grid">
+    @php
+        // Normalize role from DB
+        $userRole = strtolower(trim(auth()->user()->role));
 
-                @auth
-                    @php
-                        $user = auth()->user();
+        // Map DB roles to sidebar filenames
+        $roleMap = [
+            'bsit' => 'bsit',
+            'bsit department head' => 'bsit',
+            'bsit dean' => 'bsit',
+            'bsba' => 'bsba',
+            'bshm' => 'bshm',
+            'bsed' => 'bsed',
+            'nurse' => 'nurse',
+            'library' => 'library',
+            'principal' => 'principal',
+        ];
 
-                        // Normalize role from DB
-                        $userRole = strtolower(trim($user->role));
+        // Pick the sidebar file (fallback to 'principal')
+        $sidebar = $roleMap[$userRole] ?? 'principal';
+    @endphp
 
-                        // Map DB roles to sidebar filenames
-                        $roleMap = [
-                            'bsit' => 'bsit',
-                            'bsit department head' => 'bsit',
-                            'bsit dean' => 'bsit',
-                            'bsba' => 'bsba',
-                            'bshm' => 'bshm',
-                            'bsed' => 'bsed',
-                            'nurse' => 'nurse',
-                            'library' => 'library',
-                            'principal' => 'principal',
-                        ];
+    @includeIf('sidebars.' . $sidebar)
+</flux:navlist.group>
 
-                        // Pick the sidebar file (fallback to 'principal')
-                        $sidebar = $roleMap[$userRole] ?? 'principal';
-                    @endphp
+            </flux:navlist>
 
-                    @includeIf('sidebars.' . $sidebar)
-                @endauth
+            <flux:spacer />
 
-            </flux:navlist.group>
-        </flux:navlist>
 
-        <flux:spacer />
-
-        {{-- Desktop User Menu --}}
-        @auth
+            <!-- Desktop User Menu -->
             <flux:dropdown class="hidden lg:block" position="bottom" align="start">
                 <flux:profile
-                    :name="$user->name"
-                    :initials="$user->initials()"
+                    :name="auth()->user()->name"
+                    :initials="auth()->user()->initials()"
                     icon:trailing="chevrons-up-down"
                 />
 
@@ -62,14 +55,16 @@
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                        {{ $user->initials() }}
+                                    <span
+                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
+                                    >
+                                        {{ auth()->user()->initials() }}
                                     </span>
                                 </span>
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ $user->name }}</span>
-                                    <span class="truncate text-xs">{{ $user->email }}</span>
+                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                                 </div>
                             </div>
                         </div>
@@ -91,17 +86,17 @@
                     </form>
                 </flux:menu>
             </flux:dropdown>
-        @endauth
-    </flux:sidebar>
+        </flux:sidebar>
 
-    {{-- Mobile User Menu --}}
-    @auth
+        <!-- Mobile User Menu -->
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+
             <flux:spacer />
+
             <flux:dropdown position="top" align="end">
                 <flux:profile
-                    :initials="$user->initials()"
+                    :initials="auth()->user()->initials()"
                     icon-trailing="chevron-down"
                 />
 
@@ -110,14 +105,16 @@
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                        {{ $user->initials() }}
+                                    <span
+                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
+                                    >
+                                        {{ auth()->user()->initials() }}
                                     </span>
                                 </span>
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ $user->name }}</span>
-                                    <span class="truncate text-xs">{{ $user->email }}</span>
+                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                                 </div>
                             </div>
                         </div>
@@ -140,11 +137,9 @@
                 </flux:menu>
             </flux:dropdown>
         </flux:header>
-    @endauth
 
-    {{-- Main Content --}}
-    {{ $slot }}
+        {{ $slot }}
 
-    @fluxScripts
-</body>
+        @fluxScripts
+    </body>
 </html>
