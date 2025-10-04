@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -19,68 +18,97 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password = '';
 
     public bool $remember = false;
+    public string $captchaInput = '';
+    public bool $requireCaptcha = false;
 
     /**
-     * Handle an incoming authentication request.
+     * Handle login process.
      */
     public function login(): void
     {
         $this->validate();
 
-        $this->ensureIsNotRateLimited();
+        $this->checkLoginAttempts();
+
+        // If CAPTCHA is required, validate it first
+        if ($this->requireCaptcha && ! $this->validateCaptcha()) {
+            throw ValidationException::withMessages([
+                'captchaInput' => 'Invalid CAPTCHA. Please try again.',
+            ]);
+        }
 
         if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
-            RateLimiter::hit($this->throttleKey());
+            RateLimiter::hit($this->throttleKey(), 600); // store failed attempt for 10 mins
+
+            // Enable CAPTCHA after 3 failed attempts
+            if (RateLimiter::attempts($this->throttleKey()) >= 3) {
+                $this->requireCaptcha = true;
+            }
 
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
         }
 
+        // Success — clear attempts and CAPTCHA state
         RateLimiter::clear($this->throttleKey());
+        $this->requireCaptcha = false;
         Session::regenerate();
 
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 
     /**
-     * Ensure the authentication request is not rate limited.
+     * Check if user exceeded attempt limit.
      */
-    protected function ensureIsNotRateLimited(): void
+    protected function checkLoginAttempts(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
+        if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+            throw ValidationException::withMessages([
+                'email' => 'Too many failed attempts. Please wait before trying again.',
+            ]);
         }
-
-        event(new Lockout(request()));
-
-        $seconds = RateLimiter::availableIn($this->throttleKey());
-
-        throw ValidationException::withMessages([
-            'email' => __('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
     }
 
     /**
-     * Get the authentication rate limiting throttle key.
+     * Validate CAPTCHA input.
+     */
+    protected function validateCaptcha(): bool
+    {
+        // For simplicity, use a static CAPTCHA. Replace this with Google reCAPTCHA if needed.
+        return strtolower(trim($this->captchaInput)) === strtolower(Session::get('captcha_text'));
+    }
+
+    /**
+     * Generate a unique key for tracking attempts.
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::lower($this->email).'|'.request()->ip();
     }
-}; ?>
+
+    /**
+     * Generate CAPTCHA text and store it in session.
+     */
+    public function generateCaptcha(): void
+    {
+        $text = Str::upper(Str::random(5));
+        Session::put('captcha_text', $text);
+    }
+
+    public function mount()
+    {
+        $this->generateCaptcha();
+    }
+};
+?>
 
 <div class="flex flex-col gap-6">
     <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
 
-    <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
 
     <form wire:submit="login" class="flex flex-col gap-6">
-        <!-- Email Address -->
         <flux:input
             wire:model="email"
             :label="__('Email address')"
@@ -91,7 +119,6 @@ new #[Layout('components.layouts.auth')] class extends Component {
             placeholder="email@example.com"
         />
 
-        <!-- Password -->
         <div class="relative">
             <flux:input
                 wire:model="password"
@@ -102,11 +129,30 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 :placeholder="__('Password')"
                 viewable
             />
-
-            
         </div>
 
-        <!-- Remember Me -->
+        <!-- CAPTCHA Section -->
+        @if ($requireCaptcha)
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-4">
+                    <div class="bg-gray-100 dark:bg-zinc-800 px-4 py-2 rounded font-mono tracking-widest select-none">
+                        {{ session('captcha_text') }}
+                    </div>
+                    <button type="button" wire:click="generateCaptcha" class="text-sm text-blue-600 hover:underline">
+                        {{ __('Reload CAPTCHA') }}
+                    </button>
+                </div>
+
+                <flux:input
+                    wire:model="captchaInput"
+                    :label="__('Enter CAPTCHA')"
+                    type="text"
+                    required
+                    placeholder="Type the text above"
+                />
+            </div>
+        @endif
+
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
         <div class="flex items-center justify-end">
@@ -114,10 +160,5 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </div>
     </form>
 
-    @if (Route::has('register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __('Don\'t have an account?') }}
-            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
-        </div>
-    @endif
+    
 </div>
