@@ -87,29 +87,31 @@
         <form method="POST" action="{{ route('users.store') }}" class="modal-form">
             @csrf
 
-            <!-- Name -->
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" name="name" placeholder="Enter full name" value="{{ old('name') }}" required>
+            <!-- Name & Email -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" name="name" placeholder="Enter full name" value="{{ old('name') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" placeholder="Enter email address" value="{{ old('email') }}" required>
+                </div>
             </div>
 
-            <!-- Email -->
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" name="email" placeholder="Enter email address" value="{{ old('email') }}" required>
-            </div>
+            <!-- Password & Confirm Password -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" placeholder="Enter password" required>
+                    <small>Password must be at least 12 characters, with uppercase, lowercase, number & symbol.</small>
+                </div>
 
-            <!-- Password -->
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" name="password" placeholder="Enter password" required>
-                <small>Password must be at least 12 characters, with uppercase, lowercase, number & symbol.</small>
-            </div>
-
-            <!-- Confirm Password -->
-            <div class="form-group">
-                <label for="password_confirmation">Confirm Password</label>
-                <input type="password" name="password_confirmation" placeholder="Confirm password" required>
+                <div class="form-group">
+                    <label for="password_confirmation">Confirm Password</label>
+                    <input type="password" name="password_confirmation" placeholder="Confirm password" required>
+                </div>
             </div>
 
             <!-- Role -->
@@ -217,7 +219,7 @@
             background-color: #b91c1c;
         }
 
-/* Modal overlay */
+        /* Modal overlay */
 .modal {
     position: fixed;
     inset: 0;
@@ -240,13 +242,13 @@
     padding: 2rem;
     border-radius: 16px;
     width: 100%;
-    max-width: 480px;
+    max-width: 600px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     position: relative;
     animation: slideDown 0.3s ease-out;
 }
 
-/* Slide-down animation */
+/* Slide animation */
 @keyframes slideDown {
     from { transform: translateY(-30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -269,7 +271,7 @@
     color: #111827;
 }
 
-/* Modal header */
+/* Header */
 .modal-header h2 {
     font-size: 24px;
     font-weight: 700;
@@ -282,12 +284,24 @@
     margin-bottom: 20px;
 }
 
-/* Form */
+/* Form layout */
 .modal-form .form-group {
     display: flex;
     flex-direction: column;
     margin-bottom: 15px;
 }
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 240px;
+}
+
 .modal-form label {
     font-weight: 600;
     margin-bottom: 6px;
@@ -313,12 +327,12 @@
     margin-top: 4px;
 }
 
-/* Actions */
+/* Buttons */
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 .btn-submit {
     background: linear-gradient(90deg,#3b82f6,#2563eb);
@@ -346,16 +360,17 @@
 .btn-cancel:hover {
     background: #d1d5db;
 }
+
     </style>
 
     <!-- Scripts -->
     <script>
         function openModal() {
-    document.getElementById('addUserModal').classList.remove('hidden');
-}
-function closeModal() {
-    document.getElementById('addUserModal').classList.add('hidden');
-}
+            document.getElementById('addUserModal').classList.remove('hidden');
+        }
 
+        function closeModal() {
+            document.getElementById('addUserModal').classList.add('hidden');
+        }
     </script>
 </x-layouts.app>
