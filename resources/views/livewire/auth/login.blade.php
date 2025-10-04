@@ -1,30 +1,32 @@
 @php
+use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Http;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 
-new class extends Component {
-
+new #[Layout('components.layouts.auth')] class extends Component {
+    #[Validate('required|string|email')]
     public string $email = '';
-    public string $password = '';
-    public bool $remember = false;
-    public string $recaptcha = '';
 
+    #[Validate('required|string')]
+    public string $password = '';
+
+    public bool $remember = false;
+
+    public string $recaptcha = '';
     public int $remainingSeconds = 0;
     protected int $maxAttempts = 3;
     protected int $lockoutSeconds = 20;
 
     public function login(): void
     {
-        $this->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-            'recaptcha' => 'required',
-        ]);
+        $this->validate();
 
         $this->ensureIsNotRateLimited();
         $this->verifyRecaptcha();
@@ -49,6 +51,8 @@ new class extends Component {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), $this->maxAttempts)) {
             return;
         }
+
+        event(new Lockout(request()));
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
         $this->remainingSeconds = $seconds;
@@ -81,7 +85,7 @@ new class extends Component {
         }
     }
 
-    // Livewire polling method to decrease countdown
+    // Polling countdown
     public function tick(): void
     {
         if ($this->remainingSeconds > 0) {
@@ -92,7 +96,6 @@ new class extends Component {
 @endphp
 
 <div class="flex flex-col gap-6" wire:poll.1000ms="tick">
-
     <x-auth-header 
         :title="__('Log in to your account')" 
         :description="__('Enter your email and password below to log in')" 
@@ -102,7 +105,7 @@ new class extends Component {
 
     <form wire:submit="login" class="flex flex-col gap-6">
 
-        <!-- Email Address -->
+        <!-- Email -->
         <flux:input
             wire:model="email"
             :label="__('Email address')"
@@ -160,7 +163,6 @@ new class extends Component {
     @endif
 </div>
 
-<!-- Google reCAPTCHA Script -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
     grecaptcha.ready(function() {
