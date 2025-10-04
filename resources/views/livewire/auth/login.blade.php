@@ -2,8 +2,6 @@
 
 namespace App\Http\Livewire\Auth;
 
-use App\Mail\LoginOtpMail;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -13,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
+use App\Mail\LoginOtpMail;
 
 new #[Layout('components.layouts.auth')] class extends Component
 {
@@ -25,7 +24,7 @@ new #[Layout('components.layouts.auth')] class extends Component
     public bool $remember = false;
     public int $remainingSeconds = 0;
 
-    // OTP properties
+    // OTP Properties
     public bool $showOtpForm = false;
     public string $otpCode = '';
     public int $maxOtpAttempts = 5;
@@ -33,14 +32,16 @@ new #[Layout('components.layouts.auth')] class extends Component
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
 
-    // Countdown tick
+    // Tick for countdown
     public function tick(): void
     {
         if ($this->remainingSeconds > 0) $this->remainingSeconds--;
         if ($this->resendCooldown > 0) $this->resendCooldown--;
     }
 
-    // Step 1: login with password
+    /**
+     * Normal login (password only)
+     */
     public function login(): void
     {
         $this->validate();
@@ -54,14 +55,20 @@ new #[Layout('components.layouts.auth')] class extends Component
             ]);
         }
 
-        // Password correct → send OTP
-        $this->sendOtp();
+        // Password correct → log in directly (no OTP)
+        $this->redirectIntended(route('dashboard'));
     }
 
-    // Step 2: generate & send OTP
+    /**
+     * Request OTP (Forgot Password)
+     */
     public function sendOtp(): void
     {
-        $otp = (string)random_int(100000, 999999); // always string
+        $this->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $otp = random_int(100000, 999999);
         $cacheKey = $this->otpCacheKey();
 
         Cache::put($cacheKey, [
@@ -80,14 +87,16 @@ new #[Layout('components.layouts.auth')] class extends Component
     public function resendOtp(): void
     {
         if ($this->resendCooldown > 0) {
-            $this->addError('otpCode', "Please wait {$this->resendCooldown} seconds to resend OTP.");
+            $this->addError('otpCode', "Please wait {$this->resendCooldown} seconds before resending OTP.");
             return;
         }
 
         $this->sendOtp();
     }
 
-    // Step 3: login with OTP
+    /**
+     * Login using OTP
+     */
     public function loginWithOtp(): void
     {
         $this->validate([
@@ -98,7 +107,7 @@ new #[Layout('components.layouts.auth')] class extends Component
         $otpData = Cache::get($cacheKey);
 
         if (!$otpData) {
-            $this->addError('otpCode', 'OTP expired. Request a new one.');
+            $this->addError('otpCode', 'OTP expired. Please request a new one.');
             return;
         }
 
@@ -108,19 +117,20 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        if (!password_verify((string)$this->otpCode, (string)$otpData['otp'])) {
+        if (!password_verify($this->otpCode, $otpData['otp'])) {
             $otpData['attempts']++;
             Cache::put($cacheKey, $otpData, now()->addMinutes($this->otpExpireMinutes));
             $this->addError('otpCode', 'Invalid OTP.');
             return;
         }
 
-        // OTP valid → login user
-        $user = User::where('email', $this->email)->first();
+        // OTP valid → log in user
+        $user = \App\Models\User::where('email', $this->email)->first();
         Auth::login($user, $this->remember);
 
         Cache::forget($cacheKey);
         $this->showOtpForm = false;
+
         $this->redirect(route('dashboard'));
     }
 
@@ -147,49 +157,58 @@ new #[Layout('components.layouts.auth')] class extends Component
 }
 ?>
 <div class="flex flex-col gap-6" wire:poll.1s="tick">
-
     <x-auth-header 
         :title="'Log in to your account'" 
         :description="'Enter your email and password below to log in'" 
     />
 
+    <!-- Normal login -->
     @if(!$showOtpForm)
-    <form wire:submit.prevent="login" class="flex flex-col gap-4">
-        <flux:input wire:model="email" label="Email address" type="email" required />
-        <flux:input wire:model="password" label="Password" type="password" required />
-        <flux:checkbox wire:model="remember" label="Remember me" />
+        <form wire:submit.prevent="login" class="flex flex-col gap-4">
+            <flux:input wire:model="email" label="Email address" type="email" required />
+            <flux:input wire:model="password" label="Password" type="password" required />
+            <flux:checkbox wire:model="remember" label="Remember me" />
 
-        <div class="text-right text-sm">
-            <button type="button" wire:click="sendOtp" class="text-blue-600 hover:underline">
-                Forgot Password?
-            </button>
-        </div>
+            <div class="text-right text-sm">
+                <button type="button" wire:click="sendOtp" class="text-blue-600 hover:underline">
+                    Forgot Password?
+                </button>
+            </div>
 
-        <flux:button type="submit" variant="primary" class="w-full">Log in</flux:button>
-    </form>
+            @if ($remainingSeconds > 0)
+                <div class="text-center text-red-500">
+                    Please wait <b>{{ $remainingSeconds }}</b> seconds before next attempt.
+                </div>
+            @endif
+
+            <flux:button type="submit" variant="primary" class="w-full">Log in</flux:button>
+        </form>
     @endif
 
+    <!-- OTP Login -->
     @if($showOtpForm)
-    <div class="mt-6 p-4 border rounded-lg bg-gray-50">
-        <p class="text-sm text-gray-700 mb-2">Enter the OTP sent to your email:</p>
-        <form wire:submit.prevent="loginWithOtp" class="flex flex-col gap-4">
-            <flux:input wire:model="otpCode" label="OTP" type="text" maxlength="6" required />
-            <flux:button type="submit" variant="primary" class="w-full">Login with OTP</flux:button>
-        </form>
+        <div class="mt-6 p-4 border rounded-lg bg-gray-50">
+            <p class="text-sm text-gray-700 mb-2">Enter the OTP sent to your email:</p>
+            <form wire:submit.prevent="loginWithOtp" class="flex flex-col gap-4">
+                <flux:input wire:model="otpCode" label="OTP" type="text" maxlength="6" required />
+                <flux:button type="submit" variant="primary" class="w-full">
+                    Login with OTP
+                </flux:button>
+            </form>
 
-        <div class="text-right mt-2 text-sm">
-            <button type="button"
-                    wire:click="resendOtp"
-                    @if($resendCooldown > 0) disabled @endif
-                    class="text-blue-600 hover:underline">
-                @if($resendCooldown > 0)
-                    Resend OTP in {{ $resendCooldown }}s
-                @else
-                    Resend OTP
-                @endif
-            </button>
+            <div class="text-right mt-2 text-sm">
+                <button type="button"
+                        wire:click="resendOtp"
+                        @if($resendCooldown > 0) disabled @endif
+                        class="text-blue-600 hover:underline">
+                    @if($resendCooldown > 0)
+                        Resend OTP in {{ $resendCooldown }}s
+                    @else
+                        Resend OTP
+                    @endif
+                </button>
+            </div>
         </div>
-    </div>
     @endif
 </div>
 
