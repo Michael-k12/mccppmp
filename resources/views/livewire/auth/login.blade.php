@@ -24,8 +24,6 @@ new #[Layout('components.layouts.auth')] class extends Component
 
     public bool $showCaptcha = false;
 
-    public int $countdown = 0;
-
     public function mount(): void
     {
         $this->updateCaptchaStatus();
@@ -44,7 +42,7 @@ new #[Layout('components.layouts.auth')] class extends Component
             'password' => 'required|string',
         ];
 
-        if ($this->showCaptcha && $this->countdown <= 0) {
+        if ($this->showCaptcha) {
             $rules['recaptcha'] = 'required|recaptcha';
         }
 
@@ -57,9 +55,32 @@ new #[Layout('components.layouts.auth')] class extends Component
             $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
 
             if ($failedAttempts >= 3 && !$this->showCaptcha) {
-                // Start 20-second countdown
-                $this->countdown = 20;
-                $this->dispatchBrowserEvent('start-countdown', ['seconds' => 20]);
+                $this->showCaptcha = true;
+
+                // Start 20-second countdown in browser using Volt JS
+                $this->js("
+                    const wrapper = document.getElementById('recaptcha-wrapper');
+                    const countdownEl = document.getElementById('recaptcha-countdown');
+                    wrapper.style.display = 'block';
+                    let time = 20;
+                    countdownEl.innerText = `Please wait ${time} seconds...`;
+                    const interval = setInterval(() => {
+                        time--;
+                        countdownEl.innerText = `Please wait ${time} seconds...`;
+                        if (time <= 0) {
+                            clearInterval(interval);
+                            countdownEl.innerText = '';
+                            if (typeof grecaptcha !== 'undefined') {
+                                grecaptcha.render('recaptcha-container', {
+                                    sitekey: '" . config('recaptcha.site_key') . "',
+                                    callback: function(response) {
+                                        @this.set('recaptcha', response);
+                                    }
+                                });
+                            }
+                        }
+                    }, 1000);
+                ");
             }
 
             throw ValidationException::withMessages([
@@ -67,7 +88,6 @@ new #[Layout('components.layouts.auth')] class extends Component
             ]);
         }
 
-        // Login success
         RateLimiter::clear($this->throttleKey());
         Session::forget('login_attempts_' . $this->throttleKey());
         Session::regenerate();
@@ -96,8 +116,7 @@ new #[Layout('components.layouts.auth')] class extends Component
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
 };
-    ?>
-
+?>
 <div class="flex flex-col gap-6">
     <x-auth-header 
         :title="__('Log in to your account')" 
@@ -131,18 +150,18 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
-        <div id="recaptcha-wrapper" style="display: none;" class="mt-4">
-    <div wire:ignore.self id="recaptcha-container" class="g-recaptcha"
-         data-sitekey="{{ config('recaptcha.site_key') }}"
-         data-callback="setRecaptchaValue">
-    </div>
+        {{-- reCAPTCHA wrapper --}}
+        <div id="recaptcha-wrapper" style="display:none;" class="mt-4">
+            <div wire:ignore.self id="recaptcha-container" class="g-recaptcha"
+                 data-sitekey="{{ config('recaptcha.site_key') }}"
+                 data-callback="setRecaptchaValue">
+            </div>
+            <div id="recaptcha-countdown" class="text-sm text-zinc-600 mt-2"></div>
 
-    <div id="recaptcha-countdown" class="text-sm text-zinc-600 mt-2"></div>
-
-    @error('recaptcha')
-        <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
-    @enderror
-</div>
+            @error('recaptcha')
+                <p class="text-sm text-red-600 dark:text-red-400 mt-2">{{ $message }}</p>
+            @enderror
+        </div>
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">
@@ -164,7 +183,6 @@ new #[Layout('components.layouts.auth')] class extends Component
 <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 @endonce
 
-
 <script>
 function setRecaptchaValue(response) {
     @this.set('recaptcha', response);
@@ -175,34 +193,4 @@ function resetRecaptchaWidget() {
         grecaptcha.reset();
     }
 }
-
-function renderRecaptcha() {
-    const container = document.getElementById('recaptcha-container');
-    if (container && typeof grecaptcha !== 'undefined' && !container.hasChildNodes()) {
-        grecaptcha.render(container, {
-            sitekey: '{{ config('recaptcha.site_key') }}',
-            callback: setRecaptchaValue
-        });
-    }
-}
-
-Livewire.on('start-countdown', ({seconds}) => {
-    const wrapper = document.getElementById('recaptcha-wrapper');
-    const countdownEl = document.getElementById('recaptcha-countdown');
-    wrapper.style.display = 'block';
-
-    let time = seconds;
-    countdownEl.innerText = `Please wait ${time} seconds...`;
-
-    const interval = setInterval(() => {
-        time--;
-        countdownEl.innerText = `Please wait ${time} seconds...`;
-
-        if (time <= 0) {
-            clearInterval(interval);
-            countdownEl.innerText = '';
-            renderRecaptcha();
-        }
-    }, 1000);
-});
 </script>
