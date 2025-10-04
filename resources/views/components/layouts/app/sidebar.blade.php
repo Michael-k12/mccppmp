@@ -13,10 +13,30 @@
 
             <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Menu')" class="grid">
-    @php $role = auth()->user()->role; @endphp
-    
-    @includeIf('sidebars.' . $role)
+    @php
+        // Normalize role from DB
+        $userRole = strtolower(trim(auth()->user()->role));
+
+        // Map DB roles to sidebar filenames
+        $roleMap = [
+            'bsit' => 'bsit',
+            'bsit department head' => 'bsit',
+            'bsit dean' => 'bsit',
+            'bsba' => 'bsba',
+            'bshm' => 'bshm',
+            'bsed' => 'bsed',
+            'nurse' => 'nurse',
+            'library' => 'library',
+            'principal' => 'principal',
+        ];
+
+        // Pick the sidebar file (fallback to 'principal')
+        $sidebar = $roleMap[$userRole] ?? 'principal';
+    @endphp
+
+    @includeIf('sidebars.' . $sidebar)
 </flux:navlist.group>
+
             </flux:navlist>
 
             <flux:spacer />
