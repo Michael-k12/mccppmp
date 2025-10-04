@@ -10,24 +10,18 @@ class UserAccountCreatedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user;
-    public $plainPassword;
+    public $userEmail;
+    public $userPassword;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct($user, $plainPassword)
+    public function __construct($userEmail, $userPassword)
     {
-        $this->user = $user;
-        $this->plainPassword = $plainPassword;
+        $this->userEmail = $userEmail;
+        $this->userPassword = $userPassword;
     }
 
-    /**
-     * Build the message.
-     */
     public function build()
     {
-        return $this->subject('Your Project Procurement Management System Account')
-                    ->view('emails.user-created');
+        return $this->subject('Your MCCPPMP Account Details')
+                    ->view('emails.user_account_created');
     }
 }

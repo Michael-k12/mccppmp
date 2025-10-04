@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Mail;
+
+
 
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Mail\UserAccountCreatedMail;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -36,15 +39,17 @@ class UserController extends Controller
 
     $plainPassword = $request->password;
 
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($plainPassword),
-        'role' => $request->role,
-    ]);
+    User::create([
+    'name' => $request->name,
+    'email' => $request->email,
+    'password' => Hash::make($request->password),
+    'role' => $request->role,
+]);
 
-    // ✅ Send Gmail notification
-    Mail::to($user->email)->send(new UserAccountCreatedMail($user, $plainPassword));
+// Send email to the new user
+Mail::to($request->email)->send(new UserAccountCreatedMail($request->email, $request->password));
+
+
 
     return redirect()->route('users.index')->with('success', 'User added successfully and email sent!');
 }
