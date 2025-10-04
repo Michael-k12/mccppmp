@@ -3,7 +3,6 @@
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -11,7 +10,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 
-new #[Layout('components.layouts.auth')] class extends Component {
+new #[Layout('components.layouts.auth')] class extends Component
+{
     #[Validate('required|string|email')]
     public string $email = '';
 
@@ -20,69 +20,55 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public bool $remember = false;
 
-    // New property to hold the recaptcha response
-    public string $recaptcha = ''; 
+    // reCAPTCHA response
+    public string $recaptcha = '';
 
-    // New property to control captcha visibility
+    // Controls whether CAPTCHA should be shown
     public bool $showCaptcha = false;
 
-    /**
-     * Mount the component to check if captcha should be shown.
-     */
     public function mount(): void
     {
-        $this->checkIfCaptchaNeeded();
+        $this->updateCaptchaStatus();
     }
 
     /**
-     * Check failed attempts and set $showCaptcha.
+     * Update $showCaptcha based on failed attempts
      */
-    protected function checkIfCaptchaNeeded(): void
+    protected function updateCaptchaStatus(): void
     {
-        // Use a simple session counter for the failed attempts for this email/IP
         $attempts = Session::get('login_attempts_' . $this->throttleKey(), 0);
         $this->showCaptcha = $attempts >= 3;
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle login
      */
     public function login(): void
     {
-        // Add recaptcha to validation rules if needed
+        // Define validation rules
         $rules = [
             'email' => 'required|string|email',
             'password' => 'required|string',
         ];
 
         if ($this->showCaptcha) {
-            // Reset the recaptcha value before validation
-            $this->recaptcha = ''; 
-            
-            // Note: This validation rule assumes the 'anhskohbo/no-captcha' package is installed.
-            $rules['recaptcha'] = 'required|recaptcha'; 
+            $rules['recaptcha'] = 'required|recaptcha';
         }
 
         $this->validate($rules);
 
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey());
-
-            // Increment failed attempts counter
             $failedAttempts = Session::increment('login_attempts_' . $this->throttleKey());
-            
-            // Re-check and update $showCaptcha status
-            if ($failedAttempts >= 3 && ! $this->showCaptcha) {
-                // If the counter just crossed 3, set showCaptcha to true
-                $this->showCaptcha = true; 
-                
-                // Instruct the browser to reset the widget after the re-render to clear validation error.
-                $this->js('resetRecaptchaWidget()');
+
+            // Update captcha status if threshold reached
+            if ($failedAttempts >= 3 && !$this->showCaptcha) {
+                $this->showCaptcha = true;
+                $this->dispatchBrowserEvent('reset-recaptcha');
             } elseif ($this->showCaptcha) {
-                // If CAPTCHA is already visible and submission failed (either auth or captcha), reset the widget
-                $this->js('resetRecaptchaWidget()');
+                $this->dispatchBrowserEvent('reset-recaptcha');
             }
 
             throw ValidationException::withMessages([
@@ -90,22 +76,20 @@ new #[Layout('components.layouts.auth')] class extends Component {
             ]);
         }
 
-        // Authentication successful
+        // Login success
         RateLimiter::clear($this->throttleKey());
-        Session::forget('login_attempts_' . $this->throttleKey()); // Clear failed attempts
+        Session::forget('login_attempts_' . $this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        $this->redirectIntended(route('dashboard', absolute: false), true);
     }
 
     /**
-     * Ensure the authentication request is not rate limited.
+     * Ensure the login request is not rate-limited
      */
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
-        }
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) return;
 
         event(new Lockout(request()));
 
@@ -119,14 +103,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ]);
     }
 
-    /**
-     * Get the authentication rate limiting throttle key.
-     */
     protected function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
-}; ?>
+};
+ ?>
 
 <div class="flex flex-col gap-6">
     <x-auth-header 
@@ -197,36 +179,35 @@ new #[Layout('components.layouts.auth')] class extends Component {
 @endonce
 
 <script>
+    <script>
     function setRecaptchaValue(response) {
         @this.set('recaptcha', response);
     }
 
-    function resetRecaptchaWidget() {
-        if (typeof grecaptcha !== 'undefined') {
-            grecaptcha.reset();
-        }
-    }
-
     function renderRecaptcha() {
-        if (document.getElementById('recaptcha-container') && typeof grecaptcha !== 'undefined') {
-            grecaptcha.render('recaptcha-container', {
+        const container = document.getElementById('recaptcha-container');
+        if (container && typeof grecaptcha !== 'undefined') {
+            grecaptcha.render(container, {
                 'sitekey': '{{ config('recaptcha.site_key') }}',
                 'callback': setRecaptchaValue
             });
         }
     }
 
-    // Render reCAPTCHA after Livewire renders dynamic content
-    Livewire.hook('message.processed', (message, component) => {
-        if ({{ $showCaptcha ? 'true' : 'false' }}) {
-            renderRecaptcha();
-        }
+    // Initial render if captcha is shown
+    document.addEventListener('DOMContentLoaded', () => {
+        if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
     });
 
-    // Optional: on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        if ({{ $showCaptcha ? 'true' : 'false' }}) {
-            renderRecaptcha();
-        }
+    // Re-render after Livewire updates (dynamic)
+    Livewire.hook('message.processed', (message, component) => {
+        if ({{ $showCaptcha ? 'true' : 'false' }}) renderRecaptcha();
     });
+
+    // Listen for PHP-triggered captcha resets
+    window.addEventListener('reset-recaptcha', () => {
+        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+    });
+</script>
+
 </script>
