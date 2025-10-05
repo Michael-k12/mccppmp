@@ -106,3 +106,4 @@ Route::delete('/budget/delete-selected', [BudgetController::class, 'deleteSelect
 
 Route::get('/security-monitoring', [SecurityMonitorController::class, 'index'])->name('security.index');
 
+Route::get('/security', [SecurityMonitorController::class, 'index'])->name('security.index');
