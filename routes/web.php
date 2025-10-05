@@ -107,3 +107,6 @@ Route::delete('/budget/delete-selected', [BudgetController::class, 'deleteSelect
 Route::get('/security-monitoring', [SecurityMonitorController::class, 'index'])->name('security.index');
 
 Route::get('/security', [SecurityMonitorController::class, 'index'])->name('security.index');
+
+// Live fetch route for AJAX polling
+Route::get('/security/fetch', [SecurityMonitorController::class, 'fetchReports'])->name('security.fetch');

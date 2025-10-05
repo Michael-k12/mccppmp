@@ -23,4 +23,19 @@ class SecurityMonitorController extends Controller
 
         return view('principal.security', compact('reports'));
     }
+    public function fetchReports()
+{
+    $reportPath = public_path('wapiti-reports');
+
+    if (!File::exists($reportPath)) {
+        File::makeDirectory($reportPath, 0755, true);
+    }
+
+    $reports = collect(File::files($reportPath))
+        ->sortByDesc(fn($file) => $file->getMTime());
+
+    // Return only the partial view for AJAX
+    return view('principal._security_reports', compact('reports'));
+}
+
 }
