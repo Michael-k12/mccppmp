@@ -10,6 +10,7 @@ use App\Http\Controllers\PdfExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\SecurityMonitorController;
 
 
 
@@ -102,3 +103,7 @@ Route::post('/ppmp/realign', [PpmpController::class, 'realign'])->name('ppmp.rea
 Route::get('/ppmp/remaining-budget', [App\Http\Controllers\PpmpController::class, 'getRemainingBudget'])->name('ppmp.remaining-budget');
 
 Route::delete('/budget/delete-selected', [BudgetController::class, 'deleteSelected'])->name('budget.deleteSelected');
+
+Route::get('/principal/security', [SecurityMonitorController::class, 'index'])
+    ->name('security.index')
+    ->middleware(['auth', 'role:principal']);

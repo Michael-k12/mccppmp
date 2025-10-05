@@ -21,6 +21,10 @@
 <flux:navlist.item icon="envelope" :href="route('ppmp.approved')" wire:navigate>
     All Procurement Plan
 </flux:navlist.item>
+<flux:navlist.item icon="shield-check" :href="route('security.index')" wire:navigate>
+    Security Monitoring
+</flux:navlist.item>
+
 
 
 
