@@ -20,7 +20,10 @@ class SecureHeaders
         $response->headers->set('Cross-Origin-Embedder-Policy', 'require-corp');
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         $response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
-        $response->headers->set('Content-Security-Policy', "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; upgrade-insecure-requests");
+        $response->headers->set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; base-uri 'self'; upgrade-insecure-requests"
+);
 
         return $response;
     }
