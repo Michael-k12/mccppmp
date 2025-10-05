@@ -8,18 +8,20 @@ class SecurityMonitorController extends Controller
 {
     public function index()
     {
-        $reportPath = public_path('wapiti-reports'); // folder containing reports
+       $reportPath = public_path('wapiti-reports');
 
-        // Ensure directory exists
-        if (!File::exists($reportPath)) {
-            File::makeDirectory($reportPath, 0755, true);
-        }
+// Ensure directory exists
+if (!File::exists($reportPath)) {
+    File::makeDirectory($reportPath, 0755, true);
+}
 
-        // Get files and sort by modification time descending
-        $reports = collect(File::files($reportPath))
-            ->sortByDesc(fn($file) => $file->getMTime());
+// Recursively get all HTML files
+$reports = collect(File::allFiles($reportPath))
+    ->filter(fn($file) => $file->getExtension() === 'html')
+    ->sortByDesc(fn($file) => $file->getMTime());
 
-        return view('principal.security', compact('reports'));
+return view('principal.security', compact('reports'));
+
 
     }
 }
