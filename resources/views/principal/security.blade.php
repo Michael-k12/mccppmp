@@ -1,4 +1,5 @@
 <x-layouts.app :title="'Security Monitoring'">
+    @livewire('security-monitoring')
     <div class="container mx-auto px-6 py-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             <x-icon name="shield-check" class="w-6 h-6 text-green-600" />

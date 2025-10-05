@@ -1,15 +1,9 @@
-<x-layouts.app :title="'Security Monitoring'">
-    @livewire('security-monitoring')
-    <div wire:poll.10s>
+<div wire:poll.10s>
     <div class="container mx-auto px-6 py-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             <x-icon name="shield-check" class="w-6 h-6 text-green-600" />
             System Security Monitoring
         </h2>
-
-        <button wire:click="runScan" class="bg-green-600 text-white px-4 py-2 rounded mb-4 hover:bg-green-700">
-            🔄 Run Wapiti Scan
-        </button>
 
         @if($reports->isEmpty())
             <div class="p-6 bg-yellow-50 border border-yellow-300 rounded-xl">
@@ -27,7 +21,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach($reports as $file)
-                            <tr class="hover:bg-gray-50">
+                            <tr>
                                 <td class="px-6 py-3">{{ $file->getFilename() }}</td>
                                 <td class="px-6 py-3">{{ date('Y-m-d H:i:s', $file->getMTime()) }}</td>
                                 <td class="px-6 py-3">
@@ -44,5 +38,3 @@
         @endif
     </div>
 </div>
-
-</x-layouts.app>
