@@ -19,6 +19,7 @@ class SecurityMonitorController extends Controller
         $reports = collect(File::files($reportPath))
             ->sortByDesc(fn($file) => $file->getMTime());
 
-        return view('security.security', compact('reports'));
+        return view('principal.security', compact('reports'));
+
     }
 }
