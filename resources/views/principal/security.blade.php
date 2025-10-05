@@ -21,18 +21,17 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach($reports as $file)
-                            <tr>
-                                <td class="px-6 py-3">{{ $file->getFilename() }}</td>
-                                <td class="px-6 py-3">{{ date('Y-m-d H:i:s', $file->getMTime()) }}</td>
-                                <td class="px-6 py-3">
-                                    <a href="{{ str_replace(public_path(), '', $file->getPathname()) }}"
-                                       target="_blank"
-                                       class="text-blue-600 hover:underline">
-                                       View Report
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforeach
+    <tr>
+        <td>{{ $file->getFilename() }}</td>
+        <td>{{ date('Y-m-d H:i:s', $file->getMTime()) }}</td>
+        <td>
+            <a href="{{ asset('wapiti-reports/'.$file->getFilename()) }}" target="_blank">
+                View Report
+            </a>
+        </td>
+    </tr>
+@endforeach
+
                     </tbody>
                 </table>
             </div>
