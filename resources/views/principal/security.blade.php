@@ -1,3 +1,4 @@
+<x-layouts.app :title="'Security Check'">
 @if($reports->isEmpty())
     <div class="p-6 bg-yellow-50 border border-yellow-300 rounded-xl">
         <p class="text-yellow-700">⚠️ No Wapiti reports found. Automated scans may not have been set up yet.</p>
@@ -29,3 +30,4 @@
         </table>
     </div>
 @endif
+</x-layouts.app>
