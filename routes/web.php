@@ -105,5 +105,6 @@ Route::get('/ppmp/remaining-budget', [App\Http\Controllers\PpmpController::class
 Route::delete('/budget/delete-selected', [BudgetController::class, 'deleteSelected'])->name('budget.deleteSelected');
 
 Route::get('/principal/security', [SecurityMonitorController::class, 'index'])
-    ->name('security.index')
-    ->middleware(['auth', 'role:principal']);
+    ->middleware(['auth', 'role:principal'])
+    ->name('security.index');
+
