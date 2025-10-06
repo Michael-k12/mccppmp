@@ -182,7 +182,7 @@ th { background-color: #f9fafb; font-weight: bold; }
             Add Item
             <span class="close" onclick="closeModal()">&times;</span>
         </div>
-        <form method="POST" action="{{ route('ppmp.store') }}">
+        <form method="POST" action="{{ route('ppmp.store') }}" id="addPPMPForm">
             @csrf
             <input type="hidden" id="remainingBudget" value="{{ $remainingBudget }}">
 
@@ -442,6 +442,15 @@ function calculateBudget(quantityInput = null) {
         }
     }
 }
+document.getElementById('addPPMPForm').addEventListener('submit', function(e) {
+    // Remove commas from quantity and estimated budget before submitting
+    const quantityInput = document.getElementById('modal_quantity');
+    const budgetInput = document.getElementById('modal_budget');
+
+    quantityInput.value = quantityInput.value.replace(/,/g, '');
+    budgetInput.value = budgetInput.value.replace(/,/g, '');
+});
+
 
 </script>
 </x-layouts.app>
