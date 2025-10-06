@@ -193,12 +193,13 @@ th { background-color: #f9fafb; font-weight: bold; }
             <input type="hidden" name="department" value="{{ auth()->user()->department }}">
 
             <!-- Quantity -->
-            <label>Quantity</label>
-            <input type="number" name="quantity" id="modal_quantity" required oninput="calculateBudget()">
+<label>Quantity</label>
+<input type="text" name="quantity" id="modal_quantity" required oninput="calculateBudget(this)">
 
-            <!-- Estimated Budget -->
-            <label>Estimated Budget</label>
-            <input type="text" name="estimated_budget" id="modal_budget" readonly>
+<!-- Estimated Budget -->
+<label>Estimated Budget</label>
+<input type="text" name="estimated_budget" id="modal_budget" readonly>
+
 
             <!-- Mode of Procurement Dropdown -->
             <label>Mode of Procurement</label>
@@ -398,5 +399,49 @@ document.addEventListener("DOMContentLoaded", function () {
         ]
     });
 });
+function formatNumber(value) {
+    const parts = value.toString().split('.');
+    let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    let decimalPart = parts[1] ? '.' + parts[1].slice(0,2) : '';
+    return integerPart + decimalPart;
+}
+
+function calculateBudget(quantityInput = null) {
+    const quantity = parseFloat(document.getElementById('modal_quantity').value.replace(/,/g, '')) || 0;
+    const price = parseFloat(document.getElementById('modal_price').value) || 0;
+    const budget = quantity * price;
+    const remainingBudget = parseFloat(document.getElementById('remainingBudget').value);
+
+    // Update Estimated Budget with formatted number
+    document.getElementById('modal_budget').value = formatNumber(budget);
+
+    // Disable add button if budget exceeded
+    const addButton = document.querySelector('#addModal button[type="submit"]');
+    if (budget > remainingBudget) {
+        addButton.disabled = true;
+        addButton.style.backgroundColor = '#9ca3af';
+        document.getElementById('modal_budget').style.borderColor = 'red';
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Budget Exceeded',
+            text: 'The item exceeds your remaining budget of ₱' + formatNumber(remainingBudget)
+        });
+    } else {
+        addButton.disabled = false;
+        addButton.style.backgroundColor = '#1e40af';
+        document.getElementById('modal_budget').style.borderColor = '#ccc';
+    }
+
+    // Format quantity input with commas while typing
+    const quantityField = document.getElementById('modal_quantity');
+    if(quantityField.value) {
+        let numericValue = quantityField.value.replace(/,/g, '');
+        if(!isNaN(numericValue) && numericValue !== '') {
+            quantityField.value = formatNumber(numericValue);
+        }
+    }
+}
+
 </script>
 </x-layouts.app>
