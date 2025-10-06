@@ -9,5 +9,5 @@ class Budget extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['amount', 'year'];
+    protected $fillable = ['amount', 'year', 'is_ended'];
 }
