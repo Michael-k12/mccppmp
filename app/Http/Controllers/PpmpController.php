@@ -178,7 +178,6 @@ public function create()
 
 public function store(Request $request)
 {
-    // ✅ Validate input
     $request->validate([
         'classification' => 'required|string|max:255',
         'description' => 'required|string|max:255',
@@ -190,42 +189,40 @@ public function store(Request $request)
         'milestone_month' => 'required|string'
     ]);
 
-    // ✅ Set department from authenticated user (backend authoritative)
-    $department = auth()->user()->department ?? auth()->user()->role;
-
-    if (!$department) {
-        return redirect()->back()->withErrors(['department' => 'Your department is not set.']);
-    }
-
-    // ✅ Get active budget
+    $department = auth()->user()->role;
     $activeBudget = Budget::where('is_ended', false)->latest()->first();
 
     if (!$activeBudget) {
         return redirect()->back()->withErrors(['milestone' => 'No active budget found.']);
     }
 
-    // ✅ Combine budget year + selected month
+    // Combine active budget year + selected month
     $milestoneDate = $activeBudget->year . '-' . $request->milestone_month;
 
-    // ✅ Strict duplicate check: classification + description + unit + department + milestone_date
-    $existing = Ppmp::where('classification', $request->classification)
-        ->where('description', $request->description)
-        ->where('unit', $request->unit)
-        ->where('department', $department)
-        ->where('milestone_date', $milestoneDate)
-        ->exists();
+    // Duplicate check
+ $department = auth()->user()->department; // make sure this is the department
+$description = strtolower(trim($request->description));
+$classification = strtolower(trim($request->classification));
+$unit = strtolower(trim($request->unit));
 
-    if ($existing) {
-        return redirect()->back()->with('duplicate_error', 
-            'Duplicate Item. You already added this item. Go to Manage if you want to add more.'
-        );
-    }
+$existing = Ppmp::whereRaw('LOWER(TRIM(description)) = ?', [$description])
+    ->whereRaw('LOWER(TRIM(classification)) = ?', [$classification])
+    ->whereRaw('LOWER(TRIM(unit)) = ?', [$unit])
+    ->where('department', $department)
+    ->where('milestone_date', $milestoneDate)
+    ->exists();
 
-    // ✅ Calculate remaining budget for this department
+if ($existing) {
+    return redirect()->back()->with('duplicate_error', 
+        'Duplicate Item. You already added this item. Go to Manage if you want to add more.'
+    );
+}
+
+    // Remaining budget calculation per department
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
     $equalShare = $activeBudget->amount / count($departments);
 
-    $departmentRemaining = $equalShare - 
+    $departmentRemaining = $equalShare -
         Ppmp::where('department', $department)
             ->whereYear('milestone_date', $activeBudget->year)
             ->sum('estimated_budget');
@@ -236,7 +233,7 @@ public function store(Request $request)
         );
     }
 
-    // ✅ Save PPMP
+    // Save PPMP
     Ppmp::create([
         'classification' => $request->classification,
         'description' => $request->description,
@@ -249,11 +246,10 @@ public function store(Request $request)
         'department' => $department,
     ]);
 
-    // ✅ Redirect with success
+    // ✅ Redirect to manage page after success
     return redirect()->route('ppmp.manage')
         ->with('success', 'Item added successfully!');
 }
-
 
 
 
