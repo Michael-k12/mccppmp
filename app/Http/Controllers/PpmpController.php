@@ -189,20 +189,24 @@ public function store(Request $request)
         'milestone_month' => 'required|string'
     ]);
 
-    $department = auth()->user()->role;
+    $department = auth()->user()->department;
     $activeBudget = Budget::where('is_ended', false)->latest()->first();
 
     if (!$activeBudget) {
         return redirect()->back()->withErrors(['milestone' => 'No active budget found.']);
     }
 
-    // Combine active budget year + selected month
     $milestoneDate = $activeBudget->year . '-' . $request->milestone_month;
 
-    // Duplicate check
-    $existing = Ppmp::where('description', $request->description)
-        ->where('department', $department)
+    // Normalize input
+    $description = strtolower(trim($request->description));
+    $unit = strtolower(trim($request->unit));
+
+    // Strict duplicate check
+    $existing = Ppmp::where('department', $department)
         ->where('milestone_date', $milestoneDate)
+        ->whereRaw('LOWER(TRIM(description)) = ?', [$description])
+        ->whereRaw('LOWER(TRIM(unit)) = ?', [$unit])
         ->exists();
 
     if ($existing) {
@@ -211,14 +215,13 @@ public function store(Request $request)
         );
     }
 
-    // Remaining budget calculation per department
+    // Remaining budget calculation
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
     $equalShare = $activeBudget->amount / count($departments);
 
-    $departmentRemaining = $equalShare -
-        Ppmp::where('department', $department)
-            ->whereYear('milestone_date', $activeBudget->year)
-            ->sum('estimated_budget');
+    $departmentRemaining = $equalShare - Ppmp::where('department', $department)
+        ->whereYear('milestone_date', $activeBudget->year)
+        ->sum('estimated_budget');
 
     if ($request->estimated_budget > $departmentRemaining) {
         return redirect()->back()->with('duplicate_error', 
@@ -239,10 +242,9 @@ public function store(Request $request)
         'department' => $department,
     ]);
 
-    // ✅ Redirect to manage page after success
-    return redirect()->route('ppmp.manage')
-        ->with('success', 'Item added successfully!');
+    return redirect()->route('ppmp.manage')->with('success', 'Item added successfully!');
 }
+
 
 
 
