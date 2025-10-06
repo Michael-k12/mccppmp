@@ -341,6 +341,7 @@ function filterTable() {
         });
         loader.style.display = 'none';
 
+        // Only prompt to add item if nothing is visible
         if (visibleCount === 0) {
             Swal.fire({
                 icon: 'question',
@@ -450,15 +451,7 @@ document.getElementById('addPPMPForm').addEventListener('submit', function(e) {
     quantityInput.value = quantityInput.value.replace(/,/g, '');
     budgetInput.value = budgetInput.value.replace(/,/g, '');
 });
-const existingItems = [
-    @foreach ($items as $item)
-    {
-        description: "{{ strtolower(trim($item->description)) }}",
-        classification: "{{ strtolower(trim($item->classification)) }}",
-        unit: "{{ strtolower(trim($item->unit)) }}"
-    },
-    @endforeach
-];
+
 
 </script>
 </x-layouts.app>
