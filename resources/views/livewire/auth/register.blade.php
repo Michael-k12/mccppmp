@@ -2,7 +2,6 @@
 
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
@@ -16,34 +15,36 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $role = '';
 
     public function register(): void
-{
-    $validated = $this->validate([
-        'name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
-        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
-        'password' => [
-            'required',
-            'string',
-            'confirmed',
-            'min:8',
-            Rules\Password::defaults(),
-        ],
-        'role' => ['required', 'in:principal,BSIT,BSBA,BSHM,BSED,NURSE,LIBRARY'],
-    ]);
+    {
+        $validated = $this->validate([
+            'name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                'min:8',
+                Rules\Password::defaults(),
+            ],
+            'role' => ['required', 'in:principal,BSIT,BSBA,BSHM,BSED,NURSE,LIBRARY'],
+        ]);
 
-    $validated['password'] = Hash::make($validated['password']);
+        // Hash password using Argon2id
+        $validated['password'] = Hash::make($validated['password'], [
+            'memory' => 1024,
+            'time' => 2,
+            'threads' => 2,
+            'type' => PASSWORD_ARGON2ID
+        ]);
 
-    $user = User::create($validated);
-    event(new Registered($user));
+        $user = User::create($validated);
+        event(new Registered($user));
 
-    // Remove auto-login
-    // Auth::login($user);
-
-    // Redirect to login page
-    $this->redirectRoute('login');
-}
-
-
+        // Redirect to login page
+        $this->redirectRoute('login');
+    }
 };
+
 ?>
 
 
