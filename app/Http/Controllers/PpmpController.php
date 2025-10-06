@@ -200,23 +200,16 @@ public function store(Request $request)
     $milestoneDate = $activeBudget->year . '-' . $request->milestone_month;
 
     // Duplicate check
- $department = auth()->user()->department; // make sure this is the department
-$description = strtolower(trim($request->description));
-$classification = strtolower(trim($request->classification));
-$unit = strtolower(trim($request->unit));
+    $existing = Ppmp::where('description', $request->description)
+        ->where('department', $department)
+        ->where('milestone_date', $milestoneDate)
+        ->exists();
 
-$existing = Ppmp::whereRaw('LOWER(TRIM(description)) = ?', [$description])
-    ->whereRaw('LOWER(TRIM(classification)) = ?', [$classification])
-    ->whereRaw('LOWER(TRIM(unit)) = ?', [$unit])
-    ->where('department', $department)
-    ->where('milestone_date', $milestoneDate)
-    ->exists();
-
-if ($existing) {
-    return redirect()->back()->with('duplicate_error', 
-        'Duplicate Item. You already added this item. Go to Manage if you want to add more.'
-    );
-}
+    if ($existing) {
+        return redirect()->back()->with('duplicate_error', 
+            'Duplicate Item. You already added this item. Go to Manage if you want to add more.'
+        );
+    }
 
     // Remaining budget calculation per department
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
