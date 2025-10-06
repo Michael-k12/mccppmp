@@ -20,74 +20,70 @@ class PpmpController extends Controller
         return view('items.index', compact('items'));
     }
 public function manage()
-{
-    $userDepartment = Auth::user()->role;
+    {
+        $userDepartment = Auth::user()->role;
 
-    // Get user's PPMP items (excluding submitted and approved)
-    $ppmps = Ppmp::where('department', $userDepartment)
-                 ->whereNotIn('status', ['Submitted', 'Approved'])
-                 ->get();
+        $ppmps = Ppmp::where('department', $userDepartment)
+                    ->whereNotIn('status', ['Submitted', 'Approved'])
+                    ->get();
 
-    // Get active budget
-    $activeBudget = Budget::where('is_ended', false)->latest()->first();
-    $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+        $activeBudget = Budget::where('is_ended', false)->latest()->first();
+        $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
 
-    // Default values
-    $allocatedBudget = 0;
-    $remainingBudget = 0;
+        $allocatedBudget = 0;
+        $remainingBudget = 0;
 
-    if ($activeBudget && $activeBudget->amount > 0) {
-        // Divide budget equally per department
-        $allocatedBudget = round($activeBudget->amount / count($departments), 2);
+        if ($activeBudget && $activeBudget->amount > 0) {
+            $allocatedBudget = round($activeBudget->amount / count($departments), 2);
+            $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
+            $remainingBudget = $allocatedBudget - $spent;
+        }
 
-        // Calculate total spent by user's department
-        $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
+        foreach ($ppmps as $ppmp) {
+            $ppmp->allocated_budget = $allocatedBudget;
+        }
 
-        // Calculate remaining budget
-        $remainingBudget = $allocatedBudget - $spent;
+        return view('ppmp.manage', compact('ppmps', 'allocatedBudget', 'remainingBudget'));
     }
-
-    foreach ($ppmps as $ppmp) {
-        $ppmp->allocated_budget = $allocatedBudget;
-    }
-
-    return view('ppmp.manage', compact('ppmps', 'allocatedBudget', 'remainingBudget'));
-}
 
 // AJAX endpoint for updating remaining budget dynamically
 public function getRemainingBudget()
-{
-    $userDepartment = Auth::user()->role;
+    {
+        $userDepartment = Auth::user()->role;
 
-    $activeBudget = Budget::where('is_ended', false)->latest()->first();
-    $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+        $activeBudget = Budget::where('is_ended', false)->latest()->first();
+        $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
 
-    if (!$activeBudget) {
+        if (!$activeBudget) {
+            return response()->json([
+                'allocatedBudget' => 0,
+                'remainingBudget' => 0
+            ]);
+        }
+
+        $allocatedBudget = round($activeBudget->amount / count($departments), 2);
+        $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
+        $remainingBudget = $allocatedBudget - $spent;
+
         return response()->json([
-            'allocatedBudget' => 0,
-            'remainingBudget' => 0
+            'allocatedBudget' => $allocatedBudget,
+            'remainingBudget' => $remainingBudget
         ]);
     }
+ public function edit($id)
+    {
+        $ppmp = Ppmp::findOrFail($id); // ✅ fixed
+        return view('ppmp.edit', compact('ppmp'));
+    }
 
-    $allocatedBudget = round($activeBudget->amount / count($departments), 2);
-    $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
-    $remainingBudget = $allocatedBudget - $spent;
+    public function destroy($id)
+    {
+        $ppmp = Ppmp::findOrFail($id); // ✅ fixed
+        $ppmp->delete();
 
-    return response()->json([
-        'allocatedBudget' => $allocatedBudget,
-        'remainingBudget' => $remainingBudget
-    ]);
-}
+        return redirect()->route('ppmp.manage')->with('success', 'Deleted successfully.');
+    }
 
-
-
-
-
-public function edit($id)
-{
-    $ppmp = PPMP::findOrFail($id);
-    return view('ppmp.edit', compact('ppmp'));
-}
 public function updateQuantity(Request $request, $id)
 {
     $request->validate([
@@ -139,21 +135,6 @@ public function updateQuantity(Request $request, $id)
     $ppmp->save();
 
     return redirect()->back()->with('success', 'Quantity updated and budget recalculated.');
-}
-
-
-
-
-
-
-
-
-public function destroy($id)
-{
-    $ppmp = PPMP::findOrFail($id);
-    $ppmp->delete();
-
-    return redirect()->route('ppmp.manage')->with('success', ' Deleted successfully.');
 }
 
     
@@ -415,40 +396,38 @@ public function approved(Request $request)
     return view('ppmp.approved', compact('ppmps', 'availableYears', 'selectedYear'));
 }
 
-public function editDepartmentQuantities($department)
-{
-    if ($department === 'all') {
-        $ppmps = PPMP::where('status', 'submitted')->get(); // Or whatever condition
-    } else {
-        $ppmps = PPMP::where('department', $department)->get();
-    }
-
-    return view('ppmp.edit-department-quantities', compact('ppmps', 'department'));
-}
-
-
-public function updateDepartmentQuantities(Request $request, $department)
-{
-    foreach ($request->ppmp_ids as $index => $id) {
-        $ppmp = PPMP::findOrFail($id);
-        $newQty = $request->quantities[$index];
-        $ppmp->quantity = $newQty;
-        $ppmp->estimated_budget = $newQty * $ppmp->price;
-
-        // Optional: Update procurement mode
-        if ($ppmp->estimated_budget < 100000) {
-            $ppmp->mode_of_procurement = "Small Value Procurement";
-        } elseif ($ppmp->estimated_budget < 500000) {
-            $ppmp->mode_of_procurement = "Shopping";
+ public function editDepartmentQuantities($department)
+    {
+        if ($department === 'all') {
+            $ppmps = Ppmp::where('status', 'submitted')->get(); // ✅ fixed
         } else {
-            $ppmp->mode_of_procurement = " Bidding";
+            $ppmps = Ppmp::where('department', $department)->get(); // ✅ fixed
         }
 
-        $ppmp->save();
+        return view('ppmp.edit-department-quantities', compact('ppmps', 'department'));
     }
 
-    return redirect()->route('ppmp.principalview')->with('success', 'Quantities updated successfully.');
-}
+ public function updateDepartmentQuantities(Request $request, $department)
+    {
+        foreach ($request->ppmp_ids as $index => $id) {
+            $ppmp = Ppmp::findOrFail($id); // ✅ fixed
+            $newQty = $request->quantities[$index];
+            $ppmp->quantity = $newQty;
+            $ppmp->estimated_budget = $newQty * $ppmp->price;
+
+            if ($ppmp->estimated_budget < 100000) {
+                $ppmp->mode_of_procurement = "Small Value Procurement";
+            } elseif ($ppmp->estimated_budget < 500000) {
+                $ppmp->mode_of_procurement = "Shopping";
+            } else {
+                $ppmp->mode_of_procurement = "Bidding";
+            }
+
+            $ppmp->save();
+        }
+
+        return redirect()->route('ppmp.principalview')->with('success', 'Quantities updated successfully.');
+    }
 
 public function exportPdf()
 {
