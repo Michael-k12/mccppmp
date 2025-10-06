@@ -186,47 +186,54 @@ public function store(Request $request)
         'quantity' => 'required|integer|min:1',
         'estimated_budget' => 'required|numeric|min:0',
         'mode_of_procurement' => 'required|string|max:255',
-        'milestone_month' => 'required|string'
+        'milestone_month' => 'required|string',
     ]);
 
+    // Department based on logged-in user role
     $department = auth()->user()->role;
-    $activeBudget = Budget::where('is_ended', false)->latest()->first();
 
+    // Get active budget
+    $activeBudget = Budget::where('is_ended', false)->latest()->first();
     if (!$activeBudget) {
-        return redirect()->back()->withErrors(['milestone' => 'No active budget found.']);
+        return back()->with('duplicate_error', 'No active budget found.');
     }
 
-    // Combine active budget year + selected month
-    $milestoneDate = $activeBudget->year . '-' . $request->milestone_month;
+    // 🗓 Build milestone date as full valid date (for DB storage)
+    $milestoneDate = $activeBudget->year . '-' . $request->milestone_month . '-01';
 
-    // Duplicate check
+    // 🔍 Duplicate Check: Same description + same department + same month + same year
     $existing = Ppmp::where('description', $request->description)
         ->where('department', $department)
-        ->where('milestone_date', $milestoneDate)
+        ->whereYear('milestone_date', $activeBudget->year)
+        ->whereMonth('milestone_date', $request->milestone_month)
         ->exists();
 
     if ($existing) {
-        return redirect()->back()->with('duplicate_error', 
-            'Duplicate Item. You already added this item. Go to Manage if you want to add more.'
+        return back()->with('duplicate_error',
+            'Duplicate Item. You already added this item for this month. Go to Manage if you want to modify it.'
         );
     }
 
-    // Remaining budget calculation per department
+    // 💰 Compute remaining budget for this department
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
     $equalShare = $activeBudget->amount / count($departments);
 
-    $departmentRemaining = $equalShare -
-        Ppmp::where('department', $department)
-            ->whereYear('milestone_date', $activeBudget->year)
-            ->sum('estimated_budget');
+    $departmentUsed = Ppmp::where('department', $department)
+        ->whereYear('milestone_date', $activeBudget->year)
+        ->sum('estimated_budget');
+
+    $departmentRemaining = $equalShare - $departmentUsed;
 
     if ($request->estimated_budget > $departmentRemaining) {
-        return redirect()->back()->with('duplicate_error', 
-            "Cannot add item. Estimated budget ₱{$request->estimated_budget} exceeds your remaining budget ₱{$departmentRemaining}."
+        return back()->with('duplicate_error',
+            "Cannot add item. Estimated budget ₱" .
+            number_format($request->estimated_budget, 2) .
+            " exceeds your remaining budget ₱" .
+            number_format($departmentRemaining, 2) . "."
         );
     }
 
-    // Save PPMP
+    // 💾 Save PPMP record
     Ppmp::create([
         'classification' => $request->classification,
         'description' => $request->description,
@@ -239,10 +246,11 @@ public function store(Request $request)
         'department' => $department,
     ]);
 
-    // ✅ Redirect to manage page after success
+    // ✅ Redirect to manage page with success notification
     return redirect()->route('ppmp.manage')
-        ->with('success', 'Item added successfully!');
+        ->with('success', 'Item added successfully.');
 }
+
 
 
 
