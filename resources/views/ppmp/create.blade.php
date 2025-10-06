@@ -458,13 +458,20 @@ function calculateBudget(quantityInput = null) {
     }
 }
 document.getElementById('addPPMPForm').addEventListener('submit', function(e) {
-    // Remove commas from quantity and estimated budget before submitting
+    // Remove commas before submitting
     const quantityInput = document.getElementById('modal_quantity');
     const budgetInput = document.getElementById('modal_budget');
+    const itemId = document.getElementById('modal_item_id').value;
 
     quantityInput.value = quantityInput.value.replace(/,/g, '');
     budgetInput.value = budgetInput.value.replace(/,/g, '');
+
+    // store item ID in array to prevent duplicates
+    if(!addedItems.includes(itemId)) {
+        addedItems.push(itemId);
+    }
 });
+
 
 
 </script>
