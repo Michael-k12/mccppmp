@@ -211,7 +211,7 @@ th { background-color: #f9fafb; font-weight: bold; }
 
             <!-- Schedule / Milestone -->
 <label>Schedule / Milestone</label>
-<select name="milestone_date" id="modal_milestone_date" class="form-control" required>
+<select name="milestone_month" id="modal_milestone_date" class="form-control" required>
     <option value="">Select Month</option>
     @foreach ([
         '01' => 'January',
@@ -227,10 +227,9 @@ th { background-color: #f9fafb; font-weight: bold; }
         '11' => 'November',
         '12' => 'December'
     ] as $num => $month)
-        <option value="{{ now()->year }}-{{ $num }}-01">{{ $month }} {{ now()->year }}</option>
+        <option value="{{ $num }}">{{ $month }}</option>
     @endforeach
 </select>
-
 
 
             <div class="modal-footer">
