@@ -365,6 +365,11 @@ function formatNumberInput(input) {
     // Set formatted value back to input
     input.value = integerPart + decimalPart;
 }
+document.querySelector('form').addEventListener('submit', function(e) {
+    const amountInput = document.getElementById('amount');
+    amountInput.value = amountInput.value.replace(/,/g, ''); // remove commas
+});
+
 </script>
 
 </x-layouts.app>
