@@ -189,32 +189,29 @@ public function store(Request $request)
         'milestone_month' => 'required|string',
     ]);
 
-    // Department based on logged-in user role
     $department = auth()->user()->role;
 
-    // Get active budget
     $activeBudget = Budget::where('is_ended', false)->latest()->first();
     if (!$activeBudget) {
         return back()->with('duplicate_error', 'No active budget found.');
     }
 
-    // 🗓 Build milestone date as full valid date (for DB storage)
+    // Build milestone date
     $milestoneDate = $activeBudget->year . '-' . $request->milestone_month . '-01';
 
-    // 🔍 Duplicate Check: Same description + same department + same month + same year
+    // 🔒 STRICT DUPLICATE CHECK — same description + department + budget year
     $existing = Ppmp::where('description', $request->description)
         ->where('department', $department)
         ->whereYear('milestone_date', $activeBudget->year)
-        ->whereMonth('milestone_date', $request->milestone_month)
         ->exists();
 
     if ($existing) {
         return back()->with('duplicate_error',
-            'Duplicate Item. You already added this item for this month. Go to Manage if you want to modify it.'
+            'Duplicate Item. This description already exists in your PPMP for this budget year.'
         );
     }
 
-    // 💰 Compute remaining budget for this department
+    // Compute remaining budget
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
     $equalShare = $activeBudget->amount / count($departments);
 
@@ -233,7 +230,7 @@ public function store(Request $request)
         );
     }
 
-    // 💾 Save PPMP record
+    // Save PPMP record
     Ppmp::create([
         'classification' => $request->classification,
         'description' => $request->description,
@@ -246,7 +243,6 @@ public function store(Request $request)
         'department' => $department,
     ]);
 
-    // ✅ Redirect to manage page with success notification
     return redirect()->route('ppmp.manage')
         ->with('success', 'Item added successfully.');
 }
