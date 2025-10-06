@@ -16,11 +16,6 @@
             margin-bottom: 10px;
         }
 
-        .top-bar h2 {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
         .filter-form {
             display: flex;
             align-items: center;
@@ -43,10 +38,6 @@
             text-decoration: none;
             cursor: pointer;
             transition: background-color 0.3s ease;
-        }
-
-        .print-button:hover {
-            background-color: #1d4ed8;
         }
 
         .delete-button {
@@ -87,9 +78,50 @@
             background-color: #f1f5f9;
         }
 
-        .no-data {
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
             text-align: center;
-            font-style: italic;
+        }
+
+        .modal select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .confirm-btn {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 
@@ -107,18 +139,11 @@
                     </select>
                 </form>
 
-                <!-- ✅ Download PDF -->
                 <a href="{{ route('ppmp.download.pdf', ['year' => request('year')]) }}" class="print-button">
                     Download PDF
                 </a>
 
-                <!-- 🗑️ Delete selected year -->
-                <form id="deleteYearForm" action="{{ route('ppmp.delete.year') }}" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <input type="hidden" name="year" value="{{ request('year') }}">
-                    <button type="button" id="deleteButton" class="delete-button">Delete Year</button>
-                </form>
+                <button type="button" id="openDeleteModal" class="delete-button">Delete Year</button>
             </div>
         </div>
 
@@ -165,35 +190,75 @@
         </table>
     </div>
 
-    <script>
-        document.getElementById('deleteButton').addEventListener('click', function () {
-            const year = "{{ request('year') }}";
+    <!-- 🧩 Modal for selecting year -->
+    <div class="modal" id="yearModal">
+        <div class="modal-content">
+            <h3>Select a Year to Delete</h3>
+            <select id="yearSelect">
+                <option value="">-- Choose Year --</option>
+                @foreach ($availableYears as $yearOption)
+                    <option value="{{ $yearOption }}">{{ $yearOption }}</option>
+                @endforeach
+            </select>
+            <div style="display: flex; justify-content: space-between;">
+                <button class="close-btn" id="closeModal">Cancel</button>
+                <button class="confirm-btn" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
 
-            if (!year) {
+    <form id="deleteYearForm" action="{{ route('ppmp.delete.year') }}" method="POST" style="display:none;">
+        @csrf
+        @method('DELETE')
+        <input type="hidden" name="year" id="deleteYearInput">
+    </form>
+
+    <script>
+        const modal = document.getElementById('yearModal');
+        const openBtn = document.getElementById('openDeleteModal');
+        const closeBtn = document.getElementById('closeModal');
+        const confirmBtn = document.getElementById('confirmDelete');
+        const yearSelect = document.getElementById('yearSelect');
+        const deleteForm = document.getElementById('deleteYearForm');
+        const deleteInput = document.getElementById('deleteYearInput');
+
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            const selectedYear = yearSelect.value;
+
+            if (!selectedYear) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'No Year Selected',
-                    text: 'Please select a year before deleting.',
+                    title: 'Select a Year',
+                    text: 'Please choose a year before deleting.'
                 });
                 return;
             }
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: `This will permanently delete all PPMP records for ${year}.`,
+                text: `This will permanently delete all PPMP records for ${selectedYear}.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, delete it',
-                cancelButtonText: 'Cancel'
+                confirmButtonText: 'Yes, delete it'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    document.getElementById('deleteYearForm').submit();
+                    deleteInput.value = selectedYear;
+                    deleteForm.submit();
                 }
             });
         });
 
+        // SweetAlert responses
         @if (session('success'))
             Swal.fire('Deleted!', "{{ session('success') }}", 'success');
         @endif
