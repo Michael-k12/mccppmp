@@ -190,7 +190,6 @@ th { background-color: #f9fafb; font-weight: bold; }
             <input type="hidden" name="description" id="modal_description">
             <input type="hidden" name="unit" id="modal_unit">
             <input type="hidden" name="price" id="modal_price">
-            <input type="hidden" name="department" value="{{ auth()->user()->department }}">
 
             <!-- Quantity -->
 <label>Quantity</label>
