@@ -1,4 +1,4 @@
-<x-layouts.app :title="'Anual Project Plan'">
+<x-layouts.app :title="'Annual Project Plan'">
     <style>
         .container {
             max-width: 1200px;
@@ -30,7 +30,8 @@
             font-size: 14px;
         }
 
-        .print-button {
+        .print-button,
+        .delete-button {
             background-color: #2563eb;
             color: white;
             padding: 6px 12px;
@@ -44,6 +45,14 @@
 
         .print-button:hover {
             background-color: #1d4ed8;
+        }
+
+        .delete-button {
+            background-color: #dc2626;
+        }
+
+        .delete-button:hover {
+            background-color: #b91c1c;
         }
 
         .excel-table {
@@ -84,7 +93,7 @@
 
     <div class="container">
         <div class="top-bar">
-            <h2>Anual Procurement Plan</h2>
+            <h2>Annual Procurement Plan</h2>
             <div class="filter-form">
                 <form action="{{ route('ppmp.approved') }}" method="GET">
                     <select name="year" onchange="this.form.submit()">
@@ -95,9 +104,19 @@
                         @endforeach
                     </select>
                 </form>
+
+                <!-- ✅ Download PDF -->
                 <a href="{{ route('ppmp.download.pdf', ['year' => request('year')]) }}" class="print-button">
                     Download PDF
                 </a>
+
+                <!-- 🗑️ Delete selected year -->
+                <form action="{{ route('ppmp.delete.year') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all PPMP records for {{ request('year') }}?');">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="year" value="{{ request('year') }}">
+                    <button type="submit" class="delete-button">Delete Year</button>
+                </form>
             </div>
         </div>
 

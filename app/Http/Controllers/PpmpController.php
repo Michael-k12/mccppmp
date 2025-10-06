@@ -732,5 +732,13 @@ public function downloadNurse(Request $request)
     return $pdf->download('NURSE_PPMP_' . ($year ?? now()->format('Y')) . '.pdf');
 }
 
+public function deleteYear(Request $request)
+{
+    $year = $request->input('year');
+
+    $deleted = \App\Models\Ppmp::whereYear('created_at', $year)->delete();
+
+    return redirect()->route('ppmp.approved')->with('success', "All PPMP records for {$year} have been deleted successfully.");
+}
 
 }

@@ -110,3 +110,5 @@ Route::get('/security', [SecurityMonitorController::class, 'index'])->name('secu
 
 // Live fetch route for AJAX polling
 Route::get('/security/fetch', [SecurityMonitorController::class, 'fetchReports'])->name('security.fetch');
+
+Route::delete('/ppmp/delete-year', [App\Http\Controllers\PpmpController::class, 'deleteYear'])->name('ppmp.delete.year');
