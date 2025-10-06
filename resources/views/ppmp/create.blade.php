@@ -22,7 +22,112 @@ Swal.fire({
 </script>
 @endif
 
+<style>
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 2rem;
+    font-family: Arial, sans-serif;
+}
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+}
+.search-wrapper { position: relative; }
+.search-bar {
+    width: 600px;
+    padding: 8px 35px 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+.dots-loader {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+}
+.dots-loader span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 2px;
+    background-color: #1e40af;
+    border-radius: 50%;
+    animation: bounce 0.6s infinite alternate;
+}
+.dots-loader span:nth-child(2) { animation-delay: 0.2s; }
+.dots-loader span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { to { transform: translateY(-5px); opacity: 0.5; } }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+}
+th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    font-size: 14px;
+}
+th { background-color: #f9fafb; font-weight: bold; }
+.btn {
+    padding: 6px 12px;
+    border: none;
+    background-color: #1e40af;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn:hover { background-color: #1d4ed8; }
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 99;
+    padding-top: 60px;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background-color: #fff;
+    margin: auto;
+    padding: 20px;
+    width: 400px;
+    border-radius: 8px;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.modal input, .modal select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+.modal-footer { text-align: right; }
+.close { cursor: pointer; font-size: 20px; }
+</style>
 
 <div class="container">
 @if ($isProposalActive)
