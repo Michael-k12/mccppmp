@@ -191,8 +191,6 @@ th { background-color: #f9fafb; font-weight: bold; }
             <input type="hidden" name="unit" id="modal_unit">
             <input type="hidden" name="price" id="modal_price">
             <input type="hidden" name="department" value="{{ auth()->user()->department }}">
-                <input type="hidden" name="item_id" id="modal_item_id">
-
 
             <!-- Quantity -->
 <label>Quantity</label>
@@ -266,19 +264,28 @@ th { background-color: #f9fafb; font-weight: bold; }
 <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
 <script>
-    let addedItems = []; // store IDs of items already added
-
 function openModal(id, description, classification, unit, price) {
-    if (addedItems.includes(id)) {
+    // Convert to lowercase and trim to compare
+    const descLower = description.toLowerCase().trim();
+    const classLower = classification.toLowerCase().trim();
+    const unitLower = unit.toLowerCase().trim();
+
+    const isDuplicate = existingItems.some(item =>
+        item.description === descLower &&
+        item.classification === classLower &&
+        item.unit === unitLower
+    );
+
+    if(isDuplicate){
         Swal.fire({
             icon: 'warning',
             title: 'Duplicate Item',
-            text: 'This item has already been added to your PPMP.'
+            text: 'You already added this item. Go to Manage if you want to add more.'
         });
         return; // stop opening modal
     }
 
-    document.getElementById('modal_item_id').value = id;
+    // Open modal as usual
     document.getElementById('modal_description').value = description;
     document.getElementById('modal_classification').value = classification;
     document.getElementById('modal_unit').value = unit;
@@ -458,21 +465,22 @@ function calculateBudget(quantityInput = null) {
     }
 }
 document.getElementById('addPPMPForm').addEventListener('submit', function(e) {
-    // Remove commas before submitting
+    // Remove commas from quantity and estimated budget before submitting
     const quantityInput = document.getElementById('modal_quantity');
     const budgetInput = document.getElementById('modal_budget');
-    const itemId = document.getElementById('modal_item_id').value;
 
     quantityInput.value = quantityInput.value.replace(/,/g, '');
     budgetInput.value = budgetInput.value.replace(/,/g, '');
-
-    // store item ID in array to prevent duplicates
-    if(!addedItems.includes(itemId)) {
-        addedItems.push(itemId);
-    }
 });
-
-
+const existingItems = [
+    @foreach ($items as $item)
+    {
+        description: "{{ strtolower(trim($item->description)) }}",
+        classification: "{{ strtolower(trim($item->classification)) }}",
+        unit: "{{ strtolower(trim($item->unit)) }}"
+    },
+    @endforeach
+];
 
 </script>
 </x-layouts.app>
