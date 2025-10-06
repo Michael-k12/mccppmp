@@ -1,4 +1,6 @@
 <x-layouts.app :title="'Annual Project Plan'">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         .container {
             max-width: 1200px;
@@ -111,11 +113,11 @@
                 </a>
 
                 <!-- 🗑️ Delete selected year -->
-                <form action="{{ route('ppmp.delete.year') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all PPMP records for {{ request('year') }}?');">
+                <form id="deleteYearForm" action="{{ route('ppmp.delete.year') }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <input type="hidden" name="year" value="{{ request('year') }}">
-                    <button type="submit" class="delete-button">Delete Year</button>
+                    <button type="button" id="deleteButton" class="delete-button">Delete Year</button>
                 </form>
             </div>
         </div>
@@ -162,4 +164,42 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        document.getElementById('deleteButton').addEventListener('click', function () {
+            const year = "{{ request('year') }}";
+
+            if (!year) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Year Selected',
+                    text: 'Please select a year before deleting.',
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `This will permanently delete all PPMP records for ${year}.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, delete it',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteYearForm').submit();
+                }
+            });
+        });
+
+        @if (session('success'))
+            Swal.fire('Deleted!', "{{ session('success') }}", 'success');
+        @endif
+
+        @if (session('error'))
+            Swal.fire('Error', "{{ session('error') }}", 'error');
+        @endif
+    </script>
 </x-layouts.app>
