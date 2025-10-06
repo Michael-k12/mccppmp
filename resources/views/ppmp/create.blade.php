@@ -474,11 +474,11 @@ document.getElementById('addPPMPForm').addEventListener('submit', function(e) {
 });
 const existingItems = [
     @foreach ($items as $item)
-    {
-        description: "{{ strtolower(trim($item->description)) }}",
-        classification: "{{ strtolower(trim($item->classification)) }}",
-        unit: "{{ strtolower(trim($item->unit)) }}"
-    },
+        {
+            description: "{{ strtolower(trim($item->description)) }}",
+            classification: "{{ strtolower(trim($item->classification)) }}",
+            unit: "{{ strtolower(trim($item->unit)) }}"
+        }@if(!$loop->last),@endif
     @endforeach
 ];
 
