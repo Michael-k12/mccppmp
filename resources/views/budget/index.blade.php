@@ -84,9 +84,6 @@
        <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
     @csrf
     @method('DELETE')
-
-    <div class="flex justify-between items-center mb-2">
-        <h3 class="text-2xl font-semibold">Previous Budgets</h3>
         <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden">
             Delete Selected
         </button>
