@@ -91,13 +91,13 @@
         }
     </style>
 
-    <!-- ✅ Include SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <div class="container">
         <div class="top-bar">
             <h2>Annual Procurement Plan</h2>
             <div class="filter-form">
+                <!-- ✅ Filter by year -->
                 <form id="yearForm" action="{{ route('ppmp.approved') }}" method="GET">
                     <select id="yearSelect" name="year" onchange="this.form.submit()">
                         <option value="">-- Select Year --</option>
@@ -114,11 +114,11 @@
                     Download PDF
                 </a>
 
-                <!-- 🗑️ Delete selected year -->
+                <!-- 🗑️ Delete Year Modal Button -->
                 <form id="deleteYearForm" action="{{ route('ppmp.delete.year') }}" method="POST">
                     @csrf
                     @method('DELETE')
-                    <input type="hidden" name="year" id="deleteYear" value="{{ request('year') }}">
+                    <input type="hidden" name="year" id="deleteYear">
                     <button type="button" class="delete-button" id="deleteButton">Delete Year</button>
                 </form>
             </div>
@@ -169,29 +169,54 @@
 
     <script>
         document.getElementById('deleteButton').addEventListener('click', function() {
-            const selectedYear = document.getElementById('yearSelect').value;
             const form = document.getElementById('deleteYearForm');
+            const availableYears = @json($availableYears);
 
-            if (!selectedYear) {
+            if (availableYears.length === 0) {
                 Swal.fire({
-                    icon: 'warning',
-                    title: 'No Year Selected',
-                    text: 'Please select a year before deleting.',
+                    icon: 'info',
+                    title: 'No Years Available',
+                    text: 'There are no PPMP years to delete.',
                 });
                 return;
             }
 
+            // 🧾 Show SweetAlert dropdown for year selection
             Swal.fire({
-                title: `Are you sure you want to delete all PPMP records for ${selectedYear}?`,
-                text: "This action cannot be undone!",
-                icon: 'warning',
+                title: 'Select Year to Delete',
+                input: 'select',
+                inputOptions: availableYears.reduce((acc, year) => {
+                    acc[year] = year;
+                    return acc;
+                }, {}),
+                inputPlaceholder: 'Choose a year',
                 showCancelButton: true,
+                confirmButtonText: 'Delete',
                 confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, delete it!',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You must select a year to delete!';
+                    }
+                }
             }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
+                if (result.isConfirmed && result.value) {
+                    const selectedYear = result.value;
+
+                    Swal.fire({
+                        title: `Are you sure you want to delete all PPMP records for ${selectedYear}?`,
+                        text: "This action cannot be undone!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Yes, delete it!',
+                    }).then((finalConfirm) => {
+                        if (finalConfirm.isConfirmed) {
+                            document.getElementById('deleteYear').value = selectedYear;
+                            form.submit();
+                        }
+                    });
                 }
             });
         });
