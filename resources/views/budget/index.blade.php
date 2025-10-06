@@ -61,15 +61,14 @@
 
                     <!-- ✅ Budget Amount Input -->
                     <div>
-                        <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
-                        <input type="number" 
-                               name="amount" 
-                               id="amount" 
-                               step="0.01" 
-                               min="0" 
-                               class="modern-input" 
-                               required>
-                    </div>
+    <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
+    <input type="text" 
+           name="amount" 
+           id="amount" 
+           class="modern-input" 
+           required
+           oninput="formatAndValidateNumber(this)">
+</div>
 
                     <!-- Submit Button -->
                     <button type="submit" class="save-budget-btn w-full">💾 Save Budget</button>
@@ -340,6 +339,29 @@
             alert('Please select at least one budget to delete.');
         }
     });
+    function formatAndValidateNumber(input) {
+    // Remove all non-digit and non-dot characters
+    let value = input.value.replace(/[^0-9.]/g, '');
+
+    // Prevent multiple dots
+    const parts = value.split('.');
+    if (parts.length > 2) {
+        value = parts[0] + '.' + parts[1];
+    }
+
+    // Limit to 2 decimal places
+    if (parts[1]) {
+        parts[1] = parts[1].slice(0, 2);
+        value = parts[0] + '.' + parts[1];
+    }
+
+    // Update the input
+    input.value = value;
+
+    // Optionally, display formatted with commas
+    // Uncomment this if you want comma formatting
+    // input.value = Number(value).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
 </script>
 
 </x-layouts.app>
