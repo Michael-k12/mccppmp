@@ -736,9 +736,20 @@ public function deleteYear(Request $request)
 {
     $year = $request->input('year');
 
-    $deleted = \App\Models\Ppmp::whereYear('created_at', $year)->delete();
+    if (!$year) {
+        return back()->with('error', 'Please select a year to delete.');
+    }
 
-    return redirect()->route('ppmp.approved')->with('success', "All PPMP records for {$year} have been deleted successfully.");
+    // Match rows where milestone_date starts with the selected year (e.g. '2025-')
+    $deleted = Ppmp::where('milestone_date', 'like', $year . '%')->delete();
+
+    if ($deleted > 0) {
+        return redirect()->route('ppmp.approved')
+                         ->with('success', "All PPMP records for {$year} have been deleted successfully.");
+    } else {
+        return redirect()->route('ppmp.approved')
+                         ->with('error', "No PPMP records found for {$year}.");
+    }
 }
 
 }
