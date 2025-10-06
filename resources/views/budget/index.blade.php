@@ -67,8 +67,9 @@
            id="amount" 
            class="modern-input" 
            required
-           oninput="formatAndValidateNumber(this)">
+           oninput="formatNumberInput(this)">
 </div>
+
 
                     <!-- Submit Button -->
                     <button type="submit" class="save-budget-btn w-full">💾 Save Budget</button>
@@ -339,28 +340,30 @@
             alert('Please select at least one budget to delete.');
         }
     });
-    function formatAndValidateNumber(input) {
-    // Remove all non-digit and non-dot characters
+    
+function formatNumberInput(input) {
+    // Remove any character that is not a digit or a dot
     let value = input.value.replace(/[^0-9.]/g, '');
 
-    // Prevent multiple dots
+    // Handle multiple dots
     const parts = value.split('.');
-    if (parts.length > 2) {
+    if(parts.length > 2) {
         value = parts[0] + '.' + parts[1];
     }
 
-    // Limit to 2 decimal places
-    if (parts[1]) {
+    // Limit decimal places to 2
+    if(parts[1]) {
         parts[1] = parts[1].slice(0, 2);
         value = parts[0] + '.' + parts[1];
     }
 
-    // Update the input
-    input.value = value;
+    // Format integer part with commas
+    let integerPart = parts[0];
+    let decimalPart = parts[1] ? '.' + parts[1] : '';
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-    // Optionally, display formatted with commas
-    // Uncomment this if you want comma formatting
-    // input.value = Number(value).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    // Set formatted value back to input
+    input.value = integerPart + decimalPart;
 }
 </script>
 
