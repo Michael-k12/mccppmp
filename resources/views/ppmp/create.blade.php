@@ -191,6 +191,8 @@ th { background-color: #f9fafb; font-weight: bold; }
             <input type="hidden" name="unit" id="modal_unit">
             <input type="hidden" name="price" id="modal_price">
             <input type="hidden" name="department" value="{{ auth()->user()->department }}">
+                <input type="hidden" name="item_id" id="modal_item_id">
+
 
             <!-- Quantity -->
 <label>Quantity</label>
@@ -264,7 +266,19 @@ th { background-color: #f9fafb; font-weight: bold; }
 <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
 <script>
+    let addedItems = []; // store IDs of items already added
+
 function openModal(id, description, classification, unit, price) {
+    if (addedItems.includes(id)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Duplicate Item',
+            text: 'This item has already been added to your PPMP.'
+        });
+        return; // stop opening modal
+    }
+
+    document.getElementById('modal_item_id').value = id;
     document.getElementById('modal_description').value = description;
     document.getElementById('modal_classification').value = classification;
     document.getElementById('modal_unit').value = unit;
@@ -275,6 +289,7 @@ function openModal(id, description, classification, unit, price) {
     document.getElementById('modal_milestone_date').value = localStorage.getItem('selectedMonth') || '';
     document.getElementById('addModal').style.display = 'block';
 }
+
 
 function closeModal() {
     document.getElementById('addModal').style.display = 'none';
