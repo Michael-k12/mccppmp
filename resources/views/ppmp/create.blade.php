@@ -265,27 +265,6 @@ th { background-color: #f9fafb; font-weight: bold; }
 
 <script>
 function openModal(id, description, classification, unit, price) {
-    // Convert to lowercase and trim to compare
-    const descLower = description.toLowerCase().trim();
-    const classLower = classification.toLowerCase().trim();
-    const unitLower = unit.toLowerCase().trim();
-
-    const isDuplicate = existingItems.some(item =>
-        item.description === descLower &&
-        item.classification === classLower &&
-        item.unit === unitLower
-    );
-
-    if(isDuplicate){
-        Swal.fire({
-            icon: 'warning',
-            title: 'Duplicate Item',
-            text: 'You already added this item. Go to Manage if you want to add more.'
-        });
-        return; // stop opening modal
-    }
-
-    // Open modal as usual
     document.getElementById('modal_description').value = description;
     document.getElementById('modal_classification').value = classification;
     document.getElementById('modal_unit').value = unit;
@@ -296,7 +275,6 @@ function openModal(id, description, classification, unit, price) {
     document.getElementById('modal_milestone_date').value = localStorage.getItem('selectedMonth') || '';
     document.getElementById('addModal').style.display = 'block';
 }
-
 
 function closeModal() {
     document.getElementById('addModal').style.display = 'none';
@@ -474,11 +452,11 @@ document.getElementById('addPPMPForm').addEventListener('submit', function(e) {
 });
 const existingItems = [
     @foreach ($items as $item)
-        {
-            description: "{{ strtolower(trim($item->description)) }}",
-            classification: "{{ strtolower(trim($item->classification)) }}",
-            unit: "{{ strtolower(trim($item->unit)) }}"
-        }@if(!$loop->last),@endif
+    {
+        description: "{{ strtolower(trim($item->description)) }}",
+        classification: "{{ strtolower(trim($item->classification)) }}",
+        unit: "{{ strtolower(trim($item->unit)) }}"
+    },
     @endforeach
 ];
 
