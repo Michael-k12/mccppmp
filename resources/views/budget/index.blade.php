@@ -42,7 +42,8 @@
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800 text-center">Start Project Proposal</h3>
 
                 <!-- Modal Form -->
-                <form action="{{ route('budget.store') }}" method="POST" class="space-y-6">
+                <form id="budgetForm" action="{{ route('budget.store') }}" method="POST" class="space-y-6">
+
                     @csrf
 
                     <!-- ✅ Year Input -->
@@ -341,34 +342,25 @@
         }
     });
     
+// Format number while typing
 function formatNumberInput(input) {
-    // Remove any character that is not a digit or a dot
     let value = input.value.replace(/[^0-9.]/g, '');
 
-    // Handle multiple dots
     const parts = value.split('.');
-    if(parts.length > 2) {
-        value = parts[0] + '.' + parts[1];
-    }
+    if(parts.length > 2) value = parts[0] + '.' + parts[1];
+    if(parts[1]) parts[1] = parts[1].slice(0,2);
 
-    // Limit decimal places to 2
-    if(parts[1]) {
-        parts[1] = parts[1].slice(0, 2);
-        value = parts[0] + '.' + parts[1];
-    }
-
-    // Format integer part with commas
-    let integerPart = parts[0];
+    let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     let decimalPart = parts[1] ? '.' + parts[1] : '';
-    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-    // Set formatted value back to input
     input.value = integerPart + decimalPart;
 }
-document.querySelector('form').addEventListener('submit', function(e) {
+
+// Remove commas before submitting
+document.getElementById('budgetForm').addEventListener('submit', function(e) {
     const amountInput = document.getElementById('amount');
-    amountInput.value = amountInput.value.replace(/,/g, ''); // remove commas
+    amountInput.value = amountInput.value.replace(/,/g, ''); // now it submits as proper number
 });
+
 
 </script>
 
