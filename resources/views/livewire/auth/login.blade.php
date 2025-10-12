@@ -170,3 +170,76 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 }
 ?>
+<div class="flex flex-col gap-6" wire:poll.1s="tick">
+    <x-auth-header 
+        :title="'Log in to your account'" 
+        :description="'Enter your email and password below to log in'" 
+    />
+
+    <!-- Normal login -->
+    @if(!$showOtpForm)
+        <form wire:submit.prevent="login" class="flex flex-col gap-4">
+            <flux:input wire:model="email" label="Email address" type="email" required />
+            <flux:input wire:model="password" label="Password" type="password" required />
+
+            <div class="text-right text-sm">
+                <button type="button" wire:click="sendOtp" class="text-blue-600 hover:underline">
+                    Forgot Password?
+                </button>
+            </div>
+
+            @if ($remainingSeconds > 0)
+                <div class="text-center text-red-500">
+                    Please wait <b>{{ $remainingSeconds }}</b> seconds before next attempt.
+                </div>
+            @endif
+
+            <flux:button type="submit" variant="primary" class="w-full">Log in</flux:button>
+        </form>
+    @endif
+
+    @if (Route::has('register'))
+        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
+            {{ __("Don't have an account?") }}
+            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
+        </div>
+    @endif
+
+    <!-- OTP Login -->
+    @if($showOtpForm)
+        <div class="mt-6 p-4 border rounded-lg bg-gray-50">
+            <p class="text-sm text-gray-700 mb-2">Enter the OTP sent to your email:</p>
+            <form wire:submit.prevent="loginWithOtp" class="flex flex-col gap-4">
+                <flux:input wire:model="otpCode" label="OTP" type="text" maxlength="6" required />
+                <flux:button type="submit" variant="primary" class="w-full">
+                    Login with OTP
+                </flux:button>
+            </form>
+
+            <div class="text-right mt-2 text-sm">
+                <button type="button"
+                        wire:click="resendOtp"
+                        @if($resendCooldown > 0) disabled @endif
+                        class="text-blue-600 hover:underline">
+                    @if($resendCooldown > 0)
+                        Resend OTP in {{ $resendCooldown }}s
+                    @else
+                        Resend OTP
+                    @endif
+                </button>
+            </div>
+        </div>
+    @endif
+
+    @if(session()->has('success'))
+        <script>
+            Swal.fire({
+                title: 'Success!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </script>
+    @endif
+</div>
