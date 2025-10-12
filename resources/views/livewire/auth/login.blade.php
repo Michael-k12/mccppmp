@@ -13,6 +13,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 use App\Mail\LoginOtpMail;
+use App\Mail\SecurityAlertMail; // ✅ Added
 
 new #[Layout('components.layouts.auth')] class extends Component
 {
@@ -28,14 +29,13 @@ new #[Layout('components.layouts.auth')] class extends Component
     // OTP Properties
     public bool $showOtpForm = false;
     public string $otpCode = '';
-    public int $maxOtpAttempts = 3; // ⏱ 3 attempts only
-    public int $otpExpireMinutes = 2; // ⏱ 2 minutes expiry
+    public int $maxOtpAttempts = 3;
+    public int $otpExpireMinutes = 2;
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
 
-    public string $recaptcha_token = ''; // ✅ reCAPTCHA token field
+    public string $recaptcha_token = '';
 
-    // To store temporarily verified credentials
     protected ?\App\Models\User $pendingUser = null;
 
     public function tick(): void
@@ -45,75 +45,92 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 
     /**
-     * Step 1: Validate credentials → send OTP (do not log in yet)
+     * Step 1: Validate credentials → send OTP
      */
     public function login(): void
     {
-        $this->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-            'recaptcha_token' => 'required|string',
-        ]);
-
-        // ✅ Verify Google reCAPTCHA
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => config('recaptcha.secret_key'),
-            'response' => $this->recaptcha_token,
-            'remoteip' => request()->ip(),
-        ]);
-
-        $google = $response->json();
-
-        if (!$google['success'] || ($google['score'] ?? 0) < 0.5) {
-            throw ValidationException::withMessages([
-                'email' => 'reCAPTCHA verification failed. Please try again.',
+        try {
+            $this->validate([
+                'email' => 'required|string|email',
+                'password' => 'required|string',
+                'recaptcha_token' => 'required|string',
             ]);
-        }
 
-        $this->ensureIsNotRateLimited();
-
-        // Check credentials manually
-        if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
-            RateLimiter::hit($this->throttleKey(), 30); // ⏱ 30s cooldown
-            throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+            // ✅ Verify Google reCAPTCHA
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => config('recaptcha.secret_key'),
+                'response' => $this->recaptcha_token,
+                'remoteip' => request()->ip(),
             ]);
+
+            $google = $response->json();
+
+            if (!$google['success'] || ($google['score'] ?? 0) < 0.5) {
+                throw ValidationException::withMessages([
+                    'email' => 'reCAPTCHA verification failed. Please try again.',
+                ]);
+            }
+
+            $this->ensureIsNotRateLimited();
+
+            // Check credentials manually
+            if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
+                RateLimiter::hit($this->throttleKey(), 30);
+
+                // ✅ Send suspicious activity alert
+                Mail::to(config('mail.from.address'))->send(new SecurityAlertMail(
+                    'Suspicious Login Attempt Detected',
+                    'Failed login attempt for email: ' . $this->email . ' from IP: ' . request()->ip() . ' at ' . now()
+                ));
+
+                throw ValidationException::withMessages([
+                    'email' => __('auth.failed'),
+                ]);
+            }
+
+            // ✅ Credentials correct → reset limiter
+            RateLimiter::clear($this->throttleKey());
+            Cache::forget($this->otpCacheKey());
+
+            $user = \App\Models\User::where('email', $this->email)->first();
+            $this->pendingUser = $user;
+
+            // Generate OTP
+            $otp = random_int(100000, 999999);
+            $cacheKey = $this->otpCacheKey();
+
+            Cache::put($cacheKey, [
+                'otp' => bcrypt($otp),
+                'attempts' => 0,
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'remember' => $this->remember,
+            ], now()->addMinutes($this->otpExpireMinutes));
+
+            Mail::to($this->email)->send(new LoginOtpMail($otp));
+
+            $this->showOtpForm = true;
+            $this->resendCooldown = $this->resendSeconds;
+
+            session()->flash('success', "OTP sent to your email (valid for {$this->otpExpireMinutes} minutes).");
+        } catch (\Throwable $e) {
+            // ✅ Log and notify via email on error
+            Mail::to(config('mail.from.address'))->send(new SecurityAlertMail(
+                'System Error During Login',
+                'Error message: ' . $e->getMessage() . ' | User: ' . $this->email . ' | IP: ' . request()->ip()
+            ));
+
+            $this->dispatchBrowserEvent('swal:error', [
+                'title' => 'Login Error',
+                'text' => 'Something went wrong. Please try again later.'
+            ]);
+
+            throw $e;
         }
-
-        // ✅ Credentials correct → reset rate limiter
-        RateLimiter::clear($this->throttleKey());
-
-        // 🔹 Clear old OTP cache before generating new
-        Cache::forget($this->otpCacheKey());
-
-        // Proceed to OTP verification
-        $user = \App\Models\User::where('email', $this->email)->first();
-        $this->pendingUser = $user;
-
-        // Generate OTP
-        $otp = random_int(100000, 999999);
-        $cacheKey = $this->otpCacheKey();
-
-        Cache::put($cacheKey, [
-            'otp' => bcrypt($otp),
-            'attempts' => 0,
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'remember' => $this->remember,
-        ], now()->addMinutes($this->otpExpireMinutes));
-
-        // Send mail
-        Mail::to($this->email)->send(new LoginOtpMail($otp));
-
-        // Show OTP form
-        $this->showOtpForm = true;
-        $this->resendCooldown = $this->resendSeconds;
-
-        session()->flash('success', "OTP sent to your email (valid for {$this->otpExpireMinutes} minutes).");
     }
 
     /**
-     * Step 2: Validate OTP and log the user in
+     * Step 2: Validate OTP and log in
      */
     public function loginWithOtp(): void
     {
@@ -142,13 +159,17 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        // ✅ OTP valid → authenticate user
         $user = \App\Models\User::where('email', $otpData['email'])->first();
         Auth::login($user, $otpData['remember']);
 
+        // ✅ Successful login → send activity log email
+        Mail::to(config('mail.from.address'))->send(new SecurityAlertMail(
+            'User Login Successful',
+            'User ' . $user->name . ' (' . $user->email . ') successfully logged in at ' . now() . ' from IP: ' . request()->ip()
+        ));
+
         Cache::forget($cacheKey);
         $this->showOtpForm = false;
-
         $this->redirect(route('dashboard'));
     }
 
@@ -159,7 +180,6 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        // Generate new OTP
         $otp = random_int(100000, 999999);
         $cacheKey = $this->otpCacheKey();
 
@@ -184,7 +204,7 @@ new #[Layout('components.layouts.auth')] class extends Component
 
     protected function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 3)) return; // ✅ only 3 login attempts
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 3)) return;
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
         $this->remainingSeconds = $seconds;
@@ -199,6 +219,7 @@ new #[Layout('components.layouts.auth')] class extends Component
         return Str::lower($this->email) . '|' . request()->ip();
     }
 }
+
 ?>
 <div class="flex flex-col gap-6" wire:poll.1s="tick">
     <x-auth-header 
