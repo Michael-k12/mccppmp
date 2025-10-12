@@ -27,13 +27,13 @@ new #[Layout('components.layouts.auth')] class extends Component
     // OTP Properties
     public bool $showOtpForm = false;
     public string $otpCode = '';
-    public int $maxOtpAttempts = 5;
-    public int $otpExpireMinutes = 5;
+    public int $maxOtpAttempts = 3; // ⏱ 3 attempts only
+    public int $otpExpireMinutes = 2; // ⏱ 2 minutes expiry
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
 
     // To store temporarily verified credentials
-    protected ?\App\Models\User $pendingUser = null; // 🔹
+    protected ?\App\Models\User $pendingUser = null;
 
     public function tick(): void
     {
@@ -51,13 +51,19 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         // Check credentials manually
         if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
-            RateLimiter::hit($this->throttleKey(), 60);
+            RateLimiter::hit($this->throttleKey(), 30); // ⏱ 30s cooldown
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
         }
 
-        // 🔹 Credentials correct → proceed to OTP verification
+        // ✅ Credentials correct → reset rate limiter
+        RateLimiter::clear($this->throttleKey());
+
+        // 🔹 Clear old OTP cache before generating new
+        Cache::forget($this->otpCacheKey());
+
+        // Proceed to OTP verification
         $user = \App\Models\User::where('email', $this->email)->first();
         $this->pendingUser = $user;
 
@@ -113,7 +119,7 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        // 🔹 OTP valid → authenticate user
+        // ✅ OTP valid → authenticate user
         $user = \App\Models\User::where('email', $otpData['email'])->first();
         Auth::login($user, $otpData['remember']);
 
@@ -130,7 +136,7 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        // Use same logic as first send
+        // Generate new OTP
         $otp = random_int(100000, 999999);
         $cacheKey = $this->otpCacheKey();
 
@@ -155,9 +161,10 @@ new #[Layout('components.layouts.auth')] class extends Component
 
     protected function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) return;
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 3)) return; // ✅ only 3 login attempts
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
+        $this->remainingSeconds = $seconds;
 
         throw ValidationException::withMessages([
             'email' => "Too many login attempts. Try again in {$seconds} seconds.",
