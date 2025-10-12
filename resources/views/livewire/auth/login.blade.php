@@ -22,68 +22,86 @@ new #[Layout('components.layouts.auth')] class extends Component
     public string $password = '';
 
     public bool $remember = false;
+    public int $remainingSeconds = 0;
+
+    // OTP Properties
     public bool $showOtpForm = false;
     public string $otpCode = '';
-
-    // OTP Config
     public int $maxOtpAttempts = 5;
     public int $otpExpireMinutes = 5;
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
 
-    // Timer placeholder
-    public int $remainingSeconds = 0;
-
+    // Tick for countdown
     public function tick(): void
     {
+        if ($this->remainingSeconds > 0) $this->remainingSeconds--;
         if ($this->resendCooldown > 0) $this->resendCooldown--;
     }
 
     /**
-     * Step 1: Validate password and send OTP
+     * Normal login (password only)
      */
     public function login(): void
     {
         $this->validate();
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
+        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey(), 60);
-            throw ValidationException::withMessages(['email' => __('auth.failed')]);
+
+            throw ValidationException::withMessages([
+                'email' => __('auth.failed'),
+            ]);
         }
 
-        // Credentials are valid → now send OTP
-        $this->sendOtp();
-        $this->showOtpForm = true;
-
-        session()->flash('success', "OTP sent to your email. Valid for {$this->otpExpireMinutes} minutes.");
+        // Password correct → log in directly (no OTP)
+        $this->redirectIntended(route('dashboard'));
     }
 
     /**
-     * Send OTP via email
+     * Request OTP (Forgot Password)
      */
     public function sendOtp(): void
     {
+        $this->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
         $otp = random_int(100000, 999999);
         $cacheKey = $this->otpCacheKey();
 
         Cache::put($cacheKey, [
             'otp' => bcrypt($otp),
             'attempts' => 0,
-            'email' => $this->email,
         ], now()->addMinutes($this->otpExpireMinutes));
 
         Mail::to($this->email)->send(new LoginOtpMail($otp));
 
+        $this->showOtpForm = true;
         $this->resendCooldown = $this->resendSeconds;
+
+        session()->flash('success', "OTP sent to your email (valid for {$this->otpExpireMinutes} minutes).");
+    }
+
+    public function resendOtp(): void
+    {
+        if ($this->resendCooldown > 0) {
+            $this->addError('otpCode', "Please wait {$this->resendCooldown} seconds before resending OTP.");
+            return;
+        }
+
+        $this->sendOtp();
     }
 
     /**
-     * Step 2: Verify OTP, then complete login
+     * Login using OTP
      */
     public function loginWithOtp(): void
     {
-        $this->validate(['otpCode' => 'required|digits:6']);
+        $this->validate([
+            'otpCode' => 'required|digits:6',
+        ]);
 
         $cacheKey = $this->otpCacheKey();
         $otpData = Cache::get($cacheKey);
@@ -95,39 +113,25 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         if ($otpData['attempts'] >= $this->maxOtpAttempts) {
             Cache::forget($cacheKey);
-            $this->addError('otpCode', 'Maximum OTP attempts exceeded. Please log in again.');
+            $this->addError('otpCode', 'Maximum OTP attempts exceeded.');
             return;
         }
 
         if (!password_verify($this->otpCode, $otpData['otp'])) {
             $otpData['attempts']++;
             Cache::put($cacheKey, $otpData, now()->addMinutes($this->otpExpireMinutes));
-            $this->addError('otpCode', 'Invalid OTP. Please try again.');
+            $this->addError('otpCode', 'Invalid OTP.');
             return;
         }
 
-        // OTP valid — authenticate the user
+        // OTP valid → log in user
         $user = \App\Models\User::where('email', $this->email)->first();
         Auth::login($user, $this->remember);
 
         Cache::forget($cacheKey);
         $this->showOtpForm = false;
 
-        $this->redirectIntended(route('dashboard'));
-    }
-
-    /**
-     * Resend OTP
-     */
-    public function resendOtp(): void
-    {
-        if ($this->resendCooldown > 0) {
-            $this->addError('otpCode', "Please wait {$this->resendCooldown} seconds before resending.");
-            return;
-        }
-
-        $this->sendOtp();
-        session()->flash('success', 'A new OTP has been sent to your email.');
+        $this->redirect(route('dashboard'));
     }
 
     protected function otpCacheKey(): string
@@ -140,6 +144,7 @@ new #[Layout('components.layouts.auth')] class extends Component
         if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) return;
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
+
         throw ValidationException::withMessages([
             'email' => "Too many login attempts. Try again in {$seconds} seconds.",
         ]);
@@ -150,7 +155,6 @@ new #[Layout('components.layouts.auth')] class extends Component
         return Str::lower($this->email) . '|' . request()->ip();
     }
 }
-?>
 ?>
 <div class="flex flex-col gap-6" wire:poll.1s="tick">
     <x-auth-header 
