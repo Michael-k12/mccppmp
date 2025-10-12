@@ -179,6 +179,17 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 }
 ?>
+<style>
+    .grecaptcha-badge {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
+}
+</style>
 <div class="flex flex-col gap-6" wire:poll.1s="tick">
     <x-auth-header 
         :title="'Log in to your account'" 
