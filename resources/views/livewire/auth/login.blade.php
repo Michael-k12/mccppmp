@@ -32,7 +32,9 @@ new #[Layout('components.layouts.auth')] class extends Component
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
 
-    // Tick for countdown
+    // To store temporarily verified credentials
+    protected ?\App\Models\User $pendingUser = null; // 🔹
+
     public function tick(): void
     {
         if ($this->remainingSeconds > 0) $this->remainingSeconds--;
@@ -40,62 +42,49 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 
     /**
-     * Normal login (password only)
+     * Step 1: Validate credentials → send OTP (do not log in yet)
      */
     public function login(): void
     {
         $this->validate();
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        // Check credentials manually
+        if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
             RateLimiter::hit($this->throttleKey(), 60);
-
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
         }
 
-        // Password correct → log in directly (no OTP)
-        $this->redirectIntended(route('dashboard'));
-    }
+        // 🔹 Credentials correct → proceed to OTP verification
+        $user = \App\Models\User::where('email', $this->email)->first();
+        $this->pendingUser = $user;
 
-    /**
-     * Request OTP (Forgot Password)
-     */
-    public function sendOtp(): void
-    {
-        $this->validate([
-            'email' => 'required|email|exists:users,email',
-        ]);
-
+        // Generate OTP
         $otp = random_int(100000, 999999);
         $cacheKey = $this->otpCacheKey();
 
         Cache::put($cacheKey, [
             'otp' => bcrypt($otp),
             'attempts' => 0,
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'remember' => $this->remember,
         ], now()->addMinutes($this->otpExpireMinutes));
 
+        // Send mail
         Mail::to($this->email)->send(new LoginOtpMail($otp));
 
+        // Show OTP form
         $this->showOtpForm = true;
         $this->resendCooldown = $this->resendSeconds;
 
         session()->flash('success', "OTP sent to your email (valid for {$this->otpExpireMinutes} minutes).");
     }
 
-    public function resendOtp(): void
-    {
-        if ($this->resendCooldown > 0) {
-            $this->addError('otpCode', "Please wait {$this->resendCooldown} seconds before resending OTP.");
-            return;
-        }
-
-        $this->sendOtp();
-    }
-
     /**
-     * Login using OTP
+     * Step 2: Validate OTP and log the user in
      */
     public function loginWithOtp(): void
     {
@@ -107,13 +96,13 @@ new #[Layout('components.layouts.auth')] class extends Component
         $otpData = Cache::get($cacheKey);
 
         if (!$otpData) {
-            $this->addError('otpCode', 'OTP expired. Please request a new one.');
+            $this->addError('otpCode', 'OTP expired. Please log in again.');
             return;
         }
 
         if ($otpData['attempts'] >= $this->maxOtpAttempts) {
             Cache::forget($cacheKey);
-            $this->addError('otpCode', 'Maximum OTP attempts exceeded.');
+            $this->addError('otpCode', 'Maximum OTP attempts exceeded. Please log in again.');
             return;
         }
 
@@ -124,14 +113,39 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        // OTP valid → log in user
-        $user = \App\Models\User::where('email', $this->email)->first();
-        Auth::login($user, $this->remember);
+        // 🔹 OTP valid → authenticate user
+        $user = \App\Models\User::where('email', $otpData['email'])->first();
+        Auth::login($user, $otpData['remember']);
 
         Cache::forget($cacheKey);
         $this->showOtpForm = false;
 
         $this->redirect(route('dashboard'));
+    }
+
+    public function resendOtp(): void
+    {
+        if ($this->resendCooldown > 0) {
+            $this->addError('otpCode', "Please wait {$this->resendCooldown} seconds before resending OTP.");
+            return;
+        }
+
+        // Use same logic as first send
+        $otp = random_int(100000, 999999);
+        $cacheKey = $this->otpCacheKey();
+
+        Cache::put($cacheKey, [
+            'otp' => bcrypt($otp),
+            'attempts' => 0,
+            'user_id' => \App\Models\User::where('email', $this->email)->value('id'),
+            'email' => $this->email,
+            'remember' => $this->remember,
+        ], now()->addMinutes($this->otpExpireMinutes));
+
+        Mail::to($this->email)->send(new LoginOtpMail($otp));
+        $this->resendCooldown = $this->resendSeconds;
+
+        session()->flash('success', "New OTP sent to your email.");
     }
 
     protected function otpCacheKey(): string
@@ -156,75 +170,3 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 }
 ?>
-<div class="flex flex-col gap-6" wire:poll.1s="tick">
-    <x-auth-header 
-        :title="'Log in to your account'" 
-        :description="'Enter your email and password below to log in'" 
-    />
-
-    <!-- Normal login -->
-    @if(!$showOtpForm)
-        <form wire:submit.prevent="login" class="flex flex-col gap-4">
-            <flux:input wire:model="email" label="Email address" type="email" required />
-            <flux:input wire:model="password" label="Password" type="password" required />
-
-            <div class="text-right text-sm">
-                <button type="button" wire:click="sendOtp" class="text-blue-600 hover:underline">
-                    Forgot Password?
-                </button>
-            </div>
-
-            @if ($remainingSeconds > 0)
-                <div class="text-center text-red-500">
-                    Please wait <b>{{ $remainingSeconds }}</b> seconds before next attempt.
-                </div>
-            @endif
-
-            <flux:button type="submit" variant="primary" class="w-full">Log in</flux:button>
-        </form>
-    @endif
-    @if (Route::has('register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __('Don\'t have an account?') }}
-            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
-        </div>
-    @endif
-
-    <!-- OTP Login -->
-    @if($showOtpForm)
-        <div class="mt-6 p-4 border rounded-lg bg-gray-50">
-            <p class="text-sm text-gray-700 mb-2">Enter the OTP sent to your email:</p>
-            <form wire:submit.prevent="loginWithOtp" class="flex flex-col gap-4">
-                <flux:input wire:model="otpCode" label="OTP" type="text" maxlength="6" required />
-                <flux:button type="submit" variant="primary" class="w-full">
-                    Login with OTP
-                </flux:button>
-            </form>
-
-            <div class="text-right mt-2 text-sm">
-                <button type="button"
-                        wire:click="resendOtp"
-                        @if($resendCooldown > 0) disabled @endif
-                        class="text-blue-600 hover:underline">
-                    @if($resendCooldown > 0)
-                        Resend OTP in {{ $resendCooldown }}s
-                    @else
-                        Resend OTP
-                    @endif
-                </button>
-            </div>
-        </div>
-    @endif
-</div>
-
-@if(session()->has('success'))
-<script>
-    Swal.fire({
-        title: 'Success!',
-        text: "{{ session('success') }}",
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-    });
-</script>
-@endif
