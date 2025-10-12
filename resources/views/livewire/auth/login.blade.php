@@ -120,10 +120,14 @@ new #[Layout('components.layouts.auth')] class extends Component
                 'Error message: ' . $e->getMessage() . ' | User: ' . $this->email . ' | IP: ' . request()->ip()
             ));
 
-            $this->dispatchBrowserEvent('swal:error', [
-                'title' => 'Login Error',
-                'text' => 'Something went wrong. Please try again later.'
-            ]);
+           $this->js("
+    Swal.fire({
+        title: 'Login Error',
+        text: 'Something went wrong. Please try again later.',
+        icon: 'error'
+    });
+");
+
 
             throw $e;
         }
