@@ -180,7 +180,7 @@ new #[Layout('components.layouts.auth')] class extends Component
 }
 ?>
 <style>
-/* ✅ Force Google reCAPTCHA v3 badge visible and clickable */
+/* ✅ Force the Google reCAPTCHA v3 badge to remain visible and clickable */
 .grecaptcha-badge {
     visibility: visible !important;
     opacity: 1 !important;
@@ -193,9 +193,9 @@ new #[Layout('components.layouts.auth')] class extends Component
     transition: opacity 0.3s ease-in-out !important;
 }
 
-/* Optional spacing so it won’t overlap the footer */
+/* Optional: ensure nothing covers the badge */
 body {
-    padding-bottom: 70px;
+    padding-bottom: 60px; /* add spacing so it doesn’t overlap footer */
 }
 </style>
 
@@ -261,23 +261,9 @@ body {
     @endif
 </div>
 
-<!-- ✅ reCAPTCHA v3 + badge render -->
 @push('scripts')
 <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ✅ Render badge manually so it’s always visible
-    grecaptcha.ready(function() {
-        grecaptcha.render(document.createElement('div'), {
-            'sitekey': '{{ config('services.recaptcha.site_key') }}',
-            'badge': 'bottomright',
-            'size': 'invisible'
-        });
-    });
-});
-
-// ✅ Handle login form reCAPTCHA
 document.addEventListener('submit', function(e) {
     if (!e.target.matches('#login-form')) return;
     e.preventDefault();
