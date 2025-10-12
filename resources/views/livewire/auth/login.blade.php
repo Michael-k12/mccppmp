@@ -237,7 +237,28 @@ new #[Layout('components.layouts.auth')] class extends Component
             </div>
         </div>
     @endif
+    <!-- Hidden token field inside your login form -->
+<input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
 
+<!-- Load reCAPTCHA v3 -->
+<script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+
+<script>
+document.addEventListener('submit', function(e) {
+  // change selector to match your Livewire login form if different
+  if (!e.target.matches('form[wire\\:submit\\.prevent="login"]')) return;
+
+  e.preventDefault(); // stop default submit
+  grecaptcha.ready(function() {
+    grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'login'})
+    .then(function(token) {
+      document.getElementById('g-recaptcha-response').value = token;
+      // trigger Livewire login method with the token present
+      @this.call('login');
+    });
+  });
+});
+</script>
     @if(session()->has('success'))
         <script>
             Swal.fire({
