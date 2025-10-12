@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -32,6 +33,8 @@ new #[Layout('components.layouts.auth')] class extends Component
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
 
+    public string $recaptcha_token = ''; // ✅ reCAPTCHA token field
+
     // To store temporarily verified credentials
     protected ?\App\Models\User $pendingUser = null;
 
@@ -46,7 +49,27 @@ new #[Layout('components.layouts.auth')] class extends Component
      */
     public function login(): void
     {
-        $this->validate();
+        $this->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+            'recaptcha_token' => 'required|string',
+        ]);
+
+        // ✅ Verify Google reCAPTCHA
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => config('recaptcha.secret_key'),
+            'response' => $this->recaptcha_token,
+            'remoteip' => request()->ip(),
+        ]);
+
+        $google = $response->json();
+
+        if (!$google['success'] || ($google['score'] ?? 0) < 0.5) {
+            throw ValidationException::withMessages([
+                'email' => 'reCAPTCHA verification failed. Please try again.',
+            ]);
+        }
+
         $this->ensureIsNotRateLimited();
 
         // Check credentials manually
@@ -202,6 +225,13 @@ new #[Layout('components.layouts.auth')] class extends Component
             @endif
 
             <flux:button type="submit" variant="primary" class="w-full">Log in</flux:button>
+
+            <!-- ✅ reCAPTCHA attribution text -->
+            <p class="text-xs text-gray-400 text-center mt-2">
+                This site is protected by reCAPTCHA and the Google
+                <a href="https://policies.google.com/privacy" class="text-blue-500" target="_blank">Privacy Policy</a> and
+                <a href="https://policies.google.com/terms" class="text-blue-500" target="_blank">Terms of Service</a> apply.
+            </p>
         </form>
     @endif
 
@@ -250,3 +280,23 @@ new #[Layout('components.layouts.auth')] class extends Component
         </script>
     @endif
 </div>
+
+<!-- ✅ Google reCAPTCHA v3 Visible Badge -->
+<script src="https://www.google.com/recaptcha/api.js?render={{ config('recaptcha.site_key') }}"></script>
+
+<script>
+document.addEventListener('livewire:init', () => {
+    function setRecaptchaToken() {
+        grecaptcha.ready(function() {
+            grecaptcha.execute('{{ config('recaptcha.site_key') }}', {action: 'login'}).then(function(token) {
+                Livewire.find(
+                    document.querySelector('[wire\\:id]').getAttribute('wire:id')
+                ).set('recaptcha_token', token);
+            });
+        });
+    }
+
+    setRecaptchaToken();
+    setInterval(setRecaptchaToken, 90000); // refresh every 90s
+});
+</script>
