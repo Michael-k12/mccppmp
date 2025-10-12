@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Auth;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -27,12 +28,11 @@ new #[Layout('components.layouts.auth')] class extends Component
     // OTP Properties
     public bool $showOtpForm = false;
     public string $otpCode = '';
-    public int $maxOtpAttempts = 3; // ⏱ 3 attempts only
-    public int $otpExpireMinutes = 2; // ⏱ 2 minutes expiry
+    public int $maxOtpAttempts = 3;
+    public int $otpExpireMinutes = 2;
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
 
-    // To store temporarily verified credentials
     protected ?\App\Models\User $pendingUser = null;
 
     public function tick(): void
@@ -42,32 +42,46 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 
     /**
-     * Step 1: Validate credentials → send OTP (do not log in yet)
+     * Step 1: Validate credentials + reCAPTCHA + send OTP
      */
     public function login(): void
     {
         $this->validate();
         $this->ensureIsNotRateLimited();
 
-        // Check credentials manually
-        if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
-            RateLimiter::hit($this->throttleKey(), 30); // ⏱ 30s cooldown
+        // 🔐 Verify reCAPTCHA
+        $token = request('g-recaptcha-response');
+        if (!$token) {
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'email' => 'reCAPTCHA validation missing. Please try again.',
             ]);
         }
 
-        // ✅ Credentials correct → reset rate limiter
-        RateLimiter::clear($this->throttleKey());
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => config('services.recaptcha.secret_key'),
+            'response' => $token,
+            'remoteip' => request()->ip(),
+        ]);
 
-        // 🔹 Clear old OTP cache before generating new
+        $recaptcha = $response->json();
+        if (!($recaptcha['success'] ?? false) || ($recaptcha['score'] ?? 0) < 0.5) {
+            throw ValidationException::withMessages([
+                'email' => 'reCAPTCHA verification failed. Please try again.',
+            ]);
+        }
+
+        // ✅ Validate credentials
+        if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
+            RateLimiter::hit($this->throttleKey(), 30);
+            throw ValidationException::withMessages(['email' => __('auth.failed')]);
+        }
+
+        RateLimiter::clear($this->throttleKey());
         Cache::forget($this->otpCacheKey());
 
-        // Proceed to OTP verification
         $user = \App\Models\User::where('email', $this->email)->first();
         $this->pendingUser = $user;
 
-        // Generate OTP
         $otp = random_int(100000, 999999);
         $cacheKey = $this->otpCacheKey();
 
@@ -79,24 +93,19 @@ new #[Layout('components.layouts.auth')] class extends Component
             'remember' => $this->remember,
         ], now()->addMinutes($this->otpExpireMinutes));
 
-        // Send mail
         Mail::to($this->email)->send(new LoginOtpMail($otp));
 
-        // Show OTP form
         $this->showOtpForm = true;
         $this->resendCooldown = $this->resendSeconds;
-
         session()->flash('success', "OTP sent to your email (valid for {$this->otpExpireMinutes} minutes).");
     }
 
     /**
-     * Step 2: Validate OTP and log the user in
+     * Step 2: Verify OTP and log in
      */
     public function loginWithOtp(): void
     {
-        $this->validate([
-            'otpCode' => 'required|digits:6',
-        ]);
+        $this->validate(['otpCode' => 'required|digits:6']);
 
         $cacheKey = $this->otpCacheKey();
         $otpData = Cache::get($cacheKey);
@@ -119,7 +128,6 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        // ✅ OTP valid → authenticate user
         $user = \App\Models\User::where('email', $otpData['email'])->first();
         Auth::login($user, $otpData['remember']);
 
@@ -136,7 +144,6 @@ new #[Layout('components.layouts.auth')] class extends Component
             return;
         }
 
-        // Generate new OTP
         $otp = random_int(100000, 999999);
         $cacheKey = $this->otpCacheKey();
 
@@ -150,7 +157,6 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         Mail::to($this->email)->send(new LoginOtpMail($otp));
         $this->resendCooldown = $this->resendSeconds;
-
         session()->flash('success', "New OTP sent to your email.");
     }
 
@@ -161,14 +167,10 @@ new #[Layout('components.layouts.auth')] class extends Component
 
     protected function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 3)) return; // ✅ only 3 login attempts
-
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 3)) return;
         $seconds = RateLimiter::availableIn($this->throttleKey());
         $this->remainingSeconds = $seconds;
-
-        throw ValidationException::withMessages([
-            'email' => "Too many login attempts. Try again in {$seconds} seconds.",
-        ]);
+        throw ValidationException::withMessages(['email' => "Too many login attempts. Try again in {$seconds} seconds."]);
     }
 
     protected function throttleKey(): string
@@ -183,17 +185,10 @@ new #[Layout('components.layouts.auth')] class extends Component
         :description="'Enter your email and password below to log in'" 
     />
 
-    <!-- Normal login -->
     @if(!$showOtpForm)
-        <form wire:submit.prevent="login" class="flex flex-col gap-4">
+        <form wire:submit.prevent="login" class="flex flex-col gap-4" id="login-form">
             <flux:input wire:model="email" label="Email address" type="email" required />
             <flux:input wire:model="password" label="Password" type="password" required />
-
-            <div class="text-right text-sm">
-                <button type="button" wire:click="sendOtp" class="text-blue-600 hover:underline">
-                    Forgot Password?
-                </button>
-            </div>
 
             @if ($remainingSeconds > 0)
                 <div class="text-center text-red-500">
@@ -201,18 +196,13 @@ new #[Layout('components.layouts.auth')] class extends Component
                 </div>
             @endif
 
+            <!-- Hidden reCAPTCHA token -->
+            <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+
             <flux:button type="submit" variant="primary" class="w-full">Log in</flux:button>
         </form>
     @endif
 
-    @if (Route::has('register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __("Don't have an account?") }}
-            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
-        </div>
-    @endif
-
-    <!-- OTP Login -->
     @if($showOtpForm)
         <div class="mt-6 p-4 border rounded-lg bg-gray-50">
             <p class="text-sm text-gray-700 mb-2">Enter the OTP sent to your email:</p>
@@ -237,28 +227,7 @@ new #[Layout('components.layouts.auth')] class extends Component
             </div>
         </div>
     @endif
-    <!-- Hidden token field inside your login form -->
-<input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
 
-<!-- Load reCAPTCHA v3 -->
-<script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
-
-<script>
-document.addEventListener('submit', function(e) {
-  // change selector to match your Livewire login form if different
-  if (!e.target.matches('form[wire\\:submit\\.prevent="login"]')) return;
-
-  e.preventDefault(); // stop default submit
-  grecaptcha.ready(function() {
-    grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'login'})
-    .then(function(token) {
-      document.getElementById('g-recaptcha-response').value = token;
-      // trigger Livewire login method with the token present
-      @this.call('login');
-    });
-  });
-});
-</script>
     @if(session()->has('success'))
         <script>
             Swal.fire({
@@ -271,3 +240,20 @@ document.addEventListener('submit', function(e) {
         </script>
     @endif
 </div>
+
+@push('scripts')
+<script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+<script>
+document.addEventListener('submit', function(e) {
+    if (!e.target.matches('#login-form')) return;
+    e.preventDefault();
+
+    grecaptcha.ready(function() {
+        grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', {action: 'login'}).then(function(token) {
+            document.getElementById('g-recaptcha-response').value = token;
+            Livewire.find(e.target.closest('[wire\\:id]').getAttribute('wire:id')).call('login');
+        });
+    });
+});
+</script>
+@endpush
