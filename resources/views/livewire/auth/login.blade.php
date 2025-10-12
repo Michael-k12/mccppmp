@@ -180,16 +180,25 @@ new #[Layout('components.layouts.auth')] class extends Component
 }
 ?>
 <style>
-    .grecaptcha-badge {
+/* ✅ Force the Google reCAPTCHA v3 badge to remain visible and clickable */
+.grecaptcha-badge {
     visibility: visible !important;
     opacity: 1 !important;
     display: block !important;
     position: fixed !important;
-    bottom: 0 !important;
-    right: 0 !important;
-    z-index: 9999 !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
+    transform: scale(1) !important;
+    transition: opacity 0.3s ease-in-out !important;
+}
+
+/* Optional: ensure nothing covers the badge */
+body {
+    padding-bottom: 60px; /* add spacing so it doesn’t overlap footer */
 }
 </style>
+
 <div class="flex flex-col gap-6" wire:poll.1s="tick">
     <x-auth-header 
         :title="'Log in to your account'" 
