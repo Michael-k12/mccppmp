@@ -25,11 +25,14 @@ new #[Layout('components.layouts.auth')] class extends Component
     public bool $showOtpForm = false;
     public string $otpCode = '';
 
-    // OTP control
+    // OTP Config
     public int $maxOtpAttempts = 5;
     public int $otpExpireMinutes = 5;
     public int $resendCooldown = 0;
     public int $resendSeconds = 30;
+
+    // Timer placeholder
+    public int $remainingSeconds = 0;
 
     public function tick(): void
     {
@@ -37,29 +40,27 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 
     /**
-     * Step 1: Validate credentials and send OTP
+     * Step 1: Validate password and send OTP
      */
     public function login(): void
     {
         $this->validate();
-
         $this->ensureIsNotRateLimited();
 
-        // Check if credentials are correct, but don’t log in yet
         if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
             RateLimiter::hit($this->throttleKey(), 60);
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 
-        // Send OTP before login
+        // Credentials are valid → now send OTP
         $this->sendOtp();
         $this->showOtpForm = true;
 
-        session()->flash('success', "OTP sent to your email (valid for {$this->otpExpireMinutes} minutes).");
+        session()->flash('success', "OTP sent to your email. Valid for {$this->otpExpireMinutes} minutes.");
     }
 
     /**
-     * Send OTP via email and cache it
+     * Send OTP via email
      */
     public function sendOtp(): void
     {
@@ -78,7 +79,7 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 
     /**
-     * Step 2: Verify OTP and log in
+     * Step 2: Verify OTP, then complete login
      */
     public function loginWithOtp(): void
     {
@@ -94,14 +95,14 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         if ($otpData['attempts'] >= $this->maxOtpAttempts) {
             Cache::forget($cacheKey);
-            $this->addError('otpCode', 'Maximum OTP attempts exceeded.');
+            $this->addError('otpCode', 'Maximum OTP attempts exceeded. Please log in again.');
             return;
         }
 
         if (!password_verify($this->otpCode, $otpData['otp'])) {
             $otpData['attempts']++;
             Cache::put($cacheKey, $otpData, now()->addMinutes($this->otpExpireMinutes));
-            $this->addError('otpCode', 'Invalid OTP.');
+            $this->addError('otpCode', 'Invalid OTP. Please try again.');
             return;
         }
 
@@ -116,7 +117,7 @@ new #[Layout('components.layouts.auth')] class extends Component
     }
 
     /**
-     * Resend OTP (with cooldown)
+     * Resend OTP
      */
     public function resendOtp(): void
     {
@@ -149,35 +150,24 @@ new #[Layout('components.layouts.auth')] class extends Component
         return Str::lower($this->email) . '|' . request()->ip();
     }
 }
-
+?>
 ?>
 <div class="flex flex-col gap-6" wire:poll.1s="tick">
     <x-auth-header 
         :title="'Log in to your account'" 
-        :description="'Enter your email and password below to log in'" 
+        :description="'Enter your email and password below to log in.'" 
     />
 
-    <!-- Normal login -->
+    <!-- Step 1: Password form -->
     @if(!$showOtpForm)
         <form wire:submit.prevent="login" class="flex flex-col gap-4">
             <flux:input wire:model="email" label="Email address" type="email" required />
             <flux:input wire:model="password" label="Password" type="password" required />
 
-            <div class="text-right text-sm">
-                <button type="button" wire:click="sendOtp" class="text-blue-600 hover:underline">
-                    Forgot Password?
-                </button>
-            </div>
-
-            @if ($remainingSeconds > 0)
-                <div class="text-center text-red-500">
-                    Please wait <b>{{ $remainingSeconds }}</b> seconds before next attempt.
-                </div>
-            @endif
-
-            <flux:button type="submit" variant="primary" class="w-full">Log in</flux:button>
+            <flux:button type="submit" variant="primary" class="w-full">Send OTP to Login</flux:button>
         </form>
     @endif
+
     @if (Route::has('register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
             {{ __('Don\'t have an account?') }}
@@ -185,15 +175,13 @@ new #[Layout('components.layouts.auth')] class extends Component
         </div>
     @endif
 
-    <!-- OTP Login -->
+    <!-- Step 2: OTP Form -->
     @if($showOtpForm)
         <div class="mt-6 p-4 border rounded-lg bg-gray-50">
             <p class="text-sm text-gray-700 mb-2">Enter the OTP sent to your email:</p>
             <form wire:submit.prevent="loginWithOtp" class="flex flex-col gap-4">
                 <flux:input wire:model="otpCode" label="OTP" type="text" maxlength="6" required />
-                <flux:button type="submit" variant="primary" class="w-full">
-                    Login with OTP
-                </flux:button>
+                <flux:button type="submit" variant="primary" class="w-full">Verify OTP & Login</flux:button>
             </form>
 
             <div class="text-right mt-2 text-sm">
