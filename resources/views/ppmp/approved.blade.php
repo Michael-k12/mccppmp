@@ -127,25 +127,29 @@
 
     <div class="container">
         <div class="top-bar">
-            <h2>Annual Procurement Plan</h2>
-            <div class="filter-form">
-                <form action="{{ route('ppmp.approved') }}" method="GET">
-                    <select name="year" onchange="this.form.submit()">
-                        @foreach ($availableYears as $yearOption)
-                            <option value="{{ $yearOption }}" {{ request('year') == $yearOption ? 'selected' : '' }}>
-                                {{ $yearOption }}
-                            </option>
-                        @endforeach
-                    </select>
-                </form>
+    <h2>Annual Procurement Plan</h2>
+    <div class="filter-form">
+        {{-- Year Filter --}}
+        <form action="{{ route('ppmp.approved') }}" method="GET">
+            <select name="year" onchange="this.form.submit()">
+                @foreach ($availableYears as $yearOption)
+                    <option value="{{ $yearOption }}" 
+                        {{ request('year', $availableYears->first()) == $yearOption ? 'selected' : '' }}>
+                        {{ $yearOption }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
 
-              <form action="{{ route('ppmp.download.pdf', ['year' => request('year')]) }}" method="GET" style="display:inline;">
-    <button type="submit" class="print-button">Download PDF</button>
-</form>
+        {{-- Download PDF --}}
+        <form action="{{ route('ppmp.download.pdf', ['year' => request('year', $availableYears->first())]) }}" method="GET" style="display:inline;">
+            <button type="submit" class="print-button">Download PDF</button>
+        </form>
 
-                <button type="button" id="openDeleteModal" class="delete-button">Delete Year</button>
-            </div>
-        </div>
+        {{-- Delete Year --}}
+        <button type="button" id="openDeleteModal" class="delete-button">Delete Year</button>
+    </div>
+</div>
 
         @php $grandTotal = 0; @endphp
 
