@@ -354,27 +354,6 @@ public function batchApprove(Request $request)
 
 
 
-public function approved(Request $request)
-{
-    $selectedYear = $request->get('year');
-
-    $query = Ppmp::where('status', 'Approved');
-
-    if ($selectedYear) {
-        $query->whereYear('milestone_date', $selectedYear);
-    }
-
-    $ppmps = $query->get();
-
-    $availableYears = Ppmp::where('status', 'Approved')
-        ->whereNotNull('milestone_date')
-        ->selectRaw('YEAR(milestone_date) as year')
-        ->groupBy('year')
-        ->orderBy('year', 'desc')
-        ->pluck('year');
-
-    return view('ppmp.approved', compact('ppmps', 'availableYears', 'selectedYear'));
-}
 
  public function editDepartmentQuantities($department)
     {
@@ -419,6 +398,28 @@ public function downloadPdf(Request $request, $year)
 
     return $pdf->download("PPMP_{$year}.pdf");
 }
+public function approved(Request $request)
+{
+    $year = $request->get('year');
+
+    $query = Ppmp::where('status', 'Approved');
+
+    if ($year) {
+        $query->whereYear('milestone_date', $year);
+    }
+
+    $ppmps = $query->get();
+
+    $availableYears = Ppmp::where('status', 'Approved')
+        ->whereNotNull('milestone_date')
+        ->selectRaw('YEAR(milestone_date) as year')
+        ->groupBy('year')
+        ->orderBy('year', 'desc')
+        ->pluck('year');
+
+    return view('ppmp.approved', compact('ppmps', 'availableYears', 'year'));
+}
+
 
 public function bsit(Request $request)
 {
