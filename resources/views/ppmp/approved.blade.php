@@ -142,12 +142,7 @@
     @endforeach
 </select>
 
-        </form>
-
-        {{-- Download PDF --}}
-      <form action="{{ route('ppmp.download.pdf', ['year' => $year]) }}" method="GET">
-    <button type="submit" class="print-button">Download PDF</button>
-</form>
+      
 
 
 
