@@ -1,11 +1,22 @@
-<x-layouts.app :title="'Edit All Department Quantities'">
+<x-layouts.app :title="'Realign'">
 <div class="container mx-auto px-4 py-6">
-    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Edit Department Quantities</h2>
+    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Realignment</h2>
+
+    <!-- 🔍 Search Bar -->
+    <div class="flex justify-end mb-4">
+        <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search by department or description..." 
+            class="border border-gray-300 rounded-md px-4 py-2 w-80 focus:ring focus:ring-blue-300 focus:border-blue-400"
+            onkeyup="filterTable()"
+        >
+    </div>
 
     <form method="POST" action="{{ route('ppmp.updateDepartmentQuantities', 'all') }}" onsubmit="calculateFinalQuantities()">
         @csrf
         <div class="overflow-x-auto">
-            <table class="min-w-full bg-white border border-gray-300 shadow rounded-lg">
+            <table class="min-w-full bg-white border border-gray-300 shadow rounded-lg" id="ppmpTable">
                 <thead class="bg-blue-100 text-gray-700">
                     <tr>
                         <th class="px-4 py-3 text-left border">Department</th>
@@ -26,11 +37,9 @@
                             </td>
                             <td class="px-4 py-3 text-center border">
                                 <input type="number" name="additions[]" value="" min="0" class="border-gray-300 rounded w-20 text-center" placeholder="0">
-
                             </td>
                             <td class="px-4 py-3 text-center border">
                                 <input type="number" name="subtractions[]" value="" min="0" class="border-gray-300 rounded w-20 text-center" placeholder="0">
-
                             </td>
                             <input type="hidden" name="ppmp_ids[]" value="{{ $ppmp->id }}">
                         </tr>
@@ -39,47 +48,44 @@
             </table>
         </div>
 
-     <div class="form-actions">
-    <button type="submit" class="save-btn">Save Changes</button>
-    <a href="{{ route('ppmp.principalview') }}" class="cancel-link">Cancel</a>
-</div>
-<style>
-    .form-actions {
-    margin-top: 1.5rem; /* same as mt-6 */
-    display: flex;
-    align-items: center;
-}
+        <div class="form-actions">
+            <button type="submit" class="save-btn">Save Changes</button>
+            <a href="{{ route('ppmp.principalview') }}" class="cancel-link">Cancel</a>
+        </div>
 
-.save-btn {
-    background-color: #2563eb; /* blue-600 */
-    color: white;
-    font-weight: 600;
-    padding: 0.5rem 1.5rem; /* py-2 px-6 */
-    border: none;
-    border-radius: 0.375rem; /* rounded */
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.save-btn:hover {
-    background-color: #1e40af; /* blue-700 */
-}
-
-.cancel-link {
-    margin-left: 1rem; /* ml-4 */
-    color: #4b5563; /* gray-600 */
-    text-decoration: none;
-    transition: text-decoration 0.2s ease;
-}
-
-.cancel-link:hover {
-    text-decoration: underline;
-}
-</style>
+        <style>
+            .form-actions {
+                margin-top: 1.5rem;
+                display: flex;
+                align-items: center;
+            }
+            .save-btn {
+                background-color: #2563eb;
+                color: white;
+                font-weight: 600;
+                padding: 0.5rem 1.5rem;
+                border: none;
+                border-radius: 0.375rem;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+            .save-btn:hover {
+                background-color: #1e40af;
+            }
+            .cancel-link {
+                margin-left: 1rem;
+                color: #4b5563;
+                text-decoration: none;
+            }
+            .cancel-link:hover {
+                text-decoration: underline;
+            }
+        </style>
     </form>
 </div>
 
 <script>
+    // 🧮 Compute adjusted quantities before submit
     function calculateFinalQuantities() {
         const rows = document.querySelectorAll('tbody tr');
         rows.forEach((row) => {
@@ -92,6 +98,17 @@
             qtyInput.name = 'quantities[]';
             qtyInput.value = finalQty;
             row.appendChild(qtyInput);
+        });
+    }
+
+    // 🔍 Search filter function
+    function filterTable() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#ppmpTable tbody tr');
+        rows.forEach(row => {
+            const dept = row.cells[0].textContent.toLowerCase();
+            const desc = row.cells[1].textContent.toLowerCase();
+            row.style.display = (dept.includes(input) || desc.includes(input)) ? '' : 'none';
         });
     }
 </script>
