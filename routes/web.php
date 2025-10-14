@@ -113,6 +113,6 @@ Route::get('/security/fetch', [SecurityMonitorController::class, 'fetchReports']
 
 Route::delete('/ppmp/delete-year', [App\Http\Controllers\PpmpController::class, 'deleteYear'])->name('ppmp.delete.year');
 
-Route::delete('/ppmp/delete-all', [App\Http\Controllers\PPMPController::class, 'deleteAll'])
+Route::delete('/ppmp/delete-all', [App\Http\Controllers\PpmpController::class, 'deleteAll'])
     ->name('ppmp.deleteAll');
 
