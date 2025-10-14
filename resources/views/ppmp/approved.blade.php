@@ -130,15 +130,18 @@
     <h2>Annual Procurement Plan</h2>
     <div class="filter-form">
         {{-- Year Filter --}}
-        <form action="{{ route('ppmp.approved') }}" method="GET">
-            <select name="year" onchange="this.form.submit()">
-                @foreach ($availableYears as $yearOption)
-                    <option value="{{ $yearOption }}" {{ $year == $yearOption ? 'selected' : '' }}>
-    {{ $yearOption }}
-</option>
+        <form action="{{ route('ppmp.download.pdf', ['year' => $year]) }}" method="GET">
+    <button type="submit" class="print-button">Download PDF</button>
+</form>
 
-                @endforeach
-            </select>
+<select name="year" onchange="this.form.submit()">
+    @foreach ($availableYears as $yearOption)
+        <option value="{{ $yearOption }}" {{ $year == $yearOption ? 'selected' : '' }}>
+            {{ $yearOption }}
+        </option>
+    @endforeach
+</select>
+
         </form>
 
         {{-- Download PDF --}}

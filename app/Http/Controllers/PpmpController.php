@@ -400,15 +400,7 @@ public function downloadPdf(Request $request, $year)
 }
 public function approved(Request $request)
 {
-    $year = $request->get('year'); // use $year
-
-    $query = Ppmp::where('status', 'Approved');
-
-    if ($year) {
-        $query->whereYear('milestone_date', $year);
-    }
-
-    $ppmps = $query->get();
+    $year = $request->get('year');
 
     $availableYears = Ppmp::where('status', 'Approved')
         ->whereNotNull('milestone_date')
@@ -417,8 +409,18 @@ public function approved(Request $request)
         ->orderBy('year', 'desc')
         ->pluck('year');
 
-    return view('ppmp.approved', compact('ppmps', 'availableYears', 'year')); // pass $year
+    // Default to the latest year if none is selected
+    if (!$year && $availableYears->count() > 0) {
+        $year = $availableYears->first();
+    }
+
+    $ppmps = Ppmp::where('status', 'Approved')
+        ->when($year, fn($q) => $q->whereYear('milestone_date', $year))
+        ->get();
+
+    return view('ppmp.approved', compact('ppmps', 'availableYears', 'year'));
 }
+
 
 
 
