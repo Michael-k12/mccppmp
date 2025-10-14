@@ -31,42 +31,44 @@
         </div>
 
         <!-- Buttons -->
-        <div class="action-bar">
-            @if ($latestBudget)
-                <!-- Approve All -->
-                <form method="POST" action="{{ route('ppmp.batchApprove') }}"
-                      onsubmit="return confirm('Approve all submitted Project Plan?');">
-                    @csrf
-                    @foreach ($ppmps as $ppmp)
-                        <input type="hidden" name="ppmp_ids[]" value="{{ $ppmp->id }}">
-                    @endforeach
-                    <button type="submit"
-                        class="approve-btn {{ $ppmpTotal != $latestBudget->amount ? 'disabled-btn' : '' }}"
-                        {{ $ppmpTotal != $latestBudget->amount ? 'disabled' : '' }}>
-                        Approve All
-                    </button>
-                </form>
-
-                <!-- Delete All -->
-                @if (count($ppmps) > 0)
-                    <form method="POST" action="{{ route('ppmp.deleteAll') }}"
-                          onsubmit="return confirm('Are you sure you want to delete all Project Plans?');">
+        <div class="action-bar-wrapper">
+            <div class="action-bar">
+                @if ($latestBudget)
+                    <!-- Approve All -->
+                    <form method="POST" action="{{ route('ppmp.batchApprove') }}"
+                          onsubmit="return confirm('Approve all submitted Project Plan?');">
                         @csrf
-                        @method('DELETE')
-                        <button type="submit" class="delete-btn">Delete All</button>
+                        @foreach ($ppmps as $ppmp)
+                            <input type="hidden" name="ppmp_ids[]" value="{{ $ppmp->id }}">
+                        @endforeach
+                        <button type="submit"
+                            class="action-btn approve-btn {{ $ppmpTotal != $latestBudget->amount ? 'disabled-btn' : '' }}"
+                            {{ $ppmpTotal != $latestBudget->amount ? 'disabled' : '' }}>
+                            Approve All
+                        </button>
                     </form>
-                @else
-                    <button type="button" class="delete-btn disabled-btn" disabled>Delete All</button>
-                @endif
-            @else
-                <button type="button" class="approve-btn disabled-btn" disabled>Approve All</button>
-                <button type="button" class="delete-btn disabled-btn" disabled>Delete All</button>
-            @endif
 
-            <!-- Realignment (renamed from Edit Quantities) -->
-            <a href="{{ route('ppmp.editDepartmentQuantities', 'all') }}" class="action-button">
-                Realignment
-            </a>
+                    <!-- Delete All -->
+                    @if (count($ppmps) > 0)
+                        <form method="POST" action="{{ route('ppmp.deleteAll') }}"
+                              onsubmit="return confirm('Are you sure you want to delete all Project Plans?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="action-btn delete-btn">Delete All</button>
+                        </form>
+                    @else
+                        <button type="button" class="action-btn delete-btn disabled-btn" disabled>Delete All</button>
+                    @endif
+                @else
+                    <button type="button" class="action-btn approve-btn disabled-btn" disabled>Approve All</button>
+                    <button type="button" class="action-btn delete-btn disabled-btn" disabled>Delete All</button>
+                @endif
+
+                <!-- Realignment -->
+                <a href="{{ route('ppmp.editDepartmentQuantities', 'all') }}" class="action-btn realign-btn">
+                    Realignment
+                </a>
+            </div>
         </div>
 
         <!-- Table -->
@@ -141,31 +143,49 @@
         .remaining-budget { background-color: #dcfce7; color: #166534; }
         .no-budget { color: #dc2626; font-weight: 600; }
 
-        /* Buttons Row */
-        .action-bar {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 0.75rem;
+        /* Buttons Wrapper */
+        .action-bar-wrapper {
+            overflow-x: auto;
             margin-bottom: 1.5rem;
         }
 
-        .action-button, .approve-btn, .delete-btn {
-            padding: 0.5rem 1rem;
+        .action-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 0.75rem;
+            min-width: max-content;
+        }
+
+        /* Buttons */
+        .action-btn {
+            flex: 1;
+            padding: 0.6rem 1rem;
             border-radius: 6px;
             font-size: 0.875rem;
             font-weight: 600;
-            transition: 0.3s;
             text-align: center;
+            color: #fff;
+            transition: 0.3s;
+            min-width: 120px;
+            white-space: nowrap;
         }
-        .action-button { background-color: #f59e0b; color: #fff; } /* Realignment */
-        .action-button:hover { background-color: #d97706; }
-        .approve-btn { background-color: #16a34a; color: white; border: none; }
+
+        .approve-btn { background-color: #16a34a; border: none; }
         .approve-btn:hover { background-color: #15803d; }
-        .delete-btn { background-color: #dc2626; color: white; border: none; }
+
+        .delete-btn { background-color: #dc2626; border: none; }
         .delete-btn:hover { background-color: #b91c1c; }
-        .disabled-btn { background-color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.7; }
+
+        .realign-btn { background-color: #f59e0b; border: none; }
+        .realign-btn:hover { background-color: #d97706; }
+
+        .disabled-btn {
+            background-color: #9ca3af !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
+        }
 
         /* Table Container */
         .table-container {
@@ -180,7 +200,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-            min-width: 800px; /* Ensures horizontal scrolling */
+            min-width: 800px;
         }
         .excel-table th, .excel-table td {
             border: 1px solid #e5e7eb;
@@ -196,7 +216,6 @@
         }
         .excel-table tr:hover td { background-color: #f9fafb; }
 
-        /* Allocated Red Label */
         .allocated-red {
             background-color: #fee2e2 !important;
             color: #b91c1c !important;
@@ -204,14 +223,7 @@
             border: 1px solid #f87171;
         }
 
-        /* 📱 Responsive Adjustments */
-        @media (max-width: 1024px) {
-            .budget-info {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-
+        /* Responsive Adjustments */
         @media (max-width: 768px) {
             .title {
                 font-size: 1.25rem;
@@ -221,29 +233,18 @@
             .ppmp-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 0.5rem;
+            }
+            .budget-info {
+                justify-content: flex-start;
             }
             .action-bar {
                 justify-content: center;
-                flex-direction: column;
-                gap: 0.5rem;
+                flex-wrap: nowrap;
             }
-            .budget-info {
-                width: 100%;
-                justify-content: center;
-            }
-            .excel-table {
-                font-size: 12px;
-                min-width: 600px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .approve-btn, .delete-btn, .action-button {
-                width: 100%;
-            }
-            .excel-table {
-                min-width: 500px;
+            .action-btn {
+                flex: 1;
+                text-align: center;
+                width: 33%;
             }
         }
     </style>
