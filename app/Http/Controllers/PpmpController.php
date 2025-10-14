@@ -409,33 +409,15 @@ public function approved(Request $request)
         return redirect()->route('ppmp.principalview')->with('success', 'Quantities updated successfully.');
     }
 
-public function exportPdf(Request $request)
+public function downloadPdf($year)
 {
-    // Principal access only
-    if (Auth::user()->role !== 'principal') {
-        abort(403, 'Unauthorized');
-    }
+    $ppmps = PPMP::whereYear('created_at', $year)->get();
+    $availableYears = PPMP::selectRaw('YEAR(created_at) as year')->distinct()->pluck('year');
 
-    // Get year from request or fallback to current
-    $year = $request->input('year', now()->year);
+    $pdf = PDF::loadView('ppmp.pdf', compact('ppmps', 'year', 'availableYears'))
+              ->setPaper('a4', 'landscape'); // landscape mode for table
 
-    // Fetch all submitted or approved PPMPs for that year
-    $ppmps = Ppmp::whereIn('status', ['submitted', 'approved'])
-                 ->whereYear('milestone_date', $year)
-                 ->orderBy('classification')
-                 ->get();
-
-    if ($ppmps->isEmpty()) {
-        return back()->with('error', "No submitted or approved PPMPs found for $year.");
-    }
-
-    // Load PDF view
-    $pdf = Pdf::loadView('ppmp.pdf', [
-        'ppmps' => $ppmps,
-        'year'  => $year,
-    ])->setPaper('a4', 'landscape'); // Landscape as in your blade
-
-    return $pdf->download("Principal_PPMPs_$year.pdf");
+    return $pdf->download("Annual_Project_Plan_{$year}.pdf");
 }
 
 public function bsit(Request $request)

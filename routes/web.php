@@ -115,3 +115,5 @@ Route::delete('/ppmp/delete-year', [App\Http\Controllers\PpmpController::class, 
 Route::delete('/ppmp/delete-all', [App\Http\Controllers\PpmpController::class, 'deleteAll'])
     ->name('ppmp.deleteAll');
 
+Route::get('/ppmp/download-pdf/{year}', [App\Http\Controllers\PPMPController::class, 'downloadPdf'])
+     ->name('ppmp.download.pdf');
