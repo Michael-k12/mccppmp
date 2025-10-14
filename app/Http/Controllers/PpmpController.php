@@ -400,7 +400,7 @@ public function downloadPdf(Request $request, $year)
 }
 public function approved(Request $request)
 {
-    $year = $request->get('year');
+    $year = $request->get('year'); // use $year
 
     $query = Ppmp::where('status', 'Approved');
 
@@ -417,8 +417,9 @@ public function approved(Request $request)
         ->orderBy('year', 'desc')
         ->pluck('year');
 
-    return view('ppmp.approved', compact('ppmps', 'availableYears', 'year'));
+    return view('ppmp.approved', compact('ppmps', 'availableYears', 'year')); // pass $year
 }
+
 
 
 public function bsit(Request $request)

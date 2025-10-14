@@ -133,18 +133,19 @@
         <form action="{{ route('ppmp.approved') }}" method="GET">
             <select name="year" onchange="this.form.submit()">
                 @foreach ($availableYears as $yearOption)
-                    <option value="{{ $yearOption }}" 
-                        {{ request('year', $availableYears->first()) == $yearOption ? 'selected' : '' }}>
-                        {{ $yearOption }}
-                    </option>
+                    <option value="{{ $yearOption }}" {{ $year == $yearOption ? 'selected' : '' }}>
+    {{ $yearOption }}
+</option>
+
                 @endforeach
             </select>
         </form>
 
         {{-- Download PDF --}}
-      <form action="{{ route('ppmp.download.pdf', ['year' => $selectedYear]) }}" method="GET">
+      <form action="{{ route('ppmp.download.pdf', ['year' => $year]) }}" method="GET">
     <button type="submit" class="print-button">Download PDF</button>
 </form>
+
 
 
 
