@@ -150,44 +150,59 @@
         @php $grandTotal = 0; @endphp
 
         <table class="excel-table">
-            <thead>
+    <thead>
+        <tr>
+            <th>Classification</th>
+            <th>Description</th>
+            <th>Unit</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Estimated Budget</th>
+            <th>Mode Of Procurement</th>
+            <th colspan="12">Schedule / Milestone</th>
+        </tr>
+        <tr>
+            @foreach(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] as $month)
+                <th>{{ $month }}</th>
+            @endforeach
+        </tr>
+    </thead>
+    <tbody>
+        @php $grandTotal = 0; @endphp
+        @forelse ($ppmps->sortByDesc('created_at')->groupBy('classification') as $classification => $group)
+            @foreach ($group as $ppmp)
+                @php
+                    $grandTotal += $ppmp->estimated_budget;
+                    $milestoneMonth = \Carbon\Carbon::parse($ppmp->milestone_date)->format('n'); // 1-12
+                @endphp
                 <tr>
-                    <th>Classification</th>
-                    <th>Description</th>
-                    <th>Unit</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Estimated Budget</th>
-                    <th>Mode Of Procurement</th>
+                    <td>{{ strtoupper($ppmp->classification) }}</td>
+                    <td>{{ $ppmp->description }}</td>
+                    <td>{{ $ppmp->unit }}</td>
+                    <td>{{ number_format($ppmp->price, 2) }}</td>
+                    <td>{{ $ppmp->quantity }}</td>
+                    <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
+                    <td>{{ $ppmp->mode_of_procurement }}</td>
+                    @for ($m = 1; $m <= 12; $m++)
+                        <td style="background-color: {{ $m == $milestoneMonth ? 'rgb(255, 217, 63)' : 'transparent' }};"></td>
+                    @endfor
                 </tr>
-            </thead>
-            <tbody>
-                @forelse ($ppmps->sortByDesc('created_at')->groupBy('classification') as $classification => $group)
-                    @foreach ($group as $ppmp)
-                        @php $grandTotal += $ppmp->estimated_budget; @endphp
-                        <tr>
-                            <td>{{ strtoupper($ppmp->classification) }}</td>
-                            <td>{{ $ppmp->description }}</td>
-                            <td>{{ $ppmp->unit }}</td>
-                            <td>{{ number_format($ppmp->price, 2) }}</td>
-                            <td>{{ $ppmp->quantity }}</td>
-                            <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
-                            <td>{{ $ppmp->mode_of_procurement }}</td>
-                        </tr>
-                    @endforeach
-                @empty
-                    <tr>
-                        <td colspan="7" class="no-data">No approved Project Plan found.</td>
-                    </tr>
-                @endforelse
+            @endforeach
+        @empty
+            <tr>
+                <td colspan="19" class="no-data">No approved Project Plan found.</td>
+            </tr>
+        @endforelse
 
-                <tr class="total-row">
-                    <td colspan="5">TOTAL</td>
-                    <td>{{ number_format($grandTotal, 2) }}</td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
+        <tr class="total-row">
+            <td colspan="5">TOTAL</td>
+            <td>{{ number_format($grandTotal, 2) }}</td>
+            <td></td>
+            <td colspan="12"></td>
+        </tr>
+    </tbody>
+</table>
+
     </div>
 
     <!-- 🧩 Modal for selecting year -->
