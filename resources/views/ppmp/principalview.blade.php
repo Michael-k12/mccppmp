@@ -1,6 +1,6 @@
 <x-layouts.app :title="'Principal View'">
     @if (session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center sm:text-left">
             {{ session('success') }}
         </div>
     @endif
@@ -31,7 +31,7 @@
         </div>
 
         <!-- Buttons -->
-        <div class="flex justify-end gap-3 mb-5">
+        <div class="action-bar">
             @if ($latestBudget)
                 <!-- Approve All -->
                 <form method="POST" action="{{ route('ppmp.batchApprove') }}"
@@ -70,7 +70,7 @@
         </div>
 
         <!-- Table -->
-        <div class="overflow-x-auto shadow rounded-lg border border-gray-200">
+        <div class="table-container">
             <table class="excel-table">
                 <thead>
                     <tr>
@@ -114,6 +114,7 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            gap: 1rem;
             margin-bottom: 1.5rem;
         }
         .title {
@@ -125,6 +126,7 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            justify-content: flex-end;
         }
         .budget-status, .ppmp-subtotal {
             font-size: 0.9rem;
@@ -139,15 +141,25 @@
         .remaining-budget { background-color: #dcfce7; color: #166534; }
         .no-budget { color: #dc2626; font-weight: 600; }
 
-        /* Buttons */
+        /* Buttons Row */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
         .action-button, .approve-btn, .delete-btn {
             padding: 0.5rem 1rem;
             border-radius: 6px;
             font-size: 0.875rem;
             font-weight: 600;
             transition: 0.3s;
+            text-align: center;
         }
-        .action-button { background-color: #f59e0b; color: #fff; } /* Realignment color */
+        .action-button { background-color: #f59e0b; color: #fff; } /* Realignment */
         .action-button:hover { background-color: #d97706; }
         .approve-btn { background-color: #16a34a; color: white; border: none; }
         .approve-btn:hover { background-color: #15803d; }
@@ -155,16 +167,26 @@
         .delete-btn:hover { background-color: #b91c1c; }
         .disabled-btn { background-color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.7; }
 
+        /* Table Container */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
         /* Table */
         .excel-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
+            min-width: 800px; /* Ensures horizontal scrolling */
         }
         .excel-table th, .excel-table td {
             border: 1px solid #e5e7eb;
             padding: 8px 12px;
             text-align: left;
+            white-space: nowrap;
         }
         .excel-table th {
             background-color: #f3f4f6;
@@ -174,11 +196,55 @@
         }
         .excel-table tr:hover td { background-color: #f9fafb; }
 
+        /* Allocated Red Label */
         .allocated-red {
             background-color: #fee2e2 !important;
             color: #b91c1c !important;
             font-weight: bold;
             border: 1px solid #f87171;
+        }
+
+        /* 📱 Responsive Adjustments */
+        @media (max-width: 1024px) {
+            .budget-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.25rem;
+                text-align: center;
+                width: 100%;
+            }
+            .ppmp-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .action-bar {
+                justify-content: center;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .budget-info {
+                width: 100%;
+                justify-content: center;
+            }
+            .excel-table {
+                font-size: 12px;
+                min-width: 600px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .approve-btn, .delete-btn, .action-button {
+                width: 100%;
+            }
+            .excel-table {
+                min-width: 500px;
+            }
         }
     </style>
 </x-layouts.app>
