@@ -152,13 +152,13 @@
         <table class="excel-table">
     <thead>
         <tr>
-            <th>Classification</th>
-            <th>Description</th>
-            <th>Unit</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Estimated Budget</th>
-            <th>Mode Of Procurement</th>
+            <th rowspan="2">Classification</th>
+            <th rowspan="2">Description</th>
+            <th rowspan="2">Unit</th>
+            <th rowspan="2">Price</th>
+            <th rowspan="2">Quantity</th>
+            <th rowspan="2">Estimated Budget</th>
+            <th rowspan="2">Mode Of Procurement</th>
             <th colspan="12">Schedule / Milestone</th>
         </tr>
         <tr>
@@ -186,7 +186,7 @@
                     @for ($m = 1; $m <= 12; $m++)
                         <td style="width: 3%; text-align: center; background-color: {{ $m == $milestoneMonth ? 'rgb(255, 217, 63)' : 'transparent' }};">
                             @if($m == $milestoneMonth)
-                                &#x2713; <!-- Optional check mark to indicate milestone -->
+                                &#x2713; <!-- optional milestone checkmark -->
                             @endif
                         </td>
                     @endfor
