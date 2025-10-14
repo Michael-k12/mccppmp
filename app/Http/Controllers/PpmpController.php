@@ -409,14 +409,15 @@ public function approved(Request $request)
         return redirect()->route('ppmp.principalview')->with('success', 'Quantities updated successfully.');
     }
 
-public function downloadPdf($year)
+public function downloadPdf(Request $request, $year)
 {
-    $ppmps = PPMP::whereYear('created_at', $year)->get();
+    $ppmps = PPMP::whereYear('milestone_date', $year)
+                ->orderBy('classification')
+                ->get();
 
-    $pdf = PDF::loadView('ppmp.pdf', compact('ppmps', 'year'))
-              ->setPaper('a4', 'landscape');
+    $pdf = PDF::loadView('ppmp.pdf', compact('ppmps', 'year'));
 
-    return $pdf->download("Annual_Procurement_Plan_{$year}.pdf");
+    return $pdf->download("PPMP_{$year}.pdf");
 }
 
 public function bsit(Request $request)
