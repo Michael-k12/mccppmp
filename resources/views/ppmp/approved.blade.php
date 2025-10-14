@@ -163,7 +163,7 @@
         </tr>
         <tr>
             @foreach(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] as $month)
-                <th>{{ $month }}</th>
+                <th style="width: 3%; text-align: center;">{{ $month }}</th>
             @endforeach
         </tr>
     </thead>
@@ -177,14 +177,18 @@
                 @endphp
                 <tr>
                     <td>{{ strtoupper($ppmp->classification) }}</td>
-                    <td>{{ $ppmp->description }}</td>
+                    <td style="text-align: left;">{{ $ppmp->description }}</td>
                     <td>{{ $ppmp->unit }}</td>
-                    <td>{{ number_format($ppmp->price, 2) }}</td>
-                    <td>{{ $ppmp->quantity }}</td>
-                    <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
+                    <td style="text-align: right;">{{ number_format($ppmp->price, 2) }}</td>
+                    <td style="text-align: center;">{{ $ppmp->quantity }}</td>
+                    <td style="text-align: right;">{{ number_format($ppmp->estimated_budget, 2) }}</td>
                     <td>{{ $ppmp->mode_of_procurement }}</td>
                     @for ($m = 1; $m <= 12; $m++)
-                        <td style="background-color: {{ $m == $milestoneMonth ? 'rgb(255, 217, 63)' : 'transparent' }};"></td>
+                        <td style="width: 3%; text-align: center; background-color: {{ $m == $milestoneMonth ? 'rgb(255, 217, 63)' : 'transparent' }};">
+                            @if($m == $milestoneMonth)
+                                &#x2713; <!-- Optional check mark to indicate milestone -->
+                            @endif
+                        </td>
                     @endfor
                 </tr>
             @endforeach
@@ -196,7 +200,7 @@
 
         <tr class="total-row">
             <td colspan="5">TOTAL</td>
-            <td>{{ number_format($grandTotal, 2) }}</td>
+            <td style="text-align: right;">{{ number_format($grandTotal, 2) }}</td>
             <td></td>
             <td colspan="12"></td>
         </tr>
