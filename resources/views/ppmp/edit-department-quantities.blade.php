@@ -8,7 +8,7 @@
             type="text" 
             id="searchInput" 
             placeholder="Search by department or description..." 
-            class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-96 md:w-[32rem] focus:ring focus:ring-blue-300 focus:border-blue-400"
+            class="search-bar border border-gray-300 rounded-md px-4 py-2 focus:ring focus:ring-blue-300 focus:border-blue-400"
             onkeyup="filterTable()"
         >
     </div>
@@ -55,13 +55,35 @@
         </div>
 
         <!-- 🧾 Buttons -->
-        <div class="form-actions mt-6 flex flex-col sm:flex-row items-center gap-3">
-            <button type="submit" class="save-btn w-full sm:w-auto">Save Changes</button>
-            <a href="{{ route('ppmp.principalview') }}" class="cancel-link w-full sm:w-auto text-center">Cancel</a>
+        <div class="form-actions mt-6 flex justify-end flex-wrap gap-3">
+            <button type="submit" class="save-btn">Save Changes</button>
+            <a href="{{ route('ppmp.principalview') }}" class="cancel-link">Cancel</a>
         </div>
 
         <!-- 🎨 Styles -->
         <style>
+            /* 🔍 Search Bar Responsiveness */
+            .search-bar {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            @media (min-width: 1024px) { /* Laptop/Desktop */
+                .search-bar {
+                    width: 50%; /* Half of the table width */
+                }
+            }
+
+            /* 🧾 Buttons */
+            .form-actions {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
+
             .save-btn {
                 background-color: #2563eb;
                 color: white;
@@ -72,9 +94,11 @@
                 cursor: pointer;
                 transition: background-color 0.3s ease;
             }
+
             .save-btn:hover {
                 background-color: #1e40af;
             }
+
             .cancel-link {
                 color: #4b5563;
                 text-decoration: none;
@@ -84,6 +108,7 @@
                 border-radius: 0.375rem;
                 transition: all 0.3s ease;
             }
+
             .cancel-link:hover {
                 background-color: #f3f4f6;
             }
