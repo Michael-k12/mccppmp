@@ -133,44 +133,53 @@
             @endforeach
         </tr>
 
-        @php $i = 1; $grand = 0; @endphp
-        @foreach ($ppmps->groupBy('classification') as $classification => $group)
-            <tr>
-                <td colspan="2" class="green-row" style="text-align: left; border-right: none;">
-                    {{ strtoupper($classification) }}
-                </td>
-                @for ($col = 3; $col <= 20; $col++)
-                    <td class="green-row"></td>
-                @endfor
-            </tr>
-            @foreach ($group as $ppmp)
-                @php
-                    $month = \Carbon\Carbon::parse($ppmp->milestone_date)->format('n');
-                    $grand += $ppmp->estimated_budget;
-                @endphp
-                <tr>
-                    <td>{{ $i++ }}</td>
-                    <td style="text-align: left">{{ $ppmp->description }}</td>
-                    <td>{{ $ppmp->unit }}</td>
-                    <td>{{ nf($ppmp->price) }}</td>
-                    <td>{{ $ppmp->quantity }}</td>
-                    <td>{{ nf($ppmp->estimated_budget) }}</td>
-                    <td>{{ $ppmp->mode_of_procurement }}</td>
-                    @for ($m = 1; $m <= 12; $m++)
-                        <td class="{{ $m == $month ? 'yellow' : '' }}"></td>
-                    @endfor
-                    <td class="border-right">{{ nf($ppmp->estimated_budget) }}</td>
-                </tr>
+       @php
+$grand = 0;
+$i = 1;
+$groupedPpmp = $ppmps->groupBy('classification')->map(function($items){
+    return $items->groupBy('description');
+});
+@endphp
 
-                @if ($loop->last)
-                    <tr>
-                        @for ($col = 1; $col <= 20; $col++)
-                            <td>&nbsp;</td>
-                        @endfor
-                    </tr>
-                @endif
-            @endforeach
-        @endforeach
+@foreach ($groupedPpmp as $classification => $descGroups)
+    <tr>
+        <td colspan="2" class="green-row" style="text-align: left; border-right: none;">
+            {{ strtoupper($classification) }}
+        </td>
+        @for ($col = 3; $col <= 20; $col++)
+            <td class="green-row"></td>
+        @endfor
+    </tr>
+
+    @foreach ($descGroups as $description => $items)
+        @php
+            $totalQty = $items->sum('quantity');
+            $totalBudget = $items->sum('estimated_budget');
+            $month = \Carbon\Carbon::parse($items->first()->milestone_date)->format('n');
+            $unit = $items->first()->unit; // assume same unit
+            $price = $items->first()->price; // assume same price
+            $mode = $items->first()->mode_of_procurement;
+            $grand += $totalBudget;
+        @endphp
+
+        <tr>
+            <td>{{ $i++ }}</td>
+            <td style="text-align: left">{{ $description }}</td>
+            <td>{{ $unit }}</td>
+            <td>{{ nf($price) }}</td>
+            <td>{{ $totalQty }}</td>
+            <td>{{ nf($totalBudget) }}</td>
+            <td>{{ $mode }}</td>
+
+            @for ($m = 1; $m <= 12; $m++)
+                <td class="{{ $m == $month ? 'yellow' : '' }}"></td>
+            @endfor
+
+            <td class="border-right">{{ nf($totalBudget) }}</td>
+        </tr>
+    @endforeach
+@endforeach
+
 
         <tr style="font-weight: bold; background-color: #e5e7eb;">
             <td></td>
