@@ -1,5 +1,10 @@
 <x-layouts.app :title="'Principal View'">
-    
+    @if (session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        {{ session('success') }}
+    </div>
+@endif
+
 <div class="container mx-auto px-4 py-6">
     <!-- Header -->
     <div class="ppmp-header">
@@ -26,7 +31,7 @@
         @endif
     </div>
 
-   <!-- Buttons -->
+  <!-- Buttons -->
 <div class="flex justify-end gap-3 mb-5">
     @if ($latestBudget)
         <form method="POST" action="{{ route('ppmp.batchApprove') }}" 
@@ -48,9 +53,18 @@
             onclick="openRealignModal({{ $latestBudget->amount }}, {{ $ppmpTotal }})">
             Realignment
         </button>
+
+        <!-- Delete All Button -->
+        <form method="POST" action="{{ route('ppmp.deleteAll') }}" 
+              onsubmit="return confirm('Are you sure you want to delete all Project Plans?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="delete-btn">Delete All</button>
+        </form>
     @else
         <button type="button" class="approve-btn disabled-btn" disabled>Approve All</button>
         <button type="button" class="realign-btn disabled-btn" disabled>Realignment</button>
+        <button type="button" class="delete-btn disabled-btn" disabled>Delete All</button>
     @endif
 
     <!-- Edit Quantities Button -->
@@ -58,6 +72,7 @@
         Edit Quantities
     </a>
 </div>
+
 
 
     <!-- Table -->
@@ -243,6 +258,20 @@
     color: #b91c1c !important;
     font-weight: bold;
     border: 1px solid #f87171;
+}
+.delete-btn {
+    background-color: #dc2626;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.delete-btn:hover {
+    background-color: #b91c1c;
 }
 
 </style>
