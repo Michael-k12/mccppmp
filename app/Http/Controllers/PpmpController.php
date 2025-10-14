@@ -251,7 +251,7 @@ public function store(Request $request)
 
 public function deleteAll()
 {
-    \App\Models\PPMP::query()->delete();
+    \App\Models\Ppmp::query()->delete();
     return redirect()->back()->with('success', 'All Project Plans have been deleted successfully.');
 }
 
