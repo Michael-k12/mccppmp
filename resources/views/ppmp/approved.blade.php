@@ -142,9 +142,10 @@
         </form>
 
         {{-- Download PDF --}}
-        <form action="{{ route('ppmp.download.pdf', ['year' => request('year', $availableYears->first())]) }}" method="GET" style="display:inline;">
-            <button type="submit" class="print-button">Download PDF</button>
-        </form>
+      <form action="{{ route('ppmp.download.pdf', ['year' => $year]) }}" method="GET" style="display:inline;">
+    <button type="submit" class="print-button">Download PDF</button>
+</form>
+
 
         {{-- Delete Year --}}
         <button type="button" id="openDeleteModal" class="delete-button">Delete Year</button>
