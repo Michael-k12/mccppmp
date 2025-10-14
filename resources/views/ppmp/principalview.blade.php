@@ -1,9 +1,9 @@
 <x-layouts.app :title="'Principal View'">
     @if (session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-        {{ session('success') }}
-    </div>
-@endif
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
 
 <div class="container mx-auto px-4 py-6">
     <!-- Header -->
@@ -11,69 +11,67 @@
         <h2 class="title">Project Plan Approval</h2>
 
         @if ($latestBudget)
-       <div class="budget-info">
-    <span id="allocatedLabel" 
-        class="budget-status {{ session('approved') ? 'allocated-red' : ($ppmpTotal > $latestBudget->amount ? 'over-budget' : ($ppmpTotal == $latestBudget->amount ? 'exact-budget' : 'within-budget')) }}">
-        Allocated: ₱{{ number_format($latestBudget->amount, 2) }}
-    </span>
+        <div class="budget-info">
+            <span id="allocatedLabel" 
+                class="budget-status {{ session('approved') ? 'allocated-red' : ($ppmpTotal > $latestBudget->amount ? 'over-budget' : ($ppmpTotal == $latestBudget->amount ? 'exact-budget' : 'within-budget')) }}">
+                Allocated: ₱{{ number_format($latestBudget->amount, 2) }}
+            </span>
 
-    <span class="ppmp-subtotal highlight-budget">
-        Purpose: ₱{{ number_format($ppmpTotal, 2) }}
-    </span>
+            <span class="ppmp-subtotal highlight-budget">
+                Purpose: ₱{{ number_format($ppmpTotal, 2) }}
+            </span>
 
-    <span id="remainingLabel" class="ppmp-subtotal remaining-budget">
-        Remaining: ₱{{ session('approved') ? '0.00' : number_format($latestBudget->amount - $ppmpTotal, 2) }}
-    </span>
-</div>
-
+            <span id="remainingLabel" class="ppmp-subtotal remaining-budget">
+                Remaining: ₱{{ session('approved') ? '0.00' : number_format($latestBudget->amount - $ppmpTotal, 2) }}
+            </span>
+        </div>
         @else
             <span class="no-budget">No budget set</span>
         @endif
     </div>
 
-  <!-- Buttons -->
-<div class="flex justify-end gap-3 mb-5">
-    @if ($latestBudget)
-        <form method="POST" action="{{ route('ppmp.batchApprove') }}" 
-              onsubmit="return confirm('Approve all submitted Project Plan?');">
-            @csrf
-            @foreach ($ppmps as $ppmp)
-                <input type="hidden" name="ppmp_ids[]" value="{{ $ppmp->id }}">
-            @endforeach
+    <!-- Buttons -->
+    <div class="flex justify-end gap-3 mb-5">
+        @if ($latestBudget)
+            <!-- Approve All -->
+            <form method="POST" action="{{ route('ppmp.batchApprove') }}" 
+                  onsubmit="return confirm('Approve all submitted Project Plan?');">
+                @csrf
+                @foreach ($ppmps as $ppmp)
+                    <input type="hidden" name="ppmp_ids[]" value="{{ $ppmp->id }}">
+                @endforeach
 
-            <button type="submit" 
-                class="approve-btn {{ $ppmpTotal != $latestBudget->amount ? 'disabled-btn' : '' }}"
-                {{ $ppmpTotal != $latestBudget->amount ? 'disabled' : '' }}>
-                Approve All
+                <button type="submit" 
+                    class="approve-btn {{ $ppmpTotal != $latestBudget->amount ? 'disabled-btn' : '' }}"
+                    {{ $ppmpTotal != $latestBudget->amount ? 'disabled' : '' }}>
+                    Approve All
+                </button>
+            </form>
+
+            <!-- Realignment -->
+            <button type="button" class="realign-btn" 
+                onclick="openRealignModal({{ $latestBudget->amount }}, {{ $ppmpTotal }})">
+                Realignment
             </button>
-        </form>
 
-        <!-- Realignment Button -->
-        <button type="button" class="realign-btn" 
-            onclick="openRealignModal({{ $latestBudget->amount }}, {{ $ppmpTotal }})">
-            Realignment
-        </button>
+            <!-- Delete All -->
+            <form method="POST" action="{{ route('ppmp.deleteAll') }}" 
+                  onsubmit="return confirm('Are you sure you want to delete all Project Plans? This cannot be undone.');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="delete-btn">Delete All</button>
+            </form>
+        @else
+            <button type="button" class="approve-btn disabled-btn" disabled>Approve All</button>
+            <button type="button" class="realign-btn disabled-btn" disabled>Realignment</button>
+            <button type="button" class="delete-btn disabled-btn" disabled>Delete All</button>
+        @endif
 
-        <!-- Delete All Button -->
-        <form method="POST" action="{{ route('ppmp.deleteAll') }}" 
-              onsubmit="return confirm('Are you sure you want to delete all Project Plans?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="delete-btn">Delete All</button>
-        </form>
-    @else
-        <button type="button" class="approve-btn disabled-btn" disabled>Approve All</button>
-        <button type="button" class="realign-btn disabled-btn" disabled>Realignment</button>
-        <button type="button" class="delete-btn disabled-btn" disabled>Delete All</button>
-    @endif
-
-    <!-- Edit Quantities Button -->
-    <a href="{{ route('ppmp.editDepartmentQuantities', 'all') }}" class="action-button">
-        Edit Quantities
-    </a>
-</div>
-
-
+        <!-- Edit Quantities -->
+        <a href="{{ route('ppmp.editDepartmentQuantities', 'all') }}" class="action-button">
+            Edit Quantities
+        </a>
+    </div>
 
     <!-- Table -->
     <div class="overflow-x-auto shadow rounded-lg border border-gray-200">
@@ -91,18 +89,22 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($ppmps as $ppmp)
-                <tr>
-                    <td>{{ $ppmp->classification }}</td>
-                    <td>{{ $ppmp->description }}</td>
-                    <td>{{ $ppmp->unit }}</td>
-                    <td>{{ $ppmp->quantity }}</td>
-                    <td>₱{{ number_format($ppmp->price, 2) }}</td>
-                    <td>₱{{ number_format($ppmp->estimated_budget, 2) }}</td>
-                    <td>{{ $ppmp->mode_of_procurement }}</td>
-                    <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('F d, Y') }}</td>
-                </tr>
-                @endforeach
+                @forelse ($ppmps as $ppmp)
+                    <tr>
+                        <td>{{ $ppmp->classification }}</td>
+                        <td>{{ $ppmp->description }}</td>
+                        <td>{{ $ppmp->unit }}</td>
+                        <td>{{ $ppmp->quantity }}</td>
+                        <td>₱{{ number_format($ppmp->price, 2) }}</td>
+                        <td>₱{{ number_format($ppmp->estimated_budget, 2) }}</td>
+                        <td>{{ $ppmp->mode_of_procurement }}</td>
+                        <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('F d, Y') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center text-gray-500 py-4">No project plans found.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -167,19 +169,24 @@
     .no-budget { color: #dc2626; font-weight: 600; }
 
     /* Buttons */
-    .action-button, .approve-btn, .realign-btn {
+    .action-button, .approve-btn, .realign-btn, .delete-btn {
         padding: 0.5rem 1rem;
         border-radius: 6px;
         font-size: 0.875rem;
         font-weight: 600;
+        border: none;
+        cursor: pointer;
         transition: 0.3s;
+        color: white;
     }
-    .action-button { background-color: #3b82f6; color: #fff; }
+    .action-button { background-color: #3b82f6; }
     .action-button:hover { background-color: #2563eb; }
-    .approve-btn { background-color: #16a34a; color: white; border: none; }
+    .approve-btn { background-color: #16a34a; }
     .approve-btn:hover { background-color: #15803d; }
-    .realign-btn { background-color: #f59e0b; color: white; border: none; }
+    .realign-btn { background-color: #f59e0b; }
     .realign-btn:hover { background-color: #d97706; }
+    .delete-btn { background-color: #dc2626; }
+    .delete-btn:hover { background-color: #b91c1c; }
     .disabled-btn { background-color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.7; }
 
     /* Table */
@@ -254,26 +261,11 @@
     }
     .save-btn:hover { background-color: #15803d; }
     .allocated-red {
-    background-color: #fee2e2 !important;
-    color: #b91c1c !important;
-    font-weight: bold;
-    border: 1px solid #f87171;
-}
-.delete-btn {
-    background-color: #dc2626;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.delete-btn:hover {
-    background-color: #b91c1c;
-}
-
+        background-color: #fee2e2 !important;
+        color: #b91c1c !important;
+        font-weight: bold;
+        border: 1px solid #f87171;
+    }
 </style>
 
 <!-- JS -->
