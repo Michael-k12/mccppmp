@@ -251,11 +251,10 @@ public function store(Request $request)
 
 public function deleteAll()
 {
-    // Delete all PPMP records
-    \App\Models\PPMP::truncate(); // ⚠️ This will permanently delete all PPMP rows
-
+    \App\Models\PPMP::query()->delete();
     return redirect()->back()->with('success', 'All Project Plans have been deleted successfully.');
 }
+
 
 
 
