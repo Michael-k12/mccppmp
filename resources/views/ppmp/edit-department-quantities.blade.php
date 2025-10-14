@@ -8,16 +8,18 @@
             type="text" 
             id="searchInput" 
             placeholder="Search by department or description..." 
-            class="border border-gray-300 rounded-md px-4 py-2 w-80 focus:ring focus:ring-blue-300 focus:border-blue-400"
+            class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-96 md:w-[32rem] focus:ring focus:ring-blue-300 focus:border-blue-400"
             onkeyup="filterTable()"
         >
     </div>
 
     <form method="POST" action="{{ route('ppmp.updateDepartmentQuantities', 'all') }}" onsubmit="calculateFinalQuantities()">
         @csrf
-        <div class="overflow-x-auto">
-            <table class="min-w-full bg-white border border-gray-300 shadow rounded-lg" id="ppmpTable">
-                <thead class="bg-blue-100 text-gray-700">
+
+        <!-- 📋 Responsive & Scrollable Table -->
+        <div class="overflow-x-auto overflow-y-auto max-h-[70vh] border rounded-lg shadow">
+            <table class="min-w-full bg-white border-collapse" id="ppmpTable">
+                <thead class="bg-blue-100 text-gray-700 sticky top-0 z-10">
                     <tr>
                         <th class="px-4 py-3 text-left border">Department</th>
                         <th class="px-4 py-3 text-left border">Description</th>
@@ -28,18 +30,22 @@
                 </thead>
                 <tbody>
                     @foreach ($ppmps as $index => $ppmp)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 border">{{ $ppmp->department }}</td>
+                        <tr class="hover:bg-gray-50 text-sm md:text-base">
+                            <td class="px-4 py-3 border whitespace-nowrap">{{ $ppmp->department }}</td>
                             <td class="px-4 py-3 border">{{ $ppmp->description }}</td>
                             <td class="px-4 py-3 text-center border">
                                 {{ $ppmp->quantity }}
                                 <input type="hidden" name="current_quantities[]" value="{{ $ppmp->quantity }}">
                             </td>
                             <td class="px-4 py-3 text-center border">
-                                <input type="number" name="additions[]" value="" min="0" class="border-gray-300 rounded w-20 text-center" placeholder="0">
+                                <input type="number" name="additions[]" value="" min="0" 
+                                       class="border-gray-300 rounded w-20 text-center focus:ring focus:ring-blue-200" 
+                                       placeholder="0">
                             </td>
                             <td class="px-4 py-3 text-center border">
-                                <input type="number" name="subtractions[]" value="" min="0" class="border-gray-300 rounded w-20 text-center" placeholder="0">
+                                <input type="number" name="subtractions[]" value="" min="0" 
+                                       class="border-gray-300 rounded w-20 text-center focus:ring focus:ring-red-200" 
+                                       placeholder="0">
                             </td>
                             <input type="hidden" name="ppmp_ids[]" value="{{ $ppmp->id }}">
                         </tr>
@@ -48,17 +54,14 @@
             </table>
         </div>
 
-        <div class="form-actions">
-            <button type="submit" class="save-btn">Save Changes</button>
-            <a href="{{ route('ppmp.principalview') }}" class="cancel-link">Cancel</a>
+        <!-- 🧾 Buttons -->
+        <div class="form-actions mt-6 flex flex-col sm:flex-row items-center gap-3">
+            <button type="submit" class="save-btn w-full sm:w-auto">Save Changes</button>
+            <a href="{{ route('ppmp.principalview') }}" class="cancel-link w-full sm:w-auto text-center">Cancel</a>
         </div>
 
+        <!-- 🎨 Styles -->
         <style>
-            .form-actions {
-                margin-top: 1.5rem;
-                display: flex;
-                align-items: center;
-            }
             .save-btn {
                 background-color: #2563eb;
                 color: white;
@@ -73,12 +76,16 @@
                 background-color: #1e40af;
             }
             .cancel-link {
-                margin-left: 1rem;
                 color: #4b5563;
                 text-decoration: none;
+                font-weight: 500;
+                padding: 0.5rem 1.5rem;
+                border: 1px solid #d1d5db;
+                border-radius: 0.375rem;
+                transition: all 0.3s ease;
             }
             .cancel-link:hover {
-                text-decoration: underline;
+                background-color: #f3f4f6;
             }
         </style>
     </form>
