@@ -47,12 +47,6 @@
                     </button>
                 </form>
 
-                <!-- Realignment -->
-                <button type="button" class="realign-btn"
-                    onclick="openRealignModal({{ $latestBudget->amount }}, {{ $ppmpTotal }})">
-                    Realignment
-                </button>
-
                 <!-- Delete All -->
                 @if (count($ppmps) > 0)
                     <form method="POST" action="{{ route('ppmp.deleteAll') }}"
@@ -66,13 +60,12 @@
                 @endif
             @else
                 <button type="button" class="approve-btn disabled-btn" disabled>Approve All</button>
-                <button type="button" class="realign-btn disabled-btn" disabled>Realignment</button>
                 <button type="button" class="delete-btn disabled-btn" disabled>Delete All</button>
             @endif
 
-            <!-- Edit Quantities -->
+            <!-- Realignment (renamed from Edit Quantities) -->
             <a href="{{ route('ppmp.editDepartmentQuantities', 'all') }}" class="action-button">
-                Edit Quantities
+                Realignment
             </a>
         </div>
 
@@ -113,31 +106,6 @@
         </div>
     </div>
 
-    <!-- Realignment Modal -->
-    <div id="realignModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">Budget Realignment</div>
-            <div class="modal-body">
-                <p><strong>Allocated Budget:</strong> ₱<span id="allocated"></span></p>
-                <p><strong>Purpose Budget:</strong> ₱<span id="purpose"></span></p>
-                <p><strong>Remaining Budget:</strong> ₱<span id="remaining"></span></p>
-
-                <div class="mt-3">
-                    <label for="adjustment" class="block font-semibold mb-1">Adjust Budget:</label>
-                    <input type="number" id="adjustment"
-                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
-                           placeholder="Enter amount">
-                    <small class="text-gray-500">Enter positive value to add or negative to deduct.</small>
-                </div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="cancel-btn" onclick="closeRealignModal()">Cancel</button>
-                <button class="save-btn" onclick="saveRealignment()">Save</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Styles -->
     <style>
         /* Header */
@@ -172,19 +140,17 @@
         .no-budget { color: #dc2626; font-weight: 600; }
 
         /* Buttons */
-        .action-button, .approve-btn, .realign-btn, .delete-btn {
+        .action-button, .approve-btn, .delete-btn {
             padding: 0.5rem 1rem;
             border-radius: 6px;
             font-size: 0.875rem;
             font-weight: 600;
             transition: 0.3s;
         }
-        .action-button { background-color: #3b82f6; color: #fff; }
-        .action-button:hover { background-color: #2563eb; }
+        .action-button { background-color: #f59e0b; color: #fff; } /* Realignment color */
+        .action-button:hover { background-color: #d97706; }
         .approve-btn { background-color: #16a34a; color: white; border: none; }
         .approve-btn:hover { background-color: #15803d; }
-        .realign-btn { background-color: #f59e0b; color: white; border: none; }
-        .realign-btn:hover { background-color: #d97706; }
         .delete-btn { background-color: #dc2626; color: white; border: none; }
         .delete-btn:hover { background-color: #b91c1c; }
         .disabled-btn { background-color: #9ca3af !important; cursor: not-allowed !important; opacity: 0.7; }
@@ -208,58 +174,6 @@
         }
         .excel-table tr:hover td { background-color: #f9fafb; }
 
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            background-color: rgba(0, 0, 0, 0.4);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            width: 420px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-        .modal-header {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #1f2937;
-        }
-        .modal-body p {
-            margin: 5px 0;
-            font-size: 0.95rem;
-            color: #374151;
-        }
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .cancel-btn {
-            background-color: #9ca3af;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-        }
-        .cancel-btn:hover { background-color: #6b7280; }
-        .save-btn {
-            background-color: #16a34a;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-        }
-        .save-btn:hover { background-color: #15803d; }
         .allocated-red {
             background-color: #fee2e2 !important;
             color: #b91c1c !important;
@@ -267,41 +181,4 @@
             border: 1px solid #f87171;
         }
     </style>
-
-    <!-- JS -->
-    <script>
-        function openRealignModal(allocated, purpose) {
-            document.getElementById('allocated').innerText = allocated.toLocaleString();
-            document.getElementById('purpose').innerText = purpose.toLocaleString();
-            document.getElementById('remaining').innerText = (allocated - purpose).toLocaleString();
-            document.getElementById('realignModal').style.display = 'flex';
-        }
-
-        function closeRealignModal() {
-            document.getElementById('realignModal').style.display = 'none';
-        }
-
-        function saveRealignment() {
-            const adjustment = parseFloat(document.getElementById('adjustment').value);
-            if (isNaN(adjustment)) {
-                alert("Please enter a valid adjustment amount.");
-                return;
-            }
-
-            fetch("{{ route('ppmp.realign') }}", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ adjustment })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                if (data.status === "success") window.location.reload();
-            })
-            .catch(error => console.error("Error saving realignment:", error));
-        }
-    </script>
 </x-layouts.app>
