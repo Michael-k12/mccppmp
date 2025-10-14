@@ -353,36 +353,6 @@ public function batchApprove(Request $request)
 }
 
 
-public function realign(Request $request)
-{
-    try {
-        // Validate input
-        $request->validate([
-            'adjustment' => 'required|numeric',
-        ]);
-
-        // Get latest budget
-        $latestBudget = \App\Models\Budget::latest()->first();
-        if (!$latestBudget) {
-            return response()->json(['status' => 'error', 'message' => 'No budget set'], 404);
-        }
-
-        // Update allocated budget
-        $latestBudget->amount += $request->adjustment;
-        $latestBudget->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Budget realigned successfully!',
-            'new_budget' => number_format($latestBudget->amount, 2)
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Something went wrong. ' . $e->getMessage()
-        ], 500);
-    }
-}
 
 public function approved(Request $request)
 {
