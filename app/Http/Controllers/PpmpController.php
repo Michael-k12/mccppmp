@@ -412,12 +412,11 @@ public function approved(Request $request)
 public function downloadPdf($year)
 {
     $ppmps = PPMP::whereYear('created_at', $year)->get();
-    $availableYears = PPMP::selectRaw('YEAR(created_at) as year')->distinct()->pluck('year');
 
-    $pdf = PDF::loadView('ppmp.pdf', compact('ppmps', 'year', 'availableYears'))
-              ->setPaper('a4', 'landscape'); // landscape mode for table
+    $pdf = PDF::loadView('ppmp.pdf', compact('ppmps', 'year'))
+              ->setPaper('a4', 'landscape');
 
-    return $pdf->download("Annual_Project_Plan_{$year}.pdf");
+    return $pdf->download("Annual_Procurement_Plan_{$year}.pdf");
 }
 
 public function bsit(Request $request)

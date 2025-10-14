@@ -140,8 +140,9 @@
                 </form>
 
                 <a href="{{ route('ppmp.download.pdf', ['year' => request('year')]) }}" class="print-button">
-                    Download PDF
-                </a>
+    Download PDF
+</a>
+
 
                 <button type="button" id="openDeleteModal" class="delete-button">Delete Year</button>
             </div>
