@@ -1,46 +1,30 @@
-<x-layouts.app :title="'Monitoring Logs'">
-    <div class="container mx-auto px-6 py-8">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Security & Monitoring Logs</h2>
+<x-layouts.app :title="'Security Monitoring'">
+    <div class="p-6">
+        <h2 class="text-2xl font-bold mb-4">Monitoring Logs</h2>
 
-        @if(empty($logs))
-            <div class="bg-yellow-50 text-yellow-700 p-4 rounded-lg">
-                No logs yet — your system is quiet.
-            </div>
-        @else
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <table class="min-w-full table-auto border-collapse">
-                    <thead class="bg-gray-100 border-b">
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <table class="min-w-full border">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border px-4 py-2 text-left">Timestamp</th>
+                        <th class="border px-4 py-2 text-left">Type</th>
+                        <th class="border px-4 py-2 text-left">Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($logs as $log)
                         <tr>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Timestamp</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Details</th>
+                            <td class="border px-4 py-2">{{ $log['timestamp'] ?? 'N/A' }}</td>
+                            <td class="border px-4 py-2 font-semibold text-blue-600">{{ $log['type'] }}</td>
+                            <td class="border px-4 py-2">{{ $log['message'] }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($logs as $line)
-                            @php
-                                $isSuspicious = str_contains($line, 'Unauthorized') || str_contains($line, 'Failed');
-                            @endphp
-                            <tr class="{{ $isSuspicious ? 'bg-red-50' : 'bg-white' }} border-b hover:bg-gray-50">
-                                <td class="px-4 py-2 text-sm text-gray-600">
-                                    {{ strtok($line, ']') . ']' }}
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-800">
-                                    {{ substr($line, strpos($line, '] ') + 2) }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-
-        <div class="mt-4 flex justify-end">
-            <form method="POST" action="{{ route('security.clear') }}">
-                @csrf
-                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                    Clear Logs
-                </button>
-            </form>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-gray-500">No logs found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </x-layouts.app>

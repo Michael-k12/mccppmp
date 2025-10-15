@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
+    'App\\Helpers\\MonitoringHelper' => $baseDir . '/app/Helpers/MonitoringHelper.php',
     'App\\Http\\Controllers\\Auth\\VerifyEmailController' => $baseDir . '/app/Http/Controllers/Auth/VerifyEmailController.php',
     'App\\Http\\Controllers\\BudgetController' => $baseDir . '/app/Http/Controllers/BudgetController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
@@ -15,8 +16,13 @@ return array(
     'App\\Http\\Controllers\\PdfExportController' => $baseDir . '/app/Http/Controllers/PdfExportController.php',
     'App\\Http\\Controllers\\PpmpController' => $baseDir . '/app/Http/Controllers/PpmpController.php',
     'App\\Http\\Controllers\\ProcurementItemController' => $baseDir . '/app/Http/Controllers/ProcurementItemController.php',
+    'App\\Http\\Controllers\\SecurityMonitoringController' => $baseDir . '/app/Http/Controllers/SecurityMonitoringController.php',
     'App\\Http\\Controllers\\UserController' => $baseDir . '/app/Http/Controllers/UserController.php',
+    'App\\Http\\Middleware\\RoleMiddleware' => $baseDir . '/app/Http/Middleware/RoleMiddleware.php',
+    'App\\Http\\Middleware\\SecureHeaders' => $baseDir . '/app/Http/Middleware/SecureHeaders.php',
     'App\\Livewire\\Actions\\Logout' => $baseDir . '/app/Livewire/Actions/Logout.php',
+    'App\\Mail\\LoginOtpMail' => $baseDir . '/app/Mail/LoginOtpMail.php',
+    'App\\Mail\\SecurityAlertMail' => $baseDir . '/app/Mail/SecurityAlertMail.php',
     'App\\Mail\\UserAccountCreatedMail' => $baseDir . '/app/Mail/UserAccountCreatedMail.php',
     'App\\Models\\Budget' => $baseDir . '/app/Models/Budget.php',
     'App\\Models\\Item' => $baseDir . '/app/Models/Item.php',

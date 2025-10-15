@@ -24,20 +24,39 @@ class MonitoringHelper
         // Append the event to the monitoring.log file
         File::append($logPath, $entry);
     }
+    public static function getLogs()
+{
+    $filePath = storage_path('logs/monitoring.log');
 
-    /**
-     * Read log entries from the file (for displaying in the Monitoring page)
-     */
-    public static function readLogs()
-    {
-        $logPath = storage_path('logs/monitoring.log');
-
-        if (!File::exists($logPath)) {
-            return [];
-        }
-
-        // Read log lines, newest first
-        $lines = array_reverse(file($logPath, FILE_IGNORE_NEW_LINES));
-        return $lines;
+    if (!file_exists($filePath)) {
+        return [];
     }
+
+    // Read all lines and parse them into structured data
+    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $logs = [];
+
+    foreach ($lines as $line) {
+        // Expected format: [2025-10-15 12:30:00] TYPE: message
+        if (preg_match('/\[(.*?)\]\s+(.*?):\s+(.*)/', $line, $matches)) {
+            $logs[] = [
+                'timestamp' => $matches[1],
+                'type' => $matches[2],
+                'message' => $matches[3],
+            ];
+        } else {
+            // If format doesn’t match, still include raw line
+            $logs[] = [
+                'timestamp' => null,
+                'type' => 'Unknown',
+                'message' => $line,
+            ];
+        }
+    }
+
+    return array_reverse($logs); // latest on top
+}
+
+
+  
 }

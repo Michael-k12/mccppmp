@@ -636,6 +636,7 @@ class ComposerStaticInit9929ae0f39b99702c171f9c9695fdcb9
 
     public static $classMap = array (
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
+        'App\\Helpers\\MonitoringHelper' => __DIR__ . '/../..' . '/app/Helpers/MonitoringHelper.php',
         'App\\Http\\Controllers\\Auth\\VerifyEmailController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/VerifyEmailController.php',
         'App\\Http\\Controllers\\BudgetController' => __DIR__ . '/../..' . '/app/Http/Controllers/BudgetController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
@@ -644,8 +645,13 @@ class ComposerStaticInit9929ae0f39b99702c171f9c9695fdcb9
         'App\\Http\\Controllers\\PdfExportController' => __DIR__ . '/../..' . '/app/Http/Controllers/PdfExportController.php',
         'App\\Http\\Controllers\\PpmpController' => __DIR__ . '/../..' . '/app/Http/Controllers/PpmpController.php',
         'App\\Http\\Controllers\\ProcurementItemController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProcurementItemController.php',
+        'App\\Http\\Controllers\\SecurityMonitoringController' => __DIR__ . '/../..' . '/app/Http/Controllers/SecurityMonitoringController.php',
         'App\\Http\\Controllers\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/UserController.php',
+        'App\\Http\\Middleware\\RoleMiddleware' => __DIR__ . '/../..' . '/app/Http/Middleware/RoleMiddleware.php',
+        'App\\Http\\Middleware\\SecureHeaders' => __DIR__ . '/../..' . '/app/Http/Middleware/SecureHeaders.php',
         'App\\Livewire\\Actions\\Logout' => __DIR__ . '/../..' . '/app/Livewire/Actions/Logout.php',
+        'App\\Mail\\LoginOtpMail' => __DIR__ . '/../..' . '/app/Mail/LoginOtpMail.php',
+        'App\\Mail\\SecurityAlertMail' => __DIR__ . '/../..' . '/app/Mail/SecurityAlertMail.php',
         'App\\Mail\\UserAccountCreatedMail' => __DIR__ . '/../..' . '/app/Mail/UserAccountCreatedMail.php',
         'App\\Models\\Budget' => __DIR__ . '/../..' . '/app/Models/Budget.php',
         'App\\Models\\Item' => __DIR__ . '/../..' . '/app/Models/Item.php',

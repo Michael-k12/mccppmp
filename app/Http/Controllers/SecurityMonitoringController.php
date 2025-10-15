@@ -12,3 +12,4 @@ class SecurityMonitoringController extends Controller
         return view('security.index', compact('logs'));
     }
 }
+
