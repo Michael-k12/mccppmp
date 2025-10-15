@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\SecurityMonitorController;
+use App\Http\Controllers\SecurityMonitoringController;
 
 
 
@@ -111,3 +112,7 @@ Route::delete('/ppmp/delete-all', [App\Http\Controllers\PpmpController::class, '
 
 Route::get('/ppmp/download-pdf/{year}', [App\Http\Controllers\PpmpController::class, 'downloadPdf'])
      ->name('ppmp.download.pdf');
+
+     Route::middleware(['auth'])->group(function () {
+    Route::get('/security', [SecurityMonitoringController::class, 'index'])->name('security.index');
+});

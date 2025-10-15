@@ -22,7 +22,7 @@
     All Procurement Plan
 </flux:navlist.item>
 <flux:navlist.item icon="shield-check" :href="route('security.index')" wire:navigate>
-    Security Monitoring
+    Monitoring
 </flux:navlist.item>
 
 

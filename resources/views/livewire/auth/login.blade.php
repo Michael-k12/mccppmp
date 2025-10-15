@@ -14,6 +14,8 @@ use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 use App\Mail\LoginOtpMail;
 use App\Mail\SecurityAlertMail; // ✅ Added
+use App\Helpers\MonitoringHelper;
+
 
 new #[Layout('components.layouts.auth')] class extends Component
 {
@@ -82,6 +84,26 @@ new #[Layout('components.layouts.auth')] class extends Component
                     'Suspicious Login Attempt Detected',
                     'Failed login attempt for email: ' . $this->email . ' from IP: ' . request()->ip() . ' at ' . now()
                 ));
+                if (!Auth::validate(['email' => $this->email, 'password' => $this->password])) {
+    RateLimiter::hit($this->throttleKey(), 30);
+
+    // ✅ Send suspicious activity alert
+    Mail::to(config('mail.from.address'))->send(new SecurityAlertMail(
+        'Suspicious Login Attempt Detected',
+        'Failed login attempt for email: ' . $this->email . ' from IP: ' . request()->ip() . ' at ' . now()
+    ));
+
+    // ✅ Log to monitoring file
+    MonitoringHelper::logEvent(
+        'Unauthorized Access',
+        "Failed login attempt for email: {$this->email} from IP: " . request()->ip()
+    );
+
+    throw ValidationException::withMessages([
+        'email' => __('auth.failed'),
+    ]);
+}
+
 
                 throw ValidationException::withMessages([
                     'email' => __('auth.failed'),
@@ -165,12 +187,23 @@ new #[Layout('components.layouts.auth')] class extends Component
 
         $user = \App\Models\User::where('email', $otpData['email'])->first();
         Auth::login($user, $otpData['remember']);
+        // ✅ Log successful login
+MonitoringHelper::logEvent(
+    'Successful Login',
+    "User {$user->email} logged in successfully from IP: " . request()->ip()
+);
+
 
         // ✅ Successful login → send activity log email
         Mail::to(config('mail.from.address'))->send(new SecurityAlertMail(
             'User Login Successful',
             'User ' . $user->name . ' (' . $user->email . ') successfully logged in at ' . now() . ' from IP: ' . request()->ip()
         ));
+        MonitoringHelper::logEvent(
+    'System Error During Login',
+    'Error: ' . $e->getMessage() . ' | User: ' . $this->email . ' | IP: ' . request()->ip()
+);
+
 
         Cache::forget($cacheKey);
         $this->showOtpForm = false;
