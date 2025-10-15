@@ -103,12 +103,6 @@ Route::get('/ppmp/remaining-budget', [App\Http\Controllers\PpmpController::class
 
 Route::delete('/budget/delete-selected', [BudgetController::class, 'deleteSelected'])->name('budget.deleteSelected');
 
-Route::get('/security-monitoring', [SecurityMonitorController::class, 'index'])->name('security.index');
-
-Route::get('/security', [SecurityMonitorController::class, 'index'])->name('security.index');
-
-// Live fetch route for AJAX polling
-Route::get('/security/fetch', [SecurityMonitorController::class, 'fetchReports'])->name('security.fetch');
 
 Route::delete('/ppmp/delete-year', [App\Http\Controllers\PpmpController::class, 'deleteYear'])->name('ppmp.delete.year');
 
