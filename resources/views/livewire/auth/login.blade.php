@@ -159,56 +159,51 @@ new #[Layout('components.layouts.auth')] class extends Component
      * Step 2: Validate OTP and log in
      */
     public function loginWithOtp(): void
-    {
-        $this->validate([
-            'otpCode' => 'required|digits:6',
-        ]);
+{
+    $this->validate([
+        'otpCode' => 'required|digits:6',
+    ]);
 
-        $cacheKey = $this->otpCacheKey();
-        $otpData = Cache::get($cacheKey);
+    $cacheKey = $this->otpCacheKey();
+    $otpData = Cache::get($cacheKey);
 
-        if (!$otpData) {
-            $this->addError('otpCode', 'OTP expired. Please log in again.');
-            return;
-        }
-
-        if ($otpData['attempts'] >= $this->maxOtpAttempts) {
-            Cache::forget($cacheKey);
-            $this->addError('otpCode', 'Maximum OTP attempts exceeded. Please log in again.');
-            return;
-        }
-
-        if (!password_verify($this->otpCode, $otpData['otp'])) {
-            $otpData['attempts']++;
-            Cache::put($cacheKey, $otpData, now()->addMinutes($this->otpExpireMinutes));
-            $this->addError('otpCode', 'Invalid OTP.');
-            return;
-        }
-
-        $user = \App\Models\User::where('email', $otpData['email'])->first();
-        Auth::login($user, $otpData['remember']);
-        // ✅ Log successful login
-MonitoringHelper::logEvent(
-    'Successful Login',
-    "User {$user->email} logged in successfully from IP: " . request()->ip()
-);
-
-
-        // ✅ Successful login → send activity log email
-        Mail::to(config('mail.from.address'))->send(new SecurityAlertMail(
-            'User Login Successful',
-            'User ' . $user->name . ' (' . $user->email . ') successfully logged in at ' . now() . ' from IP: ' . request()->ip()
-        ));
-        MonitoringHelper::logEvent(
-    'System Error During Login',
-    'Error: ' . $e->getMessage() . ' | User: ' . $this->email . ' | IP: ' . request()->ip()
-);
-
-
-        Cache::forget($cacheKey);
-        $this->showOtpForm = false;
-        $this->redirect(route('dashboard'));
+    if (!$otpData) {
+        $this->addError('otpCode', 'OTP expired. Please log in again.');
+        return;
     }
+
+    if ($otpData['attempts'] >= $this->maxOtpAttempts) {
+        Cache::forget($cacheKey);
+        $this->addError('otpCode', 'Maximum OTP attempts exceeded. Please log in again.');
+        return;
+    }
+
+    if (!password_verify($this->otpCode, $otpData['otp'])) {
+        $otpData['attempts']++;
+        Cache::put($cacheKey, $otpData, now()->addMinutes($this->otpExpireMinutes));
+        $this->addError('otpCode', 'Invalid OTP.');
+        return;
+    }
+
+    $user = \App\Models\User::where('email', $otpData['email'])->first();
+    Auth::login($user, $otpData['remember']);
+
+    // ✅ Log successful login
+    MonitoringHelper::logEvent(
+        'Successful Login',
+        "User {$user->email} logged in successfully from IP: " . request()->ip()
+    );
+
+    // ✅ Send activity email
+    Mail::to(config('mail.from.address'))->send(new SecurityAlertMail(
+        'User Login Successful',
+        'User ' . $user->name . ' (' . $user->email . ') successfully logged in at ' . now() . ' from IP: ' . request()->ip()
+    ));
+
+    Cache::forget($cacheKey);
+    $this->showOtpForm = false;
+    $this->redirect(route('dashboard'));
+}
 
     public function resendOtp(): void
     {
