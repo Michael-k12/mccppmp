@@ -77,7 +77,7 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="save-budget-btn w-full">💾 Save Budget</button>
+                    <button type="submit" class="save-budget-btn w-full">Save Budget</button>
                 </form>
             </div>
         </div>
@@ -142,7 +142,7 @@
             font-size: 15px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0);
         }
         .start-proposal-btn:hover {
             background-color: #059669;
