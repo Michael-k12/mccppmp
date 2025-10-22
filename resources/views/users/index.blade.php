@@ -74,62 +74,68 @@
         </div>
     </div>
 
-    {{-- ✅ Modal --}}
-    <div id="addUserModal" class="modal hidden">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">&times;</button>
+    <!-- Modal -->
+<div id="addUserModal" class="modal hidden">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()">&times;</button>
 
-            <div class="modal-header">
-                <h2>Add New User</h2>
-                <p class="modal-subtitle">Fill in the details to create a new user</p>
-            </div>
+        <div class="modal-header">
+            <h2>Add New User</h2>
+            <p class="modal-subtitle">Fill in the details to create a new user</p>
+        </div>
 
-            <form method="POST" action="{{ route('users.store') }}" class="modal-form">
-                @csrf
+        <form method="POST" action="{{ route('users.store') }}" class="modal-form">
+            @csrf
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" name="name" placeholder="Enter full name" value="{{ old('name') }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email" placeholder="Enter email address" value="{{ old('email') }}" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" name="password" placeholder="Enter password" required>
-                        <small>Password must be at least 12 characters, with uppercase, lowercase, number & symbol.</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Confirm Password</label>
-                        <input type="password" name="password_confirmation" placeholder="Confirm password" required>
-                    </div>
+            <!-- Name & Email -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" name="name" placeholder="Enter full name" value="{{ old('name') }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Role / Department</label>
-                    <select name="role" required>
-                        <option value="">-- Select Role --</option>
-                        <option value="BSED" {{ old('role') == 'BSED' ? 'selected' : '' }}>BSED</option>
-                        <option value="BSBA" {{ old('role') == 'BSBA' ? 'selected' : '' }}>BSBA</option>
-                        <option value="BSIT" {{ old('role') == 'BSIT' ? 'selected' : '' }}>BSIT</option>
-                        <option value="BSHM" {{ old('role') == 'BSHM' ? 'selected' : '' }}>BSHM</option>
-                        <option value="LIBRARY" {{ old('role') == 'LIBRARY' ? 'selected' : '' }}>Library</option>
-                        <option value="NURSE" {{ old('role') == 'NURSE' ? 'selected' : '' }}>Nurse</option>
-                    </select>
+                    <label for="email">Email</label>
+                    <input type="email" name="email" placeholder="Enter email address" value="{{ old('email') }}" required>
+                </div>
+            </div>
+
+            <!-- Password & Confirm -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" placeholder="Enter password" required>
+                    <small>Password must be at least 12 characters, with uppercase, lowercase, number & symbol.</small>
                 </div>
 
-                <div class="modal-actions">
-                    <button type="submit" class="btn-submit">Add User</button>
-                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <div class="form-group">
+                    <label for="password_confirmation">Confirm Password</label>
+                    <input type="password" name="password_confirmation" placeholder="Confirm password" required>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Role -->
+            <div class="form-group">
+                <label for="role">Role / Department</label>
+                <select name="role" required>
+                    <option value="">-- Select Role --</option>
+                    <option value="BSED">BSED</option>
+                    <option value="BSBA">BSBA</option>
+                    <option value="BSIT">BSIT</option>
+                    <option value="BSHM">BSHM</option>
+                    <option value="LIBRARY">Library</option>
+                    <option value="NURSE">Nurse</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="modal-actions">
+                <button type="submit" class="btn-submit">Add User</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <style>
         /* ✅ Base */
@@ -264,76 +270,160 @@
             }
         }
 
-        /* ✅ Modal */
-        .modal {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-        }
+        /* ✅ Modal Overlay */
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    transition: opacity 0.3s ease;
+}
 
-        .modal.hidden {
-            display: none;
-        }
+/* Hide modal */
+.modal.hidden {
+    display: none;
+}
 
-        .modal-content {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            position: relative;
-            animation: slideDown 0.3s ease-out;
-        }
+/* ✅ Modal Card */
+.modal-content {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: slideDown 0.3s ease-out;
+}
 
-        @keyframes slideDown {
-            from { transform: translateY(-30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+/* Slide-in animation */
+@keyframes slideDown {
+    from { transform: translateY(-40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
 
-        .close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            font-size: 26px;
-            font-weight: 700;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #9ca3af;
-            transition: 0.2s;
-        }
+/* ✅ Close Button */
+.close-btn {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 26px;
+    font-weight: 700;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: 0.2s;
+}
+.close-btn:hover {
+    color: #111827;
+}
 
-        .close-btn:hover {
-            color: #111827;
-        }
+/* ✅ Header */
+.modal-header {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+.modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+.modal-header .modal-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
 
-        .form-row {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+/* ✅ Form Layout */
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.modal-form label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
+}
+.modal-form input,
+.modal-form select {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    transition: 0.2s;
+}
+.modal-form input:focus,
+.modal-form select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+.modal-form small {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
 
-        .form-group {
-            flex: 1;
-            min-width: 240px;
-            display: flex;
-            flex-direction: column;
-        }
+/* ✅ Buttons */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+.btn-submit {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.btn-submit:hover {
+    background: linear-gradient(90deg, #2563eb, #1e40af);
+}
+.btn-cancel {
+    background: #e5e7eb;
+    color: #374151;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+.btn-cancel:hover {
+    background: #d1d5db;
+}
 
-        @media (max-width: 600px) {
-            .modal-content {
-                padding: 1.5rem;
-            }
-            .form-group {
-                min-width: 100%;
-            }
-        }
+/* ✅ Mobile Adjustments */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+    .form-row {
+        flex-direction: column;
+    }
+}
+asd
     </style>
 
     <script>
