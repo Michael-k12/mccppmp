@@ -251,7 +251,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const ctx = document.getElementById('budgetChart').getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        const gradient = ctx.createLinearGradient(0, 0, 200, 0); // left → right
+ctx.fillRect(0, 50, 200, 10);
         gradient.addColorStop(0, 'rgba(190, 0, 0, 0.9)');
         gradient.addColorStop(1, 'rgba(126, 126, 126, 0.3)');
 
