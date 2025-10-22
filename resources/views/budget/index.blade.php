@@ -130,7 +130,7 @@
         .start-proposal-btn {
             background: #10b981;
             color: white;
-            padding: 8px 16px;
+            padding: 9px 16px;
             border-radius: 8px;
             font-weight: 600;
             transition: 0.2s;
@@ -144,7 +144,7 @@
         .end-proposal-btn {
             background: #ef4444;
             color: white;
-            padding: 8px 16px;
+            padding: 9px 16px;
             border-radius: 8px;
             font-weight: 600;
             transition: 0.2s;
