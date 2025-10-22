@@ -9,12 +9,13 @@
         <!-- ✅ Page Header -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
+
             <!-- ✅ Add Budget Button -->
-@if (!$activeBudget)
-    <button onclick="openModal()" class="start-proposal-btn w-full sm:w-auto">
-        ➕ Add Budget
-    </button>
-@endif
+            @if (!$activeBudget)
+                <button onclick="openModal()" class="start-proposal-btn sm:ml-auto">
+                    ➕ Add Budget
+                </button>
+            @endif
         </div>
 
         <!-- ✅ Active Proposal Warning -->
@@ -134,22 +135,26 @@
 
     <!-- ✅ Styles -->
     <style>
+        /* ✅ Compact Add Budget Button */
         .start-proposal-btn {
             background-color: #10b981;
             color: white;
-            padding: 10px 18px;
+            padding: 6px 14px;
             border: none;
-            border-radius: 8px;
-            font-size: 15px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0);
-        }
-        .start-proposal-btn:hover {
-            background-color: #059669;
-            transform: scale(1.04);
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
         }
 
+        .start-proposal-btn:hover {
+            background-color: #059669;
+            transform: scale(1.03);
+        }
+
+        /* ✅ Save Button */
         .save-budget-btn {
             background-color: #2563eb;
             color: white;
@@ -159,17 +164,18 @@
             font-size: 16px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
+
         .save-budget-btn:hover {
             background-color: #1e40af;
             transform: scale(1.05);
         }
 
+        /* ✅ End Proposal Button */
         .end-proposal-btn {
             background-color: #ef4444;
             color: white;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border: none;
             border-radius: 8px;
             font-size: 14px;
@@ -177,11 +183,13 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .end-proposal-btn:hover {
             background-color: #dc2626;
             transform: scale(1.05);
         }
 
+        /* ✅ Inputs */
         .modern-input {
             border: 1px solid #d1d5db;
             border-radius: 10px;
@@ -211,38 +219,19 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
         }
-         /* ✅ Compact Add Budget Button */
-    .start-proposal-btn {
-        background-color: #10b981;
-        color: white;
-        padding: 8px 14px; /* smaller than before */
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
 
-    .start-proposal-btn:hover {
-        background-color: #059669;
-        transform: scale(1.03);
-    }
-
-    /* ✅ Responsive Consistency */
-    @media (max-width: 640px) {
-        .start-proposal-btn {
-            width: 100%;
-            padding: 10px 14px;
-            font-size: 14px;
-            border-radius: 8px;
-        }
-
-        /* Responsive Fixes */
+        /* ✅ Responsive Adjustments */
         @media (max-width: 640px) {
+            .start-proposal-btn {
+                width: 100%;
+                text-align: center;
+                padding: 10px 14px;
+                border-radius: 8px;
+            }
             .container {
                 padding: 1rem;
             }
