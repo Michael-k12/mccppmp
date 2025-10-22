@@ -51,40 +51,39 @@ public function getRemainingBudget()
 {
     $userDepartment = Auth::user()->role;
 
-    // Get the latest budget
+    // Get the latest budget (active or ended)
     $latestBudget = Budget::latest()->first();
 
-    // If no budget exists, return 0
     if (!$latestBudget) {
         return response()->json([
             'allocatedBudget' => 0,
-            'remainingBudget' => 0
+            'remainingBudget' => 0,
+        ]);
+    }
+
+    // If the latest budget is ended, remaining and allocated are 0
+    if ($latestBudget->is_ended) {
+        return response()->json([
+            'allocatedBudget' => 0,
+            'remainingBudget' => 0,
         ]);
     }
 
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
 
-    // If the budget is ended, remaining and allocated are 0
-    if ($latestBudget->is_ended) {
-        return response()->json([
-            'allocatedBudget' => 0,
-            'remainingBudget' => 0
-        ]);
-    }
-
-    // Allocate budget per department
+    // Allocate per department
     $allocatedBudget = round($latestBudget->amount / count($departments), 2);
 
-    // Sum all submitted PPMPs for this budget and department
+    // Sum all PPMPs for this department in the **budget year**
     $spent = Ppmp::where('department', $userDepartment)
-                ->whereYear('milestone_date', $latestBudget->year)
-                ->sum('estimated_budget');
+                 ->whereYear('milestone_date', $latestBudget->year)
+                 ->sum('estimated_budget');
 
     $remainingBudget = max($allocatedBudget - $spent, 0);
 
     return response()->json([
         'allocatedBudget' => $allocatedBudget,
-        'remainingBudget' => $remainingBudget
+        'remainingBudget' => $remainingBudget,
     ]);
 }
 
