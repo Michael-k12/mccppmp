@@ -5,15 +5,18 @@
     @endpush
 
     <div class="container mx-auto px-4 py-8">
-        {{-- Title and Button aligned horizontally --}}
-        <div class="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
-
-            @if (!$activeBudget)
-                <button onclick="openModal()" class="start-proposal-btn">
-                    ➕ Add Budget
-                </button>
-            @endif
+        {{-- Adjusted to ensure title and button/warning are always on the same row on desktop --}}
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 flex-shrink-0">Budget Management</h2>
+            
+            {{-- Unified container for the right-hand element (Button or Warning) --}}
+            <div class="w-full sm:w-auto flex justify-end">
+                @if (!$activeBudget)
+                    <button onclick="openModal()" class="start-proposal-btn">
+                        ➕ Add Budget
+                    </button>
+                @endif
+            </div>
         </div>
 
         @if ($activeBudget)
@@ -36,7 +39,6 @@
             </div>
         @endif
 
-        {{-- Modal --}}
         <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
             <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
                 <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
@@ -74,23 +76,37 @@
             </div>
         </div>
 
-        {{-- Table --}}
         <div class="mt-8">
-            <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Previous Budgets</h3>
+            <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                Previous Budgets
+
+                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto flex-shrink-0">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden w-full sm:w-auto">
+                        Delete Selected
+                    </button>
+                </form>
+            </h3>
 
             <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
                 <table class="w-full border-collapse min-w-[600px]">
                     <thead class="bg-gray-100 text-gray-700">
                         <tr>
+                            <th class="px-5 py-3 text-left text-sm">
+                                <input type="checkbox" id="selectAll">
+                            </th>
                             <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
                             <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
                             <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
-                            <th class="px-5 py-3 text-center text-sm font-semibold">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($budgets as $budget)
                             <tr class="border-b hover:bg-gray-50 transition">
+                                <td class="px-5 py-3">
+                                    <input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox">
+                                </td>
                                 <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
                                 <td class="px-5 py-3 text-green-600 font-semibold">₱{{ number_format($budget->amount, 2) }}</td>
                                 <td class="px-5 py-3 text-center">
@@ -100,15 +116,6 @@
                                         <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3 text-center">
-                                    <form action="{{ route('budget.destroy', $budget->id) }}" method="POST" onsubmit="return confirmDelete(event, '{{ $budget->year }}')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition">
-                                            Delete
-                                        </button>
-                                    </form>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -117,23 +124,23 @@
         </div>
     </div>
 
-    {{-- Styling --}}
     <style>
         .start-proposal-btn {
             background-color: #10b981;
             color: white;
-            padding: 8px 16px;
+            padding: 8px 14px; /* smaller than before */
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Adjusted shadow */
         }
         .start-proposal-btn:hover {
             background-color: #059669;
             transform: scale(1.03);
         }
+
         .save-budget-btn {
             background-color: #2563eb;
             color: white;
@@ -149,6 +156,7 @@
             background-color: #1e40af;
             transform: scale(1.05);
         }
+
         .end-proposal-btn {
             background-color: #ef4444;
             color: white;
@@ -164,6 +172,7 @@
             background-color: #dc2626;
             transform: scale(1.05);
         }
+
         .modern-input {
             border: 1px solid #d1d5db;
             border-radius: 10px;
@@ -175,12 +184,20 @@
             transition: all 0.2s ease;
             -moz-appearance: textfield;
         }
+
+        .modern-input::-webkit-outer-spin-button,
+        .modern-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
         .modern-input:focus {
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
             background-color: #fff;
         }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -188,18 +205,40 @@
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
         }
+          /* Responsive Consistency */
         @media (max-width: 640px) {
-            .container { padding: 1rem; }
-            table { font-size: 14px; }
-            .start-proposal-btn, .end-proposal-btn { width: 100%; }
+            .container {
+                padding: 1rem;
+            }
+            table {
+                font-size: 14px;
+            }
+            .end-proposal-btn, .start-proposal-btn {
+                width: 100%;
+            }
+            /* Ensure the header elements stack nicely on mobile */
+            .flex-col.sm\:flex-row {
+                flex-direction: column;
+            }
+            .flex-col.sm\:flex-row > h2 {
+                margin-bottom: 0.5rem; /* Add a little space below the title on mobile */
+            }
+            .flex-col.sm\:flex-row > div:last-child {
+                justify-content: flex-start; /* Align button/warning to the left on mobile */
+            }
         }
     </style>
 
-    {{-- Script --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        function openModal() { document.getElementById('budgetModal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('budgetModal').classList.add('hidden'); }
+        function openModal() {
+            document.getElementById('budgetModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('budgetModal').classList.add('hidden');
+        }
 
         function confirmEndProposal() {
             Swal.fire({
@@ -209,14 +248,22 @@
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, end it!'
-            }).then((r) => { if (r.isConfirmed) document.getElementById('endProposalForm').submit(); });
+                confirmButtonText: 'Yes, end it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('endProposalForm').submit();
+                }
+            });
         }
 
         function validateYear(input) {
-            if (input.value.length > 4) input.value = input.value.slice(0, 4);
+            if (input.value.length > 4) {
+                input.value = input.value.slice(0, 4);
+            }
         }
 
+        // ✅ Format amount input
         function formatNumberInput(input) {
             let value = input.value.replace(/[^0-9.]/g, '');
             const parts = value.split('.');
@@ -227,29 +274,81 @@
             input.value = integerPart + decimalPart;
         }
 
-        document.getElementById('budgetForm').addEventListener('submit', e => {
-            const amount = document.getElementById('amount');
-            amount.value = amount.value.replace(/,/g, '');
+        document.getElementById('budgetForm').addEventListener('submit', function(e) {
+            const amountInput = document.getElementById('amount');
+            // Remove commas before submission to ensure backend receives a clean number
+            amountInput.value = amountInput.value.replace(/,/g, '');
         });
 
-        function confirmDelete(e, year) {
-            e.preventDefault();
-            Swal.fire({
-                title: 'Delete Budget?',
-                text: "You are about to delete the budget for year " + year,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((r) => {
-                if (r.isConfirmed) e.target.submit();
-            });
+        // ✅ Checkbox selection
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const budgetCheckboxes = document.querySelectorAll('.budget-checkbox');
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+
+        selectAllCheckbox.addEventListener('change', function() {
+            budgetCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleDeleteBtn();
+        });
+
+        budgetCheckboxes.forEach(cb => cb.addEventListener('change', toggleDeleteBtn));
+
+        function toggleDeleteBtn() {
+            const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
+            deleteBtn.classList.toggle('hidden', !anyChecked);
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('deleteSelectedForm').addEventListener('submit', function(e) {
+            // Re-check for selected items before submitting for deletion
+            const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
+            if (!anyChecked) {
+                e.preventDefault();
+                alert('Please select at least one budget to delete.');
+            } else {
+                // Add a confirmation for delete selected
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Confirm Delete?',
+                    text: "You are about to delete the selected budget records.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete them!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Dynamically add hidden inputs for selected IDs to the form
+                        const form = document.getElementById('deleteSelectedForm');
+                        budgetCheckboxes.forEach(cb => {
+                            if (cb.checked) {
+                                const hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = 'selected[]';
+                                hiddenInput.value = cb.value;
+                                form.appendChild(hiddenInput);
+                            }
+                        });
+                        form.submit();
+                    }
+                });
+            }
+        });
+
+        // ✅ SweetAlert Toasts
+        document.addEventListener("DOMContentLoaded", function() {
+            // Close modal if there are validation errors (assuming Laravel redirects back with errors)
+            // You might need additional logic if Laravel sends error messages to the session/view.
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 2500 });
+            @endif
+            @if(session('error'))
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: @json(session('error')), showConfirmButton: false, timer: 3000 });
+            @endif
+            @if(session('warning'))
+                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: @json(session('warning')), showConfirmButton: false, timer: 3000 });
+            @endif
+            @if(session('info'))
+                Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: @json(session('info')), showConfirmButton: false, timer: 2500 });
             @endif
         });
     </script>
