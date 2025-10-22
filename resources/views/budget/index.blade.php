@@ -5,11 +5,11 @@
     @endpush
 
     <div class="container mx-auto px-4 py-8">
-        {{-- Adjusted to ensure title and button/warning are always on the same row on desktop --}}
+        {{-- Budget Management Header --}}
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 flex-shrink-0">Budget Management</h2>
             
-            {{-- Unified container for the right-hand element (Button or Warning) --}}
+            {{-- Right-hand element (Button or Warning) --}}
             <div class="w-full sm:w-auto flex justify-end">
                 @if (!$activeBudget)
                     <button onclick="openModal()" class="start-proposal-btn">
@@ -19,6 +19,7 @@
             </div>
         </div>
 
+        {{-- Active Budget Warning --}}
         @if ($activeBudget)
             <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-5 py-4 rounded-xl mb-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="flex items-start sm:items-center gap-3">
@@ -39,6 +40,7 @@
             </div>
         @endif
 
+        {{-- Budget Modal --}}
         <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
             <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
                 <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
@@ -76,9 +78,12 @@
             </div>
         </div>
 
+        {{-- Previous Budgets Header --}}
         <div class="mt-8">
-            <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                Previous Budgets
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">
+                    Previous Budgets
+                </h3>
 
                 <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto flex-shrink-0">
                     @csrf
@@ -87,7 +92,7 @@
                         Delete Selected
                     </button>
                 </form>
-            </h3>
+            </div>
 
             <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
                 <table class="w-full border-collapse min-w-[600px]">
@@ -124,17 +129,18 @@
         </div>
     </div>
 
+    {{-- Styles --}}
     <style>
         .start-proposal-btn {
             background-color: #10b981;
             color: white;
-            padding: 8px 14px; /* smaller than before */
+            padding: 8px 14px;
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Adjusted shadow */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         .start-proposal-btn:hover {
             background-color: #059669;
@@ -205,40 +211,22 @@
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
         }
-          /* Responsive Consistency */
+
         @media (max-width: 640px) {
-            .container {
-                padding: 1rem;
-            }
-            table {
-                font-size: 14px;
-            }
-            .end-proposal-btn, .start-proposal-btn {
-                width: 100%;
-            }
-            /* Ensure the header elements stack nicely on mobile */
-            .flex-col.sm\:flex-row {
-                flex-direction: column;
-            }
-            .flex-col.sm\:flex-row > h2 {
-                margin-bottom: 0.5rem; /* Add a little space below the title on mobile */
-            }
-            .flex-col.sm\:flex-row > div:last-child {
-                justify-content: flex-start; /* Align button/warning to the left on mobile */
-            }
+            .container { padding: 1rem; }
+            table { font-size: 14px; }
+            .end-proposal-btn, .start-proposal-btn, #deleteSelectedBtn { width: 100%; }
+            .flex-col.sm\:flex-row { flex-direction: column; }
+            .flex-col.sm\:flex-row > h2, .flex-col.sm\:flex-row > div:last-child { margin-bottom: 0.5rem; justify-content: flex-start; }
         }
     </style>
 
+    {{-- Scripts --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function openModal() {
-            document.getElementById('budgetModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('budgetModal').classList.add('hidden');
-        }
+        function openModal() { document.getElementById('budgetModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('budgetModal').classList.add('hidden'); }
 
         function confirmEndProposal() {
             Swal.fire({
@@ -250,20 +238,13 @@
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Yes, end it!',
                 cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('endProposalForm').submit();
-                }
-            });
+            }).then((result) => { if (result.isConfirmed) document.getElementById('endProposalForm').submit(); });
         }
 
         function validateYear(input) {
-            if (input.value.length > 4) {
-                input.value = input.value.slice(0, 4);
-            }
+            if (input.value.length > 4) input.value = input.value.slice(0, 4);
         }
 
-        // ✅ Format amount input
         function formatNumberInput(input) {
             let value = input.value.replace(/[^0-9.]/g, '');
             const parts = value.split('.');
@@ -275,12 +256,10 @@
         }
 
         document.getElementById('budgetForm').addEventListener('submit', function(e) {
-            const amountInput = document.getElementById('amount');
-            // Remove commas before submission to ensure backend receives a clean number
-            amountInput.value = amountInput.value.replace(/,/g, '');
+            document.getElementById('amount').value = document.getElementById('amount').value.replace(/,/g, '');
         });
 
-        // ✅ Checkbox selection
+        // Checkbox selection
         const selectAllCheckbox = document.getElementById('selectAll');
         const budgetCheckboxes = document.querySelectorAll('.budget-checkbox');
         const deleteBtn = document.getElementById('deleteSelectedBtn');
@@ -298,13 +277,11 @@
         }
 
         document.getElementById('deleteSelectedForm').addEventListener('submit', function(e) {
-            // Re-check for selected items before submitting for deletion
             const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
             if (!anyChecked) {
                 e.preventDefault();
                 alert('Please select at least one budget to delete.');
             } else {
-                // Add a confirmation for delete selected
                 e.preventDefault();
                 Swal.fire({
                     title: 'Confirm Delete?',
@@ -317,7 +294,6 @@
                     cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Dynamically add hidden inputs for selected IDs to the form
                         const form = document.getElementById('deleteSelectedForm');
                         budgetCheckboxes.forEach(cb => {
                             if (cb.checked) {
@@ -334,10 +310,8 @@
             }
         });
 
-        // ✅ SweetAlert Toasts
+        // SweetAlert Toasts
         document.addEventListener("DOMContentLoaded", function() {
-            // Close modal if there are validation errors (assuming Laravel redirects back with errors)
-            // You might need additional logic if Laravel sends error messages to the session/view.
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 2500 });
             @endif
