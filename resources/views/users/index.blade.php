@@ -74,50 +74,67 @@
         </div>
     </div>
 
-    <!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-sm-custom">
+    <!-- Modal -->
+<div id="addUserModal" class="modal hidden">
     <div class="modal-content">
-      <div class="modal-header py-2">
-        <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
 
-      <div class="modal-body p-3">
-        <form action="{{ route('users.store') }}" method="POST">
-          @csrf
-          <div class="mb-2">
-            <label for="name" class="form-label mb-1">Full Name</label>
-            <input type="text" name="name" id="name" class="form-control form-control-sm" required>
-          </div>
+        <div class="modal-header">
+            <h2>Add New User</h2>
+            <p class="modal-subtitle">Fill in the details to create a new user</p>
+        </div>
 
-          <div class="mb-2">
-            <label for="email" class="form-label mb-1">Email</label>
-            <input type="email" name="email" id="email" class="form-control form-control-sm" required>
-          </div>
+        <form method="POST" action="{{ route('users.store') }}" class="modal-form">
+            @csrf
 
-          <div class="mb-2">
-            <label for="role" class="form-label mb-1">Role</label>
-            <select name="role" id="role" class="form-select form-select-sm" required>
-              <option value="">Select Role</option>
-              <option value="admin">Admin</option>
-              <option value="staff">Staff</option>
-            </select>
-          </div>
+            <!-- Name & Email -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" name="name" placeholder="Enter full name" value="{{ old('name') }}" required>
+                </div>
 
-          <div class="mb-2">
-            <label for="password" class="form-label mb-1">Password</label>
-            <input type="password" name="password" id="password" class="form-control form-control-sm" required>
-          </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" placeholder="Enter email address" value="{{ old('email') }}" required>
+                </div>
+            </div>
 
-          <div class="text-end mt-3">
-            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary btn-sm">Save</button>
-          </div>
+            <!-- Password & Confirm -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" placeholder="Enter password" required>
+                    <small>Password must be at least 12 characters, with uppercase, lowercase, number & symbol.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="password_confirmation">Confirm Password</label>
+                    <input type="password" name="password_confirmation" placeholder="Confirm password" required>
+                </div>
+            </div>
+
+            <!-- Role -->
+            <div class="form-group">
+                <label for="role">Role / Department</label>
+                <select name="role" required>
+                    <option value="">-- Select Role --</option>
+                    <option value="BSED">BSED</option>
+                    <option value="BSBA">BSBA</option>
+                    <option value="BSIT">BSIT</option>
+                    <option value="BSHM">BSHM</option>
+                    <option value="LIBRARY">Library</option>
+                    <option value="NURSE">Nurse</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="modal-actions">
+                <button type="submit" class="btn-submit">Add User</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
         </form>
-      </div>
     </div>
-  </div>
 </div>
 
     <style>
@@ -397,21 +414,15 @@
 }
 
 /* ✅ Mobile Adjustments */
-.modal-sm-custom {
-    max-width: 420px; /* default desktop size */
-  }
-
-  @media (max-width: 576px) {
-    .modal-sm-custom {
-      max-width: 90% !important; /* smaller modal on mobile */
-      margin: 0 auto;
-    }
+@media (max-width: 90px) {
     .modal-content {
-      border-radius: 10px;
-      padding: 5px;
+        padding: 1.5rem;
+        border-radius: 16px;
     }
-  }
-
+    .form-row {
+        flex-direction: column;
+    }
+}
     </style>
 
     <script>
