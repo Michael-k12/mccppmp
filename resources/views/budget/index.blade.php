@@ -9,11 +9,12 @@
         <!-- ✅ Page Header -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
-            @if (!$activeBudget)
-                <button onclick="openModal()" class="start-proposal-btn w-full sm:w-auto">
-                    ➕ Add Budget
-                </button>
-            @endif
+            <!-- ✅ Add Budget Button -->
+@if (!$activeBudget)
+    <button onclick="openModal()" class="start-proposal-btn w-full sm:w-auto">
+        ➕ Add Budget
+    </button>
+@endif
         </div>
 
         <!-- ✅ Active Proposal Warning -->
@@ -212,6 +213,32 @@
         }
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
+        }
+         /* ✅ Compact Add Budget Button */
+    .start-proposal-btn {
+        background-color: #10b981;
+        color: white;
+        padding: 8px 14px; /* smaller than before */
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .start-proposal-btn:hover {
+        background-color: #059669;
+        transform: scale(1.03);
+    }
+
+    /* ✅ Responsive Consistency */
+    @media (max-width: 640px) {
+        .start-proposal-btn {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            border-radius: 8px;
         }
 
         /* Responsive Fixes */
