@@ -132,7 +132,7 @@
             color: white;
             padding: 9px 16px;
             border-radius: 8px;
-            font-weight: 600;
+            font-weight: 620;
             transition: 0.2s;
         }
 
@@ -146,7 +146,7 @@
             color: white;
             padding: 9px 16px;
             border-radius: 8px;
-            font-weight: 600;
+            font-weight: 620;
             transition: 0.2s;
         }
 
