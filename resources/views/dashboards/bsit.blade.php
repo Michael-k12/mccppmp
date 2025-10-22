@@ -201,11 +201,10 @@
         </div>
 
         {{-- Bar Chart --}}
-        <div class="chart-container">
-            <h2>Yearly Project Plan Cost</h2>
-            <canvas id="budgetChart" height="100"></canvas>
-        </div>
-
+        <div class="chart-container" style="max-height:400px;">
+    <h2>Yearly Project Plan Cost</h2>
+    <canvas id="budgetChart"></canvas>
+</div>
         {{-- Excel Table --}}
         <div class="table-container">
             <h2>Recent Submissions</h2>
