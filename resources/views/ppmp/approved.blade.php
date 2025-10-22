@@ -6,6 +6,7 @@
             max-width: 1200px;
             margin: 0 auto;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 10px;
         }
 
         .top-bar {
@@ -14,12 +15,15 @@
             align-items: center;
             margin-top: 20px;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .filter-form {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .filter-form select {
@@ -53,6 +57,7 @@
             border-collapse: collapse;
             font-size: 13px;
             margin-top: 1rem;
+            min-width: 800px; /* ensures scroll on small screens */
         }
 
         .excel-table th,
@@ -78,6 +83,13 @@
             background-color: #f1f5f9;
         }
 
+        /* ✅ Table Scroll Wrapper */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ✅ Modal Styling */
         .modal {
             display: none;
             position: fixed;
@@ -89,13 +101,14 @@
             background-color: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
+            padding: 10px;
         }
 
         .modal-content {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            width: 300px;
+            width: 320px;
             text-align: center;
         }
 
@@ -106,115 +119,154 @@
             margin-bottom: 20px;
         }
 
-        .close-btn {
-            background-color: #6b7280;
-            color: white;
+        .close-btn,
+        .confirm-btn {
             border: none;
             padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
+        }
+
+        .close-btn {
+            background-color: #6b7280;
+            color: white;
         }
 
         .confirm-btn {
             background-color: #dc2626;
             color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
+        }
+
+        /* ✅ Responsive Design */
+        @media (max-width: 768px) {
+            .top-bar h2 {
+                font-size: 18px;
+                text-align: center;
+                width: 100%;
+            }
+
+            .filter-form {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .filter-form select,
+            .print-button,
+            .delete-button {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 90%;
+                padding: 15px;
+            }
+
+            .excel-table th,
+            .excel-table td {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .print-button,
+            .delete-button {
+                font-size: 13px;
+                padding: 5px 10px;
+            }
         }
     </style>
 
     <div class="container">
         <div class="top-bar">
-    <h2>Annual Procurement Plan</h2>
-    <div class="filter-form">
-        {{-- Year Filter --}}
-        <form action="{{ route('ppmp.download.pdf', ['year' => $year]) }}" method="GET">
-    <button type="submit" class="print-button">Download PDF</button>
-</form>
+            <h2>Annual Procurement Plan</h2>
+            <div class="filter-form">
+                {{-- Download PDF --}}
+                <form action="{{ route('ppmp.download.pdf', ['year' => $year]) }}" method="GET">
+                    <button type="submit" class="print-button">Download PDF</button>
+                </form>
 
-<select name="year" onchange="this.form.submit()">
-    @foreach ($availableYears as $yearOption)
-        <option value="{{ $yearOption }}" {{ $year == $yearOption ? 'selected' : '' }}>
-            {{ $yearOption }}
-        </option>
-    @endforeach
-</select>
+                {{-- Year Dropdown --}}
+                <form method="GET" action="{{ route('ppmp.index') }}">
+                    <select name="year" onchange="this.form.submit()">
+                        @foreach ($availableYears as $yearOption)
+                            <option value="{{ $yearOption }}" {{ $year == $yearOption ? 'selected' : '' }}>
+                                {{ $yearOption }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
 
-      
-
-
-
-
-        {{-- Delete Year --}}
-        <button type="button" id="openDeleteModal" class="delete-button">Delete Year</button>
-    </div>
-</div>
+                {{-- Delete Button --}}
+                <button type="button" id="openDeleteModal" class="delete-button">Delete Year</button>
+            </div>
+        </div>
 
         @php $grandTotal = 0; @endphp
 
-        <table class="excel-table">
-    <thead>
-        <tr>
-            <th rowspan="2">Classification</th>
-            <th rowspan="2">Description</th>
-            <th rowspan="2">Unit</th>
-            <th rowspan="2">Price</th>
-            <th rowspan="2">Quantity</th>
-            <th rowspan="2">Estimated Budget</th>
-            <th rowspan="2">Mode Of Procurement</th>
-            <th colspan="12">Schedule / Milestone</th>
-        </tr>
-        <tr>
-            @foreach(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] as $month)
-                <th style="width: 3%; text-align: center;">{{ $month }}</th>
-            @endforeach
-        </tr>
-    </thead>
-    <tbody>
-        @php $grandTotal = 0; @endphp
-        @forelse ($ppmps->sortByDesc('created_at')->groupBy('classification') as $classification => $group)
-            @foreach ($group as $ppmp)
-                @php
-                    $grandTotal += $ppmp->estimated_budget;
-                    $milestoneMonth = \Carbon\Carbon::parse($ppmp->milestone_date)->format('n'); // 1-12
-                @endphp
-                <tr>
-                    <td>{{ strtoupper($ppmp->classification) }}</td>
-                    <td style="text-align: left;">{{ $ppmp->description }}</td>
-                    <td>{{ $ppmp->unit }}</td>
-                    <td style="text-align: right;">{{ number_format($ppmp->price, 2) }}</td>
-                    <td style="text-align: center;">{{ $ppmp->quantity }}</td>
-                    <td style="text-align: right;">{{ number_format($ppmp->estimated_budget, 2) }}</td>
-                    <td>{{ $ppmp->mode_of_procurement }}</td>
-                    @for ($m = 1; $m <= 12; $m++)
-                        <td style="width: 3%; text-align: center; background-color: {{ $m == $milestoneMonth ? 'rgb(255, 217, 63)' : 'transparent' }};">
-                            @if($m == $milestoneMonth)
-                                &#x2713; <!-- optional milestone checkmark -->
-                            @endif
-                        </td>
-                    @endfor
-                </tr>
-            @endforeach
-        @empty
-            <tr>
-                <td colspan="19" class="no-data">No approved Project Plan found.</td>
-            </tr>
-        @endforelse
+        <div class="table-container">
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Classification</th>
+                        <th rowspan="2">Description</th>
+                        <th rowspan="2">Unit</th>
+                        <th rowspan="2">Price</th>
+                        <th rowspan="2">Quantity</th>
+                        <th rowspan="2">Estimated Budget</th>
+                        <th rowspan="2">Mode Of Procurement</th>
+                        <th colspan="12">Schedule / Milestone</th>
+                    </tr>
+                    <tr>
+                        @foreach(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] as $month)
+                            <th style="width: 3%; text-align: center;">{{ $month }}</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($ppmps->sortByDesc('created_at')->groupBy('classification') as $classification => $group)
+                        @foreach ($group as $ppmp)
+                            @php
+                                $grandTotal += $ppmp->estimated_budget;
+                                $milestoneMonth = \Carbon\Carbon::parse($ppmp->milestone_date)->format('n');
+                            @endphp
+                            <tr>
+                                <td>{{ strtoupper($ppmp->classification) }}</td>
+                                <td style="text-align: left;">{{ $ppmp->description }}</td>
+                                <td>{{ $ppmp->unit }}</td>
+                                <td style="text-align: right;">{{ number_format($ppmp->price, 2) }}</td>
+                                <td style="text-align: center;">{{ $ppmp->quantity }}</td>
+                                <td style="text-align: right;">{{ number_format($ppmp->estimated_budget, 2) }}</td>
+                                <td>{{ $ppmp->mode_of_procurement }}</td>
+                                @for ($m = 1; $m <= 12; $m++)
+                                    <td style="width: 3%; text-align: center; background-color: {{ $m == $milestoneMonth ? 'rgb(255, 217, 63)' : 'transparent' }};">
+                                        @if($m == $milestoneMonth)
+                                            &#x2713;
+                                        @endif
+                                    </td>
+                                @endfor
+                            </tr>
+                        @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="19" class="no-data">No approved Project Plan found.</td>
+                        </tr>
+                    @endforelse
 
-        <tr class="total-row">
-            <td colspan="5">TOTAL</td>
-            <td style="text-align: right;">{{ number_format($grandTotal, 2) }}</td>
-            <td></td>
-            <td colspan="12"></td>
-        </tr>
-    </tbody>
-</table>
-
+                    <tr class="total-row">
+                        <td colspan="5">TOTAL</td>
+                        <td style="text-align: right;">{{ number_format($grandTotal, 2) }}</td>
+                        <td></td>
+                        <td colspan="12"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- 🧩 Modal for selecting year -->
+    <!-- Delete Year Modal -->
     <div class="modal" id="yearModal">
         <div class="modal-content">
             <h3>Select a Year to Delete</h3>
@@ -246,17 +298,11 @@
         const deleteForm = document.getElementById('deleteYearForm');
         const deleteInput = document.getElementById('deleteYearInput');
 
-        openBtn.addEventListener('click', () => {
-            modal.style.display = 'flex';
-        });
-
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
+        openBtn.addEventListener('click', () => modal.style.display = 'flex');
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
 
         confirmBtn.addEventListener('click', () => {
             const selectedYear = yearSelect.value;
-
             if (!selectedYear) {
                 Swal.fire({
                     icon: 'warning',
@@ -282,7 +328,6 @@
             });
         });
 
-        // SweetAlert responses
         @if (session('success'))
             Swal.fire('Deleted!', "{{ session('success') }}", 'success');
         @endif
