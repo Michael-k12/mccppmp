@@ -426,7 +426,7 @@
     </style>
 
     <script>
-        function openModal() {
+        function openModal() {  
             document.getElementById('addUserModal').classList.remove('hidden');
         }
         function closeModal() {
