@@ -1,12 +1,27 @@
 <x-layouts.app :title="'Submit'">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     @if(session('success'))
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 Swal.fire({
                     icon: 'success',
                     title: 'Submitted!',
                     text: "{{ session('success') }}",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        </script>
+    @endif
+
+    @if($ppmps->isEmpty())
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Nothing to submit',
+                    text: 'You have no Project Procurement Plans to submit.',
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -29,7 +44,7 @@
             background-color: white;
         }
         .excel-table th {
-            background-color:rgb(154, 169, 255);
+            background-color: rgb(154, 169, 255);
             text-transform: uppercase;
             font-size: 11px;
         }
@@ -80,7 +95,7 @@
                                 <td>{{ $ppmp->quantity }}</td>
                                 <td>{{ number_format($ppmp->price, 2) }}</td>
                                 <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
-                                <td>{{$ppmp->mode_of_procurement}}</td>
+                                <td>{{ $ppmp->mode_of_procurement }}</td>
                                 <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('Y F') }}</td>
                             </tr>
                         @empty
@@ -92,22 +107,25 @@
                 </table>
             </div>
 
+            @if(!$ppmps->isEmpty())
             <div class="mt-4 text-right">
                 <button type="submit" id="submitPrincipalBtn" class="submit-btn">Submit</button>
             </div>
+            @endif
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('submitToPrincipalForm');
             const submitBtn = document.getElementById('submitPrincipalBtn');
 
-            form.addEventListener('submit', function () {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Submitting...';
-            });
+            if (form) {
+                form.addEventListener('submit', function () {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                });
+            }
         });
     </script>
 </x-layouts.app>
