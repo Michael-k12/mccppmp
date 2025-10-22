@@ -48,28 +48,46 @@ public function manage()
 
 // AJAX endpoint for updating remaining budget dynamically
 public function getRemainingBudget()
-    {
-        $userDepartment = Auth::user()->role;
+{
+    $userDepartment = Auth::user()->role;
 
-        $activeBudget = Budget::where('is_ended', false)->latest()->first();
-        $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+    // Get the latest budget
+    $latestBudget = Budget::latest()->first();
 
-        if (!$activeBudget) {
-            return response()->json([
-                'allocatedBudget' => 0,
-                'remainingBudget' => 0
-            ]);
-        }
-
-        $allocatedBudget = round($activeBudget->amount / count($departments), 2);
-        $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
-        $remainingBudget = $allocatedBudget - $spent;
-
+    // If no budget exists, return 0
+    if (!$latestBudget) {
         return response()->json([
-            'allocatedBudget' => $allocatedBudget,
-            'remainingBudget' => $remainingBudget
+            'allocatedBudget' => 0,
+            'remainingBudget' => 0
         ]);
     }
+
+    $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+
+    // If the budget is ended, remaining and allocated are 0
+    if ($latestBudget->is_ended) {
+        return response()->json([
+            'allocatedBudget' => 0,
+            'remainingBudget' => 0
+        ]);
+    }
+
+    // Allocate budget per department
+    $allocatedBudget = round($latestBudget->amount / count($departments), 2);
+
+    // Sum all submitted PPMPs for this budget and department
+    $spent = Ppmp::where('department', $userDepartment)
+                ->whereYear('milestone_date', $latestBudget->year)
+                ->sum('estimated_budget');
+
+    $remainingBudget = max($allocatedBudget - $spent, 0);
+
+    return response()->json([
+        'allocatedBudget' => $allocatedBudget,
+        'remainingBudget' => $remainingBudget
+    ]);
+}
+
  public function edit($id)
     {
         $ppmp = Ppmp::findOrFail($id); // ✅ fixed
