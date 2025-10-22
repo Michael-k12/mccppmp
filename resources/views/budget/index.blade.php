@@ -4,224 +4,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     @endpush
 
-    <div class="container mx-auto px-4 py-8">
-        <!-- ✅ Page Header -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-3 sm:gap-6">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 flex-shrink-0">Budget Management</h2>
-
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-6 mb-6">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
             @if (!$activeBudget)
-                <button onclick="openModal()" class="start-proposal-btn sm:ml-auto">
+                <button onclick="openModal()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition w-full sm:w-auto">
                     ➕ Add Budget
                 </button>
             @endif
         </div>
 
-        <!-- ✅ Active Proposal Warning -->
+        <!-- Active Budget Warning -->
         @if ($activeBudget)
-            <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-5 py-4 rounded-xl mb-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 shadow-sm">
                 <div class="flex items-start sm:items-center gap-3">
                     <span class="text-xl">⚠️</span>
-                    <p class="text-sm md:text-base leading-snug">
-                        A proposal is currently active for
-                        <strong>{{ $activeBudget->year }}</strong>.
+                    <p class="text-sm md:text-base">
+                        A proposal is currently active for <strong>{{ $activeBudget->year }}</strong>.
                         Please end it before starting a new one.
                     </p>
                 </div>
-
-                <!-- End Proposal Button -->
                 <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST" class="w-full sm:w-auto">
                     @csrf
-                    <button type="button" onclick="confirmEndProposal()" class="end-proposal-btn w-full sm:w-auto">
+                    <button type="button" onclick="confirmEndProposal()" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg shadow w-full sm:w-auto transition">
                         End Proposal
                     </button>
                 </form>
             </div>
         @endif
 
-        <!-- ✅ Modal -->
-        <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
-            <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
+        <!-- Modal -->
+        <div id="budgetModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 relative animate-fadeIn border border-gray-200">
                 <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-                <h3 class="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 text-center">Start Project Proposal</h3>
-
-                <form id="budgetForm" action="{{ route('budget.store') }}" method="POST" class="space-y-6">
+                <h3 class="text-xl sm:text-2xl font-semibold mb-6 text-center text-gray-800">Start Project Proposal</h3>
+                <form id="budgetForm" action="{{ route('budget.store') }}" method="POST" class="space-y-4">
                     @csrf
-
                     <div>
-                        <label for="milestone_date" class="block mb-2 font-medium text-gray-700">Year</label>
-                        <input type="number"
-                            name="milestone_date"
-                            id="milestone_date"
-                            class="modern-input"
-                            min="2000"
-                            max="2100"
-                            value="{{ now()->year }}"
-                            oninput="validateYear(this)"
-                            required>
+                        <label for="milestone_date" class="block mb-1 font-medium text-gray-700">Year</label>
+                        <input type="number" name="milestone_date" id="milestone_date" min="2000" max="2100" value="{{ now()->year }}" oninput="validateYear(this)" required
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
                     </div>
-
                     <div>
-                        <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
-                        <input type="text"
-                            name="amount"
-                            id="amount"
-                            class="modern-input"
-                            required
-                            oninput="formatNumberInput(this)">
+                        <label for="amount" class="block mb-1 font-medium text-gray-700">Budget Amount</label>
+                        <input type="text" name="amount" id="amount" required oninput="formatNumberInput(this)"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
                     </div>
-
-                    <button type="submit" class="save-budget-btn w-full">Save Budget</button>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">Save Budget</button>
                 </form>
             </div>
         </div>
 
-        <!-- ✅ Budget List -->
+        <!-- Previous Budgets -->
         <div class="mt-8">
-            <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                Previous Budgets
-
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">Previous Budgets</h3>
                 <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden w-full sm:w-auto">
+                    <button type="submit" id="deleteSelectedBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-medium transition hidden w-full sm:w-auto">
                         Delete Selected
                     </button>
                 </form>
-            </h3>
+            </div>
 
-            <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
-                <table class="w-full border-collapse min-w-[600px]">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th class="px-5 py-3 text-left text-sm"><input type="checkbox" id="selectAll"></th>
-                            <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
-                            <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
-                            <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($budgets as $budget)
-                            <tr class="border-b hover:bg-gray-50 transition">
-                                <td class="px-5 py-3"><input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox"></td>
-                                <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
-                                <td class="px-5 py-3 text-green-600 font-semibold">₱{{ number_format($budget->amount, 2) }}</td>
-                                <td class="px-5 py-3 text-center">
-                                    @if (!$budget->is_ended)
-                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
-                                    @else
-                                        <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($budgets as $budget)
+                    <div class="bg-white border border-gray-200 rounded-lg shadow p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800 text-lg">{{ $budget->year }}</h4>
+                            <input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox">
+                        </div>
+                        <p class="text-green-600 font-semibold text-lg mb-2">₱{{ number_format($budget->amount, 2) }}</p>
+                        <span class="self-start px-3 py-1 rounded-full text-sm
+                            {{ $budget->is_ended ? 'bg-gray-200 text-gray-700' : 'bg-green-100 text-green-700' }}">
+                            {{ $budget->is_ended ? 'Ended' : 'Active' }}
+                        </span>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
 
-    <!-- ✅ Styles -->
-    <style>
-        /* Compact Add Budget Button */
-        .start-proposal-btn {
-            background-color: #10b981;
-            color: white;
-            padding: 6px 14px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.25s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-        }
-        .start-proposal-btn:hover {
-            background-color: #059669;
-            transform: scale(1.03);
-        }
-
-        .save-budget-btn {
-            background-color: #2563eb;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .save-budget-btn:hover {
-            background-color: #1e40af;
-            transform: scale(1.05);
-        }
-
-        .end-proposal-btn {
-            background-color: #ef4444;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .end-proposal-btn:hover {
-            background-color: #dc2626;
-            transform: scale(1.05);
-        }
-
-        .modern-input {
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            padding: 10px 14px;
-            width: 100%;
-            font-size: 15px;
-            color: #111827;
-            background-color: #f9fafb;
-            transition: all 0.2s ease;
-            -moz-appearance: textfield;
-        }
-
-        .modern-input::-webkit-outer-spin-button,
-        .modern-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .modern-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
-            background-color: #fff;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
-
-        /* ✅ Responsive Fix */
-        @media (max-width: 640px) {
-            .start-proposal-btn {
-                width: 100%;
-                padding: 10px 14px;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-            .end-proposal-btn {
-                width: 100%;
-            }
-            table {
-                font-size: 14px;
-            }
-        }
-    </style>
-
-    <!-- ✅ SweetAlert2 -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         function openModal() { document.getElementById('budgetModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('budgetModal').classList.add('hidden'); }
@@ -236,7 +103,7 @@
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Yes, end it!',
                 cancelButtonText: 'Cancel'
-            }).then(result => { if (result.isConfirmed) document.getElementById('endProposalForm').submit(); });
+            }).then(result => { if(result.isConfirmed) document.getElementById('endProposalForm').submit(); });
         }
 
         function validateYear(input) {
@@ -244,39 +111,28 @@
         }
 
         function formatNumberInput(input) {
-            let value = input.value.replace(/[^0-9.]/g, '');
+            let value = input.value.replace(/[^0-9.]/g,'');
             const parts = value.split('.');
-            if (parts.length > 2) value = parts[0] + '.' + parts[1];
-            if (parts[1]) parts[1] = parts[1].slice(0, 2);
+            if(parts.length > 2) value = parts[0] + '.' + parts[1];
+            if(parts[1]) parts[1] = parts[1].slice(0,2);
             let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             let decimalPart = parts[1] ? '.' + parts[1] : '';
             input.value = integerPart + decimalPart;
         }
 
         document.getElementById('budgetForm').addEventListener('submit', e => {
-            const amountInput = document.getElementById('amount');
-            amountInput.value = amountInput.value.replace(/,/g, '');
+            document.getElementById('amount').value = document.getElementById('amount').value.replace(/,/g,'');
         });
 
-        const selectAll = document.getElementById('selectAll');
         const checkboxes = document.querySelectorAll('.budget-checkbox');
         const deleteBtn = document.getElementById('deleteSelectedBtn');
 
-        selectAll.addEventListener('change', () => {
-            checkboxes.forEach(cb => cb.checked = selectAll.checked);
-            toggleDeleteBtn();
-        });
-
-        checkboxes.forEach(cb => cb.addEventListener('change', toggleDeleteBtn));
-
-        function toggleDeleteBtn() {
-            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-            deleteBtn.classList.toggle('hidden', !anyChecked);
-        }
+        checkboxes.forEach(cb => cb.addEventListener('change', () => {
+            deleteBtn.classList.toggle('hidden', !Array.from(checkboxes).some(c => c.checked));
+        }));
 
         document.getElementById('deleteSelectedForm').addEventListener('submit', e => {
-            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-            if (!anyChecked) {
+            if (!Array.from(checkboxes).some(c => c.checked)) {
                 e.preventDefault();
                 alert('Please select at least one budget to delete.');
             }
@@ -284,9 +140,14 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             @if(session('success'))
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 2500 });
+                Swal.fire({ toast:true, position:'top-end', icon:'success', title:@json(session('success')), showConfirmButton:false, timer:2500 });
             @endif
         });
     </script>
+
+    <style>
+        @keyframes fadeIn { from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+    </style>
 
 </x-layouts.app>
