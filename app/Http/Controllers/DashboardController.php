@@ -66,94 +66,99 @@ class DashboardController extends Controller
             ));
 
         case 'BSIT':
-        case 'BSBA':
-        case 'BSHM':
-        case 'BSED':
-        case 'NURSE':
-        case 'LIBRARY':
+case 'BSBA':
+case 'BSHM':
+case 'BSED':
+case 'NURSE':
+case 'LIBRARY':
 
-            $department = $user->role;
+    $department = $user->role;
 
-            $years = Ppmp::where('department', $department)
-                ->selectRaw('YEAR(milestone_date) as year')
-                ->distinct()
-                ->pluck('year')
-                ->sortDesc();
+    $years = Ppmp::where('department', $department)
+        ->selectRaw('YEAR(milestone_date) as year')
+        ->distinct()
+        ->pluck('year')
+        ->sortDesc();
 
-            $selectedYear = $request->get('year') ?? $years->first();
+    $selectedYear = $request->get('year') ?? $years->first();
 
-            $submittedCount = Ppmp::where('department', $department)
-                ->where('status', 'Submitted')
-                ->whereYear('milestone_date', $selectedYear)
-                ->count();
+    $submittedCount = Ppmp::where('department', $department)
+        ->where('status', 'Submitted')
+        ->whereYear('milestone_date', $selectedYear)
+        ->count();
 
-            $approvedCount = Ppmp::where('department', $department)
-                ->where('status', 'Approved')
-                ->whereYear('milestone_date', $selectedYear)
-                ->count();
+    $approvedCount = Ppmp::where('department', $department)
+        ->where('status', 'Approved')
+        ->whereYear('milestone_date', $selectedYear)
+        ->count();
 
-            $estimatedTotal = Ppmp::where('department', $department)
-                ->where('status', 'Approved')
-                ->whereYear('milestone_date', $selectedYear)
-                ->sum('estimated_budget');
+    $estimatedTotal = Ppmp::where('department', $department)
+        ->where('status', 'Approved')
+        ->whereYear('milestone_date', $selectedYear)
+        ->sum('estimated_budget');
 
-            $ppmps = Ppmp::where('department', $department)
-                ->whereYear('milestone_date', $selectedYear)
-                ->latest()
-                ->take(5)
-                ->get();
+    $ppmps = Ppmp::where('department', $department)
+        ->whereYear('milestone_date', $selectedYear)
+        ->latest()
+        ->take(5)
+        ->get();
 
-            $itemCount = Ppmp::where('department', $department)
-                ->whereYear('milestone_date', $selectedYear)
-                ->count();
+    $itemCount = Ppmp::where('department', $department)
+        ->whereYear('milestone_date', $selectedYear)
+        ->count();
 
-            $recentPpmps = Ppmp::where('department', $department)
-                ->whereYear('milestone_date', $selectedYear)
-                ->latest()
-                ->take(5)
-                ->get();
+    $recentPpmps = Ppmp::where('department', $department)
+        ->whereYear('milestone_date', $selectedYear)
+        ->latest()
+        ->take(5)
+        ->get();
 
-            $approvedPpmps = Ppmp::where('department', $department)
-                ->where('status', 'Approved')
-                ->selectRaw('YEAR(milestone_date) as year, SUM(estimated_budget) as total')
-                ->groupBy('year')
-                ->orderBy('year')
-                ->get();
+    $approvedPpmps = Ppmp::where('department', $department)
+        ->where('status', 'Approved')
+        ->selectRaw('YEAR(milestone_date) as year, SUM(estimated_budget) as total')
+        ->groupBy('year')
+        ->orderBy('year')
+        ->get();
 
-            $chartLabels = $approvedPpmps->pluck('year')->toArray();
-            $chartData = $approvedPpmps->pluck('total')->toArray();
+    $chartLabels = $approvedPpmps->pluck('year')->toArray();
+    $chartData = $approvedPpmps->pluck('total')->toArray();
 
-            $latestBudget = Budget::orderBy('created_at', 'desc')->first();
+    // ✅ Active and latest budgets
+    $activeBudget = Budget::where('is_ended', false)->latest()->first();
+    $latestBudget = Budget::orderBy('created_at', 'desc')->first();
 
-            $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
-            $departmentBudgets = [];
+    // ✅ Department budget allocation
+    $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+    $departmentBudgets = [];
 
-            if ($latestBudget && $latestBudget->amount > 0) {
-                $equalShare = $latestBudget->amount / count($departments);
-                foreach ($departments as $dept) {
-                    $departmentBudgets[$dept] = round($equalShare, 2);
-                }
-            } else {
-                foreach ($departments as $dept) {
-                    $departmentBudgets[$dept] = 0;
-                }
-            }
+    if ($activeBudget && !$activeBudget->is_ended) {
+        $equalShare = $activeBudget->amount / count($departments);
+        foreach ($departments as $dept) {
+            $departmentBudgets[$dept] = round($equalShare, 2);
+        }
+    } else {
+        foreach ($departments as $dept) {
+            $departmentBudgets[$dept] = 0;
+        }
+    }
 
-            return view('dashboards.' . strtolower($department), compact(
-                'department',
-                'submittedCount',
-                'approvedCount',
-                'estimatedTotal',
-                'ppmps',
-                'itemCount',
-                'recentPpmps',
-                'chartLabels',
-                'chartData',
-                'selectedYear',
-                'years',
-                'latestBudget',
-                'departmentBudgets'
-            ));
+    return view('dashboards.' . strtolower($department), compact(
+        'department',
+        'submittedCount',
+        'approvedCount',
+        'estimatedTotal',
+        'ppmps',
+        'itemCount',
+        'recentPpmps',
+        'chartLabels',
+        'chartData',
+        'selectedYear',
+        'years',
+        'latestBudget',
+        'activeBudget',     // ✅ added this
+        'departmentBudgets'
+    ));
+
 
         default:
             abort(403, 'Unauthorized access');
