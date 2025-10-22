@@ -1,16 +1,14 @@
 <x-layouts.app :title="'Budget'">
 
-    <!-- ✅ Prevent zooming -->
     @push('head')
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     @endpush
 
     <div class="container mx-auto px-4 py-8">
         <!-- ✅ Page Header -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-3 sm:gap-6">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 flex-shrink-0">Budget Management</h2>
 
-            <!-- ✅ Add Budget Button -->
             @if (!$activeBudget)
                 <button onclick="openModal()" class="start-proposal-btn sm:ml-auto">
                     ➕ Add Budget
@@ -43,42 +41,35 @@
         <!-- ✅ Modal -->
         <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
             <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
-                <!-- Close Button -->
                 <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-
-                <!-- Modal Title -->
                 <h3 class="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 text-center">Start Project Proposal</h3>
 
-                <!-- Modal Form -->
                 <form id="budgetForm" action="{{ route('budget.store') }}" method="POST" class="space-y-6">
                     @csrf
 
-                    <!-- ✅ Year Input -->
                     <div>
                         <label for="milestone_date" class="block mb-2 font-medium text-gray-700">Year</label>
                         <input type="number"
-                               name="milestone_date"
-                               id="milestone_date"
-                               class="modern-input"
-                               min="2000"
-                               max="2100"
-                               value="{{ now()->year }}"
-                               oninput="validateYear(this)"
-                               required>
+                            name="milestone_date"
+                            id="milestone_date"
+                            class="modern-input"
+                            min="2000"
+                            max="2100"
+                            value="{{ now()->year }}"
+                            oninput="validateYear(this)"
+                            required>
                     </div>
 
-                    <!-- ✅ Budget Amount Input -->
                     <div>
                         <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
                         <input type="text"
-                               name="amount"
-                               id="amount"
-                               class="modern-input"
-                               required
-                               oninput="formatNumberInput(this)">
+                            name="amount"
+                            id="amount"
+                            class="modern-input"
+                            required
+                            oninput="formatNumberInput(this)">
                     </div>
 
-                    <!-- Submit Button -->
                     <button type="submit" class="save-budget-btn w-full">Save Budget</button>
                 </form>
             </div>
@@ -102,9 +93,7 @@
                 <table class="w-full border-collapse min-w-[600px]">
                     <thead class="bg-gray-100 text-gray-700">
                         <tr>
-                            <th class="px-5 py-3 text-left text-sm">
-                                <input type="checkbox" id="selectAll">
-                            </th>
+                            <th class="px-5 py-3 text-left text-sm"><input type="checkbox" id="selectAll"></th>
                             <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
                             <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
                             <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
@@ -113,9 +102,7 @@
                     <tbody>
                         @foreach ($budgets as $budget)
                             <tr class="border-b hover:bg-gray-50 transition">
-                                <td class="px-5 py-3">
-                                    <input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox">
-                                </td>
+                                <td class="px-5 py-3"><input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox"></td>
                                 <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
                                 <td class="px-5 py-3 text-green-600 font-semibold">₱{{ number_format($budget->amount, 2) }}</td>
                                 <td class="px-5 py-3 text-center">
@@ -135,7 +122,7 @@
 
     <!-- ✅ Styles -->
     <style>
-        /* ✅ Compact Add Budget Button */
+        /* Compact Add Budget Button */
         .start-proposal-btn {
             background-color: #10b981;
             color: white;
@@ -148,13 +135,11 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             white-space: nowrap;
         }
-
         .start-proposal-btn:hover {
             background-color: #059669;
             transform: scale(1.03);
         }
 
-        /* ✅ Save Button */
         .save-budget-btn {
             background-color: #2563eb;
             color: white;
@@ -165,17 +150,15 @@
             font-weight: 600;
             transition: all 0.3s ease;
         }
-
         .save-budget-btn:hover {
             background-color: #1e40af;
             transform: scale(1.05);
         }
 
-        /* ✅ End Proposal Button */
         .end-proposal-btn {
             background-color: #ef4444;
             color: white;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border: none;
             border-radius: 8px;
             font-size: 14px;
@@ -183,13 +166,11 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-
         .end-proposal-btn:hover {
             background-color: #dc2626;
             transform: scale(1.05);
         }
 
-        /* ✅ Inputs */
         .modern-input {
             border: 1px solid #d1d5db;
             border-radius: 10px;
@@ -219,43 +200,31 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
 
-        .animate-fadeIn {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        /* ✅ Responsive Adjustments */
+        /* ✅ Responsive Fix */
         @media (max-width: 640px) {
             .start-proposal-btn {
                 width: 100%;
-                text-align: center;
                 padding: 10px 14px;
-                border-radius: 8px;
-            }
-            .container {
-                padding: 1rem;
-            }
-            table {
                 font-size: 14px;
+                border-radius: 8px;
             }
             .end-proposal-btn {
                 width: 100%;
             }
+            table {
+                font-size: 14px;
+            }
         }
     </style>
 
-    <!-- ✅ SweetAlert2 CDN -->
+    <!-- ✅ SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- ✅ JavaScript -->
     <script>
-        function openModal() {
-            document.getElementById('budgetModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('budgetModal').classList.add('hidden');
-        }
+        function openModal() { document.getElementById('budgetModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('budgetModal').classList.add('hidden'); }
 
         function confirmEndProposal() {
             Swal.fire({
@@ -267,20 +236,13 @@
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Yes, end it!',
                 cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('endProposalForm').submit();
-                }
-            });
+            }).then(result => { if (result.isConfirmed) document.getElementById('endProposalForm').submit(); });
         }
 
         function validateYear(input) {
-            if (input.value.length > 4) {
-                input.value = input.value.slice(0, 4);
-            }
+            if (input.value.length > 4) input.value = input.value.slice(0, 4);
         }
 
-        // ✅ Format amount input
         function formatNumberInput(input) {
             let value = input.value.replace(/[^0-9.]/g, '');
             const parts = value.split('.');
@@ -291,49 +253,38 @@
             input.value = integerPart + decimalPart;
         }
 
-        document.getElementById('budgetForm').addEventListener('submit', function(e) {
+        document.getElementById('budgetForm').addEventListener('submit', e => {
             const amountInput = document.getElementById('amount');
             amountInput.value = amountInput.value.replace(/,/g, '');
         });
 
-        // ✅ Checkbox selection
-        const selectAllCheckbox = document.getElementById('selectAll');
-        const budgetCheckboxes = document.querySelectorAll('.budget-checkbox');
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.budget-checkbox');
         const deleteBtn = document.getElementById('deleteSelectedBtn');
 
-        selectAllCheckbox.addEventListener('change', function() {
-            budgetCheckboxes.forEach(cb => cb.checked = this.checked);
+        selectAll.addEventListener('change', () => {
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
             toggleDeleteBtn();
         });
 
-        budgetCheckboxes.forEach(cb => cb.addEventListener('change', toggleDeleteBtn));
+        checkboxes.forEach(cb => cb.addEventListener('change', toggleDeleteBtn));
 
         function toggleDeleteBtn() {
-            const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
             deleteBtn.classList.toggle('hidden', !anyChecked);
         }
 
-        document.getElementById('deleteSelectedForm').addEventListener('submit', function(e) {
-            const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
+        document.getElementById('deleteSelectedForm').addEventListener('submit', e => {
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
             if (!anyChecked) {
                 e.preventDefault();
                 alert('Please select at least one budget to delete.');
             }
         });
 
-        // ✅ SweetAlert Toasts
         document.addEventListener("DOMContentLoaded", function() {
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 2500 });
-            @endif
-            @if(session('error'))
-                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: @json(session('error')), showConfirmButton: false, timer: 3000 });
-            @endif
-            @if(session('warning'))
-                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: @json(session('warning')), showConfirmButton: false, timer: 3000 });
-            @endif
-            @if(session('info'))
-                Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: @json(session('info')), showConfirmButton: false, timer: 2500 });
             @endif
         });
     </script>
