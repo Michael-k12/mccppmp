@@ -78,20 +78,21 @@
             </div>
         </div>
 
-        {{-- Previous Budgets Header --}}
+        
+
+                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto flex-shrink-0">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden w-90px sm:w-auto">
+                        Delete Selected
+                    </button>
+                </form>
+                {{-- Previous Budgets Header --}}
         <div class="mt-8">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
                 <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">
                     Previous Budgets
                 </h3>
-
-                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto flex-shrink-0">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden w-full sm:w-auto">
-                        Delete Selected
-                    </button>
-                </form>
             </div>
 
             <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
