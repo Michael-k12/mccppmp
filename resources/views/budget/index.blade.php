@@ -1,23 +1,24 @@
 <x-layouts.app :title="'Budget'">
 
-    <!-- ✅ Prevent zooming -->
     @push('head')
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     @endpush
 
     <div class="container mx-auto px-4 py-8">
-        <!-- ✅ Page Header -->
+        {{-- Adjusted to ensure title and button/warning are always on the same row on desktop --}}
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
-            <!-- ✅ Add Budget Button -->
-@if (!$activeBudget)
-    <button onclick="openModal()" class="start-proposal-btn w-full sm:w-auto">
-        ➕ Add Budget
-    </button>
-@endif
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 flex-shrink-0">Budget Management</h2>
+            
+            {{-- Unified container for the right-hand element (Button or Warning) --}}
+            <div class="w-full sm:w-auto flex justify-end">
+                @if (!$activeBudget)
+                    <button onclick="openModal()" class="start-proposal-btn">
+                        ➕ Add Budget
+                    </button>
+                @endif
+            </div>
         </div>
 
-        <!-- ✅ Active Proposal Warning -->
         @if ($activeBudget)
             <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-5 py-4 rounded-xl mb-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="flex items-start sm:items-center gap-3">
@@ -29,8 +30,7 @@
                     </p>
                 </div>
 
-                <!-- End Proposal Button -->
-                <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST" class="w-full sm:w-auto">
+                <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST" class="w-full sm:w-auto flex-shrink-0">
                     @csrf
                     <button type="button" onclick="confirmEndProposal()" class="end-proposal-btn w-full sm:w-auto">
                         End Proposal
@@ -39,20 +39,15 @@
             </div>
         @endif
 
-        <!-- ✅ Modal -->
         <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
             <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
-                <!-- Close Button -->
                 <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
 
-                <!-- Modal Title -->
                 <h3 class="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 text-center">Start Project Proposal</h3>
 
-                <!-- Modal Form -->
                 <form id="budgetForm" action="{{ route('budget.store') }}" method="POST" class="space-y-6">
                     @csrf
 
-                    <!-- ✅ Year Input -->
                     <div>
                         <label for="milestone_date" class="block mb-2 font-medium text-gray-700">Year</label>
                         <input type="number"
@@ -66,7 +61,6 @@
                                required>
                     </div>
 
-                    <!-- ✅ Budget Amount Input -->
                     <div>
                         <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
                         <input type="text"
@@ -77,18 +71,16 @@
                                oninput="formatNumberInput(this)">
                     </div>
 
-                    <!-- Submit Button -->
                     <button type="submit" class="save-budget-btn w-full">Save Budget</button>
                 </form>
             </div>
         </div>
 
-        <!-- ✅ Budget List -->
         <div class="mt-8">
             <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 Previous Budgets
 
-                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto">
+                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto flex-shrink-0">
                     @csrf
                     @method('DELETE')
                     <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden w-full sm:w-auto">
@@ -132,22 +124,21 @@
         </div>
     </div>
 
-    <!-- ✅ Styles -->
     <style>
         .start-proposal-btn {
             background-color: #10b981;
             color: white;
-            padding: 10px 18px;
+            padding: 8px 14px; /* smaller than before */
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Adjusted shadow */
         }
         .start-proposal-btn:hover {
             background-color: #059669;
-            transform: scale(1.04);
+            transform: scale(1.03);
         }
 
         .save-budget-btn {
@@ -214,34 +205,7 @@
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
         }
-         /* ✅ Compact Add Budget Button */
-    .start-proposal-btn {
-        background-color: #10b981;
-        color: white;
-        padding: 8px 14px; /* smaller than before */
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .start-proposal-btn:hover {
-        background-color: #059669;
-        transform: scale(1.03);
-    }
-
-    /* ✅ Responsive Consistency */
-    @media (max-width: 640px) {
-        .start-proposal-btn {
-            width: 100%;
-            padding: 10px 14px;
-            font-size: 14px;
-            border-radius: 8px;
-        }
-
-        /* Responsive Fixes */
+          /* Responsive Consistency */
         @media (max-width: 640px) {
             .container {
                 padding: 1rem;
@@ -249,16 +213,24 @@
             table {
                 font-size: 14px;
             }
-            .end-proposal-btn {
+            .end-proposal-btn, .start-proposal-btn {
                 width: 100%;
+            }
+            /* Ensure the header elements stack nicely on mobile */
+            .flex-col.sm\:flex-row {
+                flex-direction: column;
+            }
+            .flex-col.sm\:flex-row > h2 {
+                margin-bottom: 0.5rem; /* Add a little space below the title on mobile */
+            }
+            .flex-col.sm\:flex-row > div:last-child {
+                justify-content: flex-start; /* Align button/warning to the left on mobile */
             }
         }
     </style>
 
-    <!-- ✅ SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- ✅ JavaScript -->
     <script>
         function openModal() {
             document.getElementById('budgetModal').classList.remove('hidden');
@@ -304,6 +276,7 @@
 
         document.getElementById('budgetForm').addEventListener('submit', function(e) {
             const amountInput = document.getElementById('amount');
+            // Remove commas before submission to ensure backend receives a clean number
             amountInput.value = amountInput.value.replace(/,/g, '');
         });
 
@@ -325,15 +298,46 @@
         }
 
         document.getElementById('deleteSelectedForm').addEventListener('submit', function(e) {
+            // Re-check for selected items before submitting for deletion
             const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
             if (!anyChecked) {
                 e.preventDefault();
                 alert('Please select at least one budget to delete.');
+            } else {
+                // Add a confirmation for delete selected
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Confirm Delete?',
+                    text: "You are about to delete the selected budget records.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete them!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Dynamically add hidden inputs for selected IDs to the form
+                        const form = document.getElementById('deleteSelectedForm');
+                        budgetCheckboxes.forEach(cb => {
+                            if (cb.checked) {
+                                const hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = 'selected[]';
+                                hiddenInput.value = cb.value;
+                                form.appendChild(hiddenInput);
+                            }
+                        });
+                        form.submit();
+                    }
+                });
             }
         });
 
         // ✅ SweetAlert Toasts
         document.addEventListener("DOMContentLoaded", function() {
+            // Close modal if there are validation errors (assuming Laravel redirects back with errors)
+            // You might need additional logic if Laravel sends error messages to the session/view.
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 2500 });
             @endif
