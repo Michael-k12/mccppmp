@@ -15,20 +15,6 @@
         </script>
     @endif
 
-    @if($ppmps->isEmpty())
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Nothing to submit',
-                    text: 'You have no Project Procurement Plans to submit.',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            });
-        </script>
-    @endif
-
     <style>
         .excel-table {
             width: 100%;
@@ -69,46 +55,48 @@
     <div class="max-w-5xl mx-auto py-8">
         <h1 class="text-2xl font-bold mb-6">Project Procurement Plan</h1>
 
-        @if(!$ppmps->isEmpty())
-            <form id="submitToPrincipalForm" action="{{ route('ppmp.submitToPrincipal') }}" method="POST">
-                @csrf
+        <form id="submitToPrincipalForm" action="{{ route('ppmp.submitToPrincipal') }}" method="POST">
+            @csrf
 
-                <div class="overflow-x-auto bg-white shadow border border-gray-200 rounded-lg">
-                    <table class="excel-table">
-                        <thead>
+            <div class="overflow-x-auto bg-white shadow border border-gray-200 rounded-lg">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>Classification</th>
+                            <th>Description</th>
+                            <th>Unit</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Estimated Budget</th>
+                            <th>Mode of Procurement</th>
+                            <th>Schedule/Milestone of Activities</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($ppmps as $ppmp)
                             <tr>
-                                <th>Classification</th>
-                                <th>Description</th>
-                                <th>Unit</th>
-                                <th>Qty</th>
-                                <th>Price</th>
-                                <th>Estimated Budget</th>
-                                <th>Mode of Procurement</th>
-                                <th>Schedule/Milestone of Activities</th>
+                                <td>{{ $ppmp->classification }}</td>
+                                <td>{{ $ppmp->description }}</td>
+                                <td>{{ $ppmp->unit }}</td>
+                                <td>{{ $ppmp->quantity }}</td>
+                                <td>{{ number_format($ppmp->price, 2) }}</td>
+                                <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
+                                <td>{{ $ppmp->mode_of_procurement }}</td>
+                                <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('Y F') }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($ppmps as $ppmp)
-                                <tr>
-                                    <td>{{ $ppmp->classification }}</td>
-                                    <td>{{ $ppmp->description }}</td>
-                                    <td>{{ $ppmp->unit }}</td>
-                                    <td>{{ $ppmp->quantity }}</td>
-                                    <td>{{ number_format($ppmp->price, 2) }}</td>
-                                    <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
-                                    <td>{{ $ppmp->mode_of_procurement }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('Y F') }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center text-gray-500 py-4">No Project Plan Added Yet.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
-                <div class="mt-4 text-right">
-                    <button type="submit" id="submitPrincipalBtn" class="submit-btn">Submit</button>
-                </div>
-            </form>
-        @endif
+            <div class="mt-4 text-right">
+                <button type="submit" id="submitPrincipalBtn" class="submit-btn">Submit</button>
+            </div>
+        </form>
     </div>
 
     <script>
@@ -116,12 +104,24 @@
             const form = document.getElementById('submitToPrincipalForm');
             const submitBtn = document.getElementById('submitPrincipalBtn');
 
-            if (form) {
-                form.addEventListener('submit', function () {
+            form.addEventListener('submit', function (e) {
+                // Check if there are any rows with actual data
+                const hasData = {{ $ppmps->isNotEmpty() ? 'true' : 'false' }};
+
+                if (!hasData) {
+                    e.preventDefault(); // Stop form submission
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Nothing to submit',
+                        text: 'You have no Project Procurement Plans to submit.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
                     submitBtn.disabled = true;
                     submitBtn.textContent = 'Submitting...';
-                });
-            }
+                }
+            });
         });
     </script>
 </x-layouts.app>
