@@ -6,15 +6,29 @@
     @endpush
 
     <div class="container mx-auto px-4 py-8">
+
         <!-- ✅ Page Header -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
-            <!-- ✅ Add Budget Button -->
-@if (!$activeBudget)
-    <button onclick="openModal()" class="start-proposal-btn w-full sm:w-auto">
-        ➕ Add Budget
-    </button>
-@endif
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 flex-wrap">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 flex-1">Budget Management</h2>
+
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-end">
+                <!-- ✅ Add Budget Button -->
+                @if (!$activeBudget)
+                    <button onclick="openModal()" class="start-proposal-btn w-full sm:w-auto">
+                        ➕ Add Budget
+                    </button>
+                @endif
+
+                <!-- ✅ Delete Selected Button -->
+                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" id="deleteSelectedBtn"
+                        class="delete-selected-btn hidden w-full sm:w-auto">
+                        🗑️ Delete Selected
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- ✅ Active Proposal Warning -->
@@ -85,17 +99,7 @@
 
         <!-- ✅ Budget List -->
         <div class="mt-8">
-            <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                Previous Budgets
-
-                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}" class="w-full sm:w-auto">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-600 transition hidden w-full sm:w-auto">
-                        Delete Selected
-                    </button>
-                </form>
-            </h3>
+            <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Previous Budgets</h3>
 
             <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
                 <table class="w-full border-collapse min-w-[600px]">
@@ -134,20 +138,46 @@
 
     <!-- ✅ Styles -->
     <style>
+        /* Main Buttons */
+        .start-proposal-btn,
+        .delete-selected-btn,
+        .end-proposal-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
         .start-proposal-btn {
             background-color: #10b981;
             color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0);
         }
         .start-proposal-btn:hover {
             background-color: #059669;
-            transform: scale(1.04);
+            transform: scale(1.03);
+        }
+
+        .delete-selected-btn {
+            background-color: #ef4444;
+            color: white;
+        }
+        .delete-selected-btn:hover {
+            background-color: #dc2626;
+            transform: scale(1.03);
+        }
+
+        .end-proposal-btn {
+            background-color: #f97316;
+            color: white;
+        }
+        .end-proposal-btn:hover {
+            background-color: #ea580c;
+            transform: scale(1.03);
         }
 
         .save-budget-btn {
@@ -159,26 +189,9 @@
             font-size: 16px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         .save-budget-btn:hover {
             background-color: #1e40af;
-            transform: scale(1.05);
-        }
-
-        .end-proposal-btn {
-            background-color: #ef4444;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .end-proposal-btn:hover {
-            background-color: #dc2626;
             transform: scale(1.05);
         }
 
@@ -214,43 +227,19 @@
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
         }
-         /* ✅ Compact Add Budget Button */
-    .start-proposal-btn {
-        background-color: #10b981;
-        color: white;
-        padding: 8px 14px; /* smaller than before */
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
 
-    .start-proposal-btn:hover {
-        background-color: #059669;
-        transform: scale(1.03);
-    }
-
-    /* ✅ Responsive Consistency */
-    @media (max-width: 640px) {
-        .start-proposal-btn {
-            width: 100%;
-            padding: 10px 14px;
-            font-size: 14px;
-            border-radius: 8px;
-        }
-
-        /* Responsive Fixes */
+        /* Responsive Adjustments */
         @media (max-width: 640px) {
-            .container {
-                padding: 1rem;
+            .flex-wrap {
+                flex-wrap: wrap;
+            }
+            .start-proposal-btn,
+            .delete-selected-btn,
+            .end-proposal-btn {
+                width: 100%;
             }
             table {
                 font-size: 14px;
-            }
-            .end-proposal-btn {
-                width: 100%;
             }
         }
     </style>
@@ -291,7 +280,6 @@
             }
         }
 
-        // ✅ Format amount input
         function formatNumberInput(input) {
             let value = input.value.replace(/[^0-9.]/g, '');
             const parts = value.split('.');
@@ -307,7 +295,6 @@
             amountInput.value = amountInput.value.replace(/,/g, '');
         });
 
-        // ✅ Checkbox selection
         const selectAllCheckbox = document.getElementById('selectAll');
         const budgetCheckboxes = document.querySelectorAll('.budget-checkbox');
         const deleteBtn = document.getElementById('deleteSelectedBtn');
@@ -332,7 +319,6 @@
             }
         });
 
-        // ✅ SweetAlert Toasts
         document.addEventListener("DOMContentLoaded", function() {
             @if(session('success'))
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 2500 });
