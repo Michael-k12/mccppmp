@@ -5,23 +5,20 @@
         }
 
         .dashboard-section {
-            padding: 1rem;
+            padding: 2rem;
         }
 
-        /* Header */
         .header-flex {
             display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             border-bottom: 2px solid #e5e7eb;
             padding-bottom: 1rem;
-            gap: 0.75rem;
         }
 
         .header-left h1 {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             font-weight: 700;
             color: #111827;
         }
@@ -29,71 +26,76 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
         .logo-img {
-            height: 60px;
-            width: 60px;
+            height: 80px;
+            width: 80px;
             border-radius: 8px;
             object-fit: contain;
         }
 
-        .form-select {
-            padding: 0.4rem 0.6rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            background-color: white;
-            font-size: 0.8rem;
-        }
-
-        /* Cards */
         .dashboard-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .dashboard-card {
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+            border-radius: 14px;
+            padding: 1.25rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
             text-align: center;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             color: #ffffff;
         }
 
         .dashboard-card:hover {
-            transform: translateY(-3px) scale(1.02);
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        .card-blue {
+            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
+        }
+
+        .card-green {
+            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
+        }
+
+        .card-purple {
+            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
+        }
+
+        .card-yellow {
+            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
+            color:rgb(255, 255, 255);
         }
 
         .dashboard-card h3 {
             margin-bottom: 0.5rem;
-            font-size: 0.875rem;
+            font-size: 1rem;
             font-weight: 500;
         }
 
         .dashboard-card p {
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: bold;
-            word-wrap: break-word;
         }
 
-        /* Chart & Table */
         .chart-container,
         .table-container {
             background: #ffffff;
-            padding: 1rem;
+            padding: 1.5rem;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
+            margin-bottom: 2rem;
         }
 
         .chart-container h2,
         .table-container h2 {
-            font-size: 1rem;
+            font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 1rem;
             color: #1f2937;
@@ -101,14 +103,13 @@
 
         .excel-table {
             width: 100%;
-            min-width: 600px;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.875rem;
         }
 
         .excel-table th,
         .excel-table td {
-            padding: 0.5rem 0.75rem;
+            padding: 0.75rem 1rem;
             border-bottom: 1px solid #e5e7eb;
             text-align: left;
         }
@@ -123,30 +124,17 @@
             background-color: #f1f5f9;
         }
 
-        /* Responsive */
-        @media (max-width: 640px) {
-            .header-flex {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .header-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .logo-img {
-                height: 50px;
-                width: 50px;
-            }
-
-            .dashboard-card p {
-                font-size: 1.25rem;
-            }
+        .form-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: white;
+            font-size: 0.875rem;
         }
     </style>
 
     <div class="dashboard-section">
+
         {{-- Header --}}
         <div class="header-flex">
             <div class="header-left">
@@ -168,53 +156,62 @@
             </div>
         </div>
 
-        {{-- Cards --}}
-        <div class="dashboard-cards">
-            <div class="dashboard-card card-blue">
-                <h3>Submitted</h3>
-                <p>{{ $submittedCount }}</p>
-            </div>
+       {{-- Summary Cards --}}
+<div class="dashboard-cards">
+    {{-- Submitted --}}
+    <div class="dashboard-card card-blue">
+        <h3>Submitted</h3>
+        <p>{{ $submittedCount }}</p>
+    </div>
 
-            <div class="dashboard-card card-green">
-                <h3>Approved</h3>
-                <p>{{ $approvedCount }}</p>
-            </div>
+    {{-- Approved --}}
+    <div class="dashboard-card card-green">
+        <h3>Approved</h3>
+        <p>{{ $approvedCount }}</p>
+    </div>
 
-            <div class="dashboard-card card-yellow">
-                <h3>Total Items</h3>
-                <p>{{ $itemCount }}</p>
-            </div>
+    {{-- Total Items --}}
+    <div class="dashboard-card card-yellow">
+        <h3>Total Items</h3>
+        <p>{{ $itemCount }}</p>
+    </div>
 
-            @php
-                $allocated = ($activeBudget && !$activeBudget->is_ended)
-                    ? ($departmentBudgets[$department] ?? 0)
-                    : 0;
-            @endphp
+ @php
+    $allocated = ($activeBudget && !$activeBudget->is_ended)
+        ? ($departmentBudgets[$department] ?? 0)
+        : 0;
+@endphp
 
-            <div class="dashboard-card card-purple">
-                <h3>Allocated Budget</h3>
-                <p>₱{{ number_format($allocated, 2) }}</p>
+<div class="dashboard-card card-purple">
+    <h3>Allocated Budget</h3>
+    <p>₱{{ number_format($allocated, 2) }}</p>
 
-                @if (!$activeBudget || $activeBudget->is_ended)
-                    <small class="block mt-2 text-sm text-white/80">
-                        Waiting for a new budget allocation...
-                    </small>
-                @endif
-            </div>
-        </div>
+    @if (!$activeBudget || $activeBudget->is_ended)
+        <small class="block mt-2 text-sm text-white/80">
+            Waiting for a new budget allocation...
+        </small>
+    @endif
+</div>
 
-        {{-- Chart --}}
+
+
+</div>
+
+
+
+
+        {{-- Bar Chart --}}
         <div class="chart-container">
             <h2>Yearly Project Plan Cost</h2>
-            <canvas id="budgetChart"></canvas>
+            <canvas id="budgetChart" height="100"></canvas>
         </div>
 
-        {{-- Table --}}
+        {{-- Excel Table --}}
         <div class="table-container">
             <h2>Recent Submissions</h2>
             <table class="excel-table">
                 <thead>
-                    <tr>
+                                        <tr>
                         <th>Classification</th>
                         <th>Department</th>
                         <th>Description</th>
@@ -243,7 +240,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center text-gray-500 py-4">No recent submissions.</td>
+                            <td colspan="9" class="text-center text-gray-500 py-4">No recent submissions.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -251,7 +248,7 @@
         </div>
     </div>
 
-    {{-- Chart JS --}}
+    {{-- Chart Script --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const ctx = document.getElementById('budgetChart').getContext('2d');
@@ -260,7 +257,7 @@
         gradient.addColorStop(0, 'rgba(190, 0, 0, 0.9)');
         gradient.addColorStop(1, 'rgba(126, 126, 126, 0.3)');
 
-        new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: @json($chartLabels),
@@ -270,14 +267,19 @@
                     backgroundColor: gradient,
                     borderColor: 'rgb(0, 0, 0)',
                     borderWidth: 2,
-                    borderRadius: { topLeft: 10, topRight: 10 },
-                    barPercentage: 0.6
+                    borderRadius: {
+                        topLeft: 10,
+                        topRight: 10
+                    },
+                    barThickness: 100// fixed bar width
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 1000, easing: 'easeOutCubic' },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutElastic'
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -289,8 +291,12 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { callback: val => '₱' + val },
-                        grid: { color: '#e5e7eb' }
+                        ticks: {
+                            callback: val => '₱' + val
+                        },
+                        grid: {
+                            color: '#e5e7eb'
+                        }
                     },
                     x: {
                         ticks: { color: '#1f2937' },
@@ -299,5 +305,7 @@
                 }
             }
         });
+
+        // Auto-update is disabled
     </script>
 </x-layouts.app>
