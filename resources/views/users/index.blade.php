@@ -414,10 +414,10 @@
 }
 
 /* ✅ Mobile Adjustments */
-@media (max-width: 600px) {
-    .modal-content {
-        padding: 1.5rem;
-        border-radius: 16px;
+ @media (max-width: 576px) {
+    .modal-sm-custom {
+      max-width: 90% !important; /* smaller modal on mobile */
+      margin: 0 auto;
     }
     .form-row {
         flex-direction: column;
