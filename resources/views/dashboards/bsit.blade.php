@@ -176,12 +176,22 @@
         <p>{{ $itemCount }}</p>
     </div>
 
-   {{-- Allocated Budget --}}
-<div class="dashboard-card card-purple">
+ <div class="dashboard-card card-purple">
     <h3>Allocated Budget</h3>
-    <p>₱{{ number_format($departmentBudgets[$department] ?? 0) }}
-</p>
+    @php
+        $allocated = isset($activeBudget) && !$activeBudget->is_ended
+            ? ($departmentBudgets[$department] ?? 0)
+            : 0;
+    @endphp
+    <p>₱{{ number_format($allocated, 2) }}</p>
+
+    @if (!$activeBudget || $activeBudget->is_ended)
+        <small style="display:block; margin-top:5px; opacity:0.8; font-size:0.75rem;">
+            Waiting for new budget allocation...
+        </small>
+    @endif
 </div>
+
 
 </div>
 
