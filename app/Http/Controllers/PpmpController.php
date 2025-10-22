@@ -20,31 +20,41 @@ class PpmpController extends Controller
         return view('items.index', compact('items'));
     }
 public function manage()
-    {
-        $userDepartment = Auth::user()->role;
+{
+    $userDepartment = Auth::user()->role;
 
-        $ppmps = Ppmp::where('department', $userDepartment)
-                    ->whereNotIn('status', ['Submitted', 'Approved'])
-                    ->get();
+    $ppmps = Ppmp::where('department', $userDepartment)
+                 ->whereNotIn('status', ['Submitted', 'Approved'])
+                 ->get();
 
-        $activeBudget = Budget::where('is_ended', false)->latest()->first();
-        $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+    // Get latest budget regardless of is_ended
+    $latestBudget = Budget::latest()->first();
 
-        $allocatedBudget = 0;
-        $remainingBudget = 0;
+    $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
+    $allocatedBudget = 0;
+    $remainingBudget = 0;
 
-        if ($activeBudget && $activeBudget->amount > 0) {
-            $allocatedBudget = round($activeBudget->amount / count($departments), 2);
-            $spent = Ppmp::where('department', $userDepartment)->sum('estimated_budget');
-            $remainingBudget = $allocatedBudget - $spent;
+    if ($latestBudget) {
+        // If budget ended, remaining is 0
+        if (!$latestBudget->is_ended && $latestBudget->amount > 0) {
+            $allocatedBudget = round($latestBudget->amount / count($departments), 2);
+
+            // Filter spent by **department + milestone year**
+            $spent = Ppmp::where('department', $userDepartment)
+                         ->whereYear('milestone_date', $latestBudget->year)
+                         ->sum('estimated_budget');
+
+            $remainingBudget = max($allocatedBudget - $spent, 0);
         }
-
-        foreach ($ppmps as $ppmp) {
-            $ppmp->allocated_budget = $allocatedBudget;
-        }
-
-        return view('ppmp.manage', compact('ppmps', 'allocatedBudget', 'remainingBudget'));
     }
+
+    foreach ($ppmps as $ppmp) {
+        $ppmp->allocated_budget = $allocatedBudget;
+    }
+
+    return view('ppmp.manage', compact('ppmps', 'allocatedBudget', 'remainingBudget'));
+}
+
 
 // AJAX endpoint for updating remaining budget dynamically
 public function getRemainingBudget()
@@ -158,17 +168,15 @@ public function updateQuantity(Request $request, $id)
 public function create()
 {
     $items = Item::all(); 
-    $activeBudget = Budget::where('is_ended', false)->latest()->first();
+    $latestBudget = Budget::latest()->first();
 
     $departments = ['BSIT', 'BSBA', 'BSED', 'BSHM', 'NURSE', 'LIBRARY'];
     $departmentBudgets = [];
 
-    // Calculate per-department budget share
-    if ($activeBudget && $activeBudget->amount > 0) {
-        $equalShare = $activeBudget->amount / count($departments);
-
+    if ($latestBudget && !$latestBudget->is_ended && $latestBudget->amount > 0) {
+        $equalShare = round($latestBudget->amount / count($departments), 2);
         foreach ($departments as $dept) {
-            $departmentBudgets[$dept] = round($equalShare, 2);
+            $departmentBudgets[$dept] = $equalShare;
         }
     } else {
         foreach ($departments as $dept) {
@@ -178,20 +186,22 @@ public function create()
 
     $userDepartment = auth()->user()->role;
 
-    // Calculate how much this department has already spent
-    $spent = Ppmp::where('department', $userDepartment)
-                 ->whereYear('milestone_date', $activeBudget?->year ?? now()->year)
-                 ->sum('estimated_budget');
+    $spent = 0;
+    if ($latestBudget && !$latestBudget->is_ended) {
+        $spent = Ppmp::where('department', $userDepartment)
+                     ->whereYear('milestone_date', $latestBudget->year)
+                     ->sum('estimated_budget');
+    }
 
-    // Remaining budget for this department
     $remainingBudget = max(($departmentBudgets[$userDepartment] ?? 0) - $spent, 0);
 
     return view('ppmp.create', [
         'items' => $items,
-        'isProposalActive' => $activeBudget !== null,
+        'isProposalActive' => $latestBudget !== null && !$latestBudget->is_ended,
         'remainingBudget' => $remainingBudget
     ]);
 }
+
 
 public function store(Request $request)
 {
