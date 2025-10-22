@@ -8,7 +8,6 @@
 
         {{-- ✅ Page Header (Title Left, Buttons Right) --}}
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Budget Management</h2>
 
             <div class="flex flex-wrap justify-end items-center gap-3 w-full sm:w-auto">
                 {{-- Add Budget Button --}}
