@@ -69,50 +69,46 @@
     <div class="max-w-5xl mx-auto py-8">
         <h1 class="text-2xl font-bold mb-6">Project Procurement Plan</h1>
 
-        <form id="submitToPrincipalForm" action="{{ route('ppmp.submitToPrincipal') }}" method="POST">
-            @csrf
+        @if(!$ppmps->isEmpty())
+            <form id="submitToPrincipalForm" action="{{ route('ppmp.submitToPrincipal') }}" method="POST">
+                @csrf
 
-            <div class="overflow-x-auto bg-white shadow border border-gray-200 rounded-lg">
-                <table class="excel-table">
-                    <thead>
-                        <tr>
-                            <th>Classification</th>
-                            <th>Description</th>
-                            <th>Unit</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                            <th>Estimated Budget</th>
-                            <th>Mode of Procurement</th>
-                            <th>Schedule/Milestone of Activities</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($ppmps as $ppmp)
+                <div class="overflow-x-auto bg-white shadow border border-gray-200 rounded-lg">
+                    <table class="excel-table">
+                        <thead>
                             <tr>
-                                <td>{{ $ppmp->classification }}</td>
-                                <td>{{ $ppmp->description }}</td>
-                                <td>{{ $ppmp->unit }}</td>
-                                <td>{{ $ppmp->quantity }}</td>
-                                <td>{{ number_format($ppmp->price, 2) }}</td>
-                                <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
-                                <td>{{ $ppmp->mode_of_procurement }}</td>
-                                <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('Y F') }}</td>
+                                <th>Classification</th>
+                                <th>Description</th>
+                                <th>Unit</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Estimated Budget</th>
+                                <th>Mode of Procurement</th>
+                                <th>Schedule/Milestone of Activities</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-gray-500 py-4">No Project Plan to Submit.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @foreach($ppmps as $ppmp)
+                                <tr>
+                                    <td>{{ $ppmp->classification }}</td>
+                                    <td>{{ $ppmp->description }}</td>
+                                    <td>{{ $ppmp->unit }}</td>
+                                    <td>{{ $ppmp->quantity }}</td>
+                                    <td>{{ number_format($ppmp->price, 2) }}</td>
+                                    <td>{{ number_format($ppmp->estimated_budget, 2) }}</td>
+                                    <td>{{ $ppmp->mode_of_procurement }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($ppmp->milestone_date)->format('Y F') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-            @if(!$ppmps->isEmpty())
-            <div class="mt-4 text-right">
-                <button type="submit" id="submitPrincipalBtn" class="submit-btn">Submit</button>
-            </div>
-            @endif
-        </form>
+                <div class="mt-4 text-right">
+                    <button type="submit" id="submitPrincipalBtn" class="submit-btn">Submit</button>
+                </div>
+            </form>
+        @endif
     </div>
 
     <script>
