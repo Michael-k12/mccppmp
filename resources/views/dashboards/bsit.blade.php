@@ -5,97 +5,102 @@
         }
 
         .dashboard-section {
-            padding: 2rem;
+            padding: 1rem;
         }
 
         .header-flex {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             border-bottom: 2px solid #e5e7eb;
             padding-bottom: 1rem;
+            gap: 1rem;
         }
 
         .header-left h1 {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: #111827;
         }
 
         .header-right {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
         }
 
         .logo-img {
-            height: 80px;
-            width: 80px;
+            height: 60px;
+            width: 60px;
             border-radius: 8px;
             object-fit: contain;
         }
 
         .dashboard-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .dashboard-card {
-            border-radius: 14px;
-            padding: 1.25rem;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             color: #ffffff;
         }
 
         .dashboard-card:hover {
-            transform: translateY(-5px) scale(1.02);
+            transform: translateY(-3px) scale(1.02);
         }
 
         .card-blue {
-            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
+            background: linear-gradient(135deg, rgb(0, 0, 0), rgb(250, 24, 24));
         }
 
         .card-green {
-            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
+            background: linear-gradient(135deg, rgb(0, 0, 0), rgb(0, 200, 83));
         }
 
         .card-purple {
-            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
+            background: linear-gradient(135deg, rgb(0, 0, 0), rgb(123, 31, 162));
         }
 
         .card-yellow {
-            background: linear-gradient(135deg,rgb(0, 0, 0),rgb(250, 24, 24));
-            color:rgb(255, 255, 255);
+            background: linear-gradient(135deg, rgb(0, 0, 0), rgb(255, 193, 7));
+            color: #111827;
         }
 
         .dashboard-card h3 {
             margin-bottom: 0.5rem;
-            font-size: 1rem;
+            font-size: 0.875rem;
             font-weight: 500;
         }
 
         .dashboard-card p {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: bold;
+            word-wrap: break-word;
         }
 
         .chart-container,
         .table-container {
             background: #ffffff;
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
         }
 
         .chart-container h2,
         .table-container h2 {
-            font-size: 1.125rem;
+            font-size: 1rem;
             font-weight: 600;
             margin-bottom: 1rem;
             color: #1f2937;
@@ -103,13 +108,14 @@
 
         .excel-table {
             width: 100%;
+            min-width: 600px; /* ensure scroll on small screens */
             border-collapse: collapse;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
         }
 
         .excel-table th,
         .excel-table td {
-            padding: 0.75rem 1rem;
+            padding: 0.5rem 0.75rem;
             border-bottom: 1px solid #e5e7eb;
             text-align: left;
         }
@@ -125,16 +131,30 @@
         }
 
         .form-select {
-            padding: 0.5rem 0.75rem;
+            padding: 0.4rem 0.6rem;
             border: 1px solid #d1d5db;
             border-radius: 0.375rem;
             background-color: white;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 640px) {
+            .dashboard-card p {
+                font-size: 1.25rem;
+            }
+
+            .logo-img {
+                height: 50px;
+                width: 50px;
+            }
+
+            .header-left h1 {
+                font-size: 1.25rem;
+            }
         }
     </style>
 
     <div class="dashboard-section">
-
         {{-- Header --}}
         <div class="header-flex">
             <div class="header-left">
@@ -156,49 +176,40 @@
             </div>
         </div>
 
-       {{-- Summary Cards --}}
-<div class="dashboard-cards">
-    {{-- Submitted --}}
-    <div class="dashboard-card card-blue">
-        <h3>Submitted</h3>
-        <p>{{ $submittedCount }}</p>
-    </div>
+        {{-- Summary Cards --}}
+        <div class="dashboard-cards">
+            <div class="dashboard-card card-blue">
+                <h3>Submitted</h3>
+                <p>{{ $submittedCount }}</p>
+            </div>
 
-    {{-- Approved --}}
-    <div class="dashboard-card card-green">
-        <h3>Approved</h3>
-        <p>{{ $approvedCount }}</p>
-    </div>
+            <div class="dashboard-card card-green">
+                <h3>Approved</h3>
+                <p>{{ $approvedCount }}</p>
+            </div>
 
-    {{-- Total Items --}}
-    <div class="dashboard-card card-yellow">
-        <h3>Total Items</h3>
-        <p>{{ $itemCount }}</p>
-    </div>
+            <div class="dashboard-card card-yellow">
+                <h3>Total Items</h3>
+                <p>{{ $itemCount }}</p>
+            </div>
 
- @php
-    $allocated = ($activeBudget && !$activeBudget->is_ended)
-        ? ($departmentBudgets[$department] ?? 0)
-        : 0;
-@endphp
+            @php
+                $allocated = ($activeBudget && !$activeBudget->is_ended)
+                    ? ($departmentBudgets[$department] ?? 0)
+                    : 0;
+            @endphp
 
-<div class="dashboard-card card-purple">
-    <h3>Allocated Budget</h3>
-    <p>₱{{ number_format($allocated, 2) }}</p>
+            <div class="dashboard-card card-purple">
+                <h3>Allocated Budget</h3>
+                <p>₱{{ number_format($allocated, 2) }}</p>
 
-    @if (!$activeBudget || $activeBudget->is_ended)
-        <small class="block mt-2 text-sm text-white/80">
-            Waiting for a new budget allocation...
-        </small>
-    @endif
-</div>
-
-
-
-</div>
-
-
-
+                @if (!$activeBudget || $activeBudget->is_ended)
+                    <small class="block mt-2 text-sm text-white/80">
+                        Waiting for a new budget allocation...
+                    </small>
+                @endif
+            </div>
+        </div>
 
         {{-- Bar Chart --}}
         <div class="chart-container">
@@ -211,7 +222,7 @@
             <h2>Recent Submissions</h2>
             <table class="excel-table">
                 <thead>
-                                        <tr>
+                    <tr>
                         <th>Classification</th>
                         <th>Department</th>
                         <th>Description</th>
@@ -240,7 +251,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center text-gray-500 py-4">No recent submissions.</td>
+                            <td colspan="10" class="text-center text-gray-500 py-4">No recent submissions.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -267,19 +278,14 @@
                     backgroundColor: gradient,
                     borderColor: 'rgb(0, 0, 0)',
                     borderWidth: 2,
-                    borderRadius: {
-                        topLeft: 10,
-                        topRight: 10
-                    },
-                    barThickness: 100// fixed bar width
+                    borderRadius: { topLeft: 10, topRight: 10 },
+                    barPercentage: 0.6
                 }]
             },
             options: {
                 responsive: true,
-                animation: {
-                    duration: 1500,
-                    easing: 'easeOutElastic'
-                },
+                maintainAspectRatio: false,
+                animation: { duration: 1000, easing: 'easeOutCubic' },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -291,12 +297,8 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            callback: val => '₱' + val
-                        },
-                        grid: {
-                            color: '#e5e7eb'
-                        }
+                        ticks: { callback: val => '₱' + val },
+                        grid: { color: '#e5e7eb' }
                     },
                     x: {
                         ticks: { color: '#1f2937' },
@@ -305,7 +307,5 @@
                 }
             }
         });
-
-        // Auto-update is disabled
     </script>
 </x-layouts.app>
