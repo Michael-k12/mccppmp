@@ -15,18 +15,20 @@
                     </thead>
                     <tbody>
                         @forelse ($logs as $log)
-                            <tr class="hover:bg-gray-50">
-                                <td class="border px-4 py-2 text-gray-800 text-sm">
-                                    {{ $log['timestamp'] ?? 'N/A' }}
-                                </td>
-                                <td class="border px-4 py-2 font-semibold text-blue-600 text-sm">
-                                    {{ $log['type'] }}
-                                </td>
-                                <td class="border px-4 py-2 text-gray-700 text-sm">
-                                    {{ $log['message'] }}
-                                </td>
-                            </tr>
-                        @empty
+<tr class="hover:bg-gray-50 cursor-pointer"
+    onclick="showMap('{{ $log['ip'] ?? '' }}')">
+    <td class="border px-4 py-2 text-gray-800 text-sm">
+        {{ $log['timestamp'] ?? 'N/A' }}
+    </td>
+    <td class="border px-4 py-2 font-semibold text-blue-600 text-sm">
+        {{ $log['type'] }}
+    </td>
+    <td class="border px-4 py-2 text-gray-700 text-sm">
+        {{ $log['message'] }}
+    </td>
+</tr>
+@empty
+
                             <tr>
                                 <td colspan="3" class="text-center py-4 text-gray-500">
                                     No logs found.
@@ -36,6 +38,18 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Map Modal -->
+<div id="mapModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 p-4 relative">
+        <h3 class="text-lg font-bold mb-2">Login Location</h3>
+        <div id="map" class="w-full h-64 rounded-md"></div>
+
+        <button id="closeMap" class="absolute top-2 right-2 text-gray-600 hover:text-red-600">
+            ✕
+        </button>
+    </div>
+</div>
+
         </div>
     </div>
 
@@ -51,4 +65,8 @@
             }
         }
     </style>
+    <!-- Leaflet.js CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 </x-layouts.app>
