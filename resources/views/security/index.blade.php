@@ -66,7 +66,8 @@
             <h3 class="text-lg font-bold mb-2 text-gray-800">Login Location</h3>
             <p id="mapInfo" class="text-sm text-gray-600 mb-3"></p>
 
-            <div id="map" class="w-full h-64 rounded-md border border-gray-300"></div>
+            <div id="map" style="height: 400px; width: 100%;"></div>
+
 
             <div id="loadingSpinner"
                 class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 hidden">
@@ -184,6 +185,10 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         });
+        function initMap() {
+  console.log("Google Maps API loaded");
+}
+
     </script>
 
 </x-layouts.app>
