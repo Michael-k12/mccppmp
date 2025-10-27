@@ -68,7 +68,6 @@
 
             <div id="map" style="height: 400px; width: 100%;"></div>
 
-
             <div id="loadingSpinner"
                 class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 hidden">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -87,17 +86,14 @@
                 opacity: 0;
                 transform: scale(0.95);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
             }
         }
-
         .animate-fadeIn {
             animation: fadeIn 0.2s ease-in-out;
         }
-
         @media (max-width: 640px) {
             table th,
             table td {
@@ -114,7 +110,7 @@
         let map;
 
         function initMap() {
-            // Placeholder for async loading
+            console.log("Google Maps API loaded");
         }
 
         async function showMap(ip, timestamp) {
@@ -128,9 +124,35 @@
             spinner.classList.remove('hidden');
             mapInfo.textContent = `Fetching location for IP: ${ip} (${timestamp})`;
 
+            // ✅ Try GPS first
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        spinner.classList.add('hidden');
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+
+                        mapInfo.textContent = `Exact GPS Location (via Browser): ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+
+                        renderMap(lat, lon, "Your Actual Location");
+                    },
+                    async (error) => {
+                        console.warn("GPS failed or denied, falling back to IP:", error);
+                        await fallbackToIP(ip, spinner, mapInfo);
+                    },
+                    { enableHighAccuracy: true, timeout: 7000 }
+                );
+            } else {
+                await fallbackToIP(ip, spinner, mapInfo);
+            }
+        }
+
+        // ✅ Fallback to IP location if GPS denied
+        async function fallbackToIP(ip, spinner, mapInfo) {
             try {
                 const res = await fetch(`https://ipapi.co/${ip}/json/`);
                 const data = await res.json();
+                spinner.classList.add('hidden');
 
                 const lat = data.latitude;
                 const lon = data.longitude;
@@ -138,45 +160,44 @@
                 const region = data.region || '';
                 const country = data.country_name || '';
 
-                spinner.classList.add('hidden');
-
                 if (!lat || !lon) {
                     mapInfo.textContent = `No location data available for IP: ${ip}`;
                     return;
                 }
 
-                mapInfo.textContent = `Approximate Location: ${city}, ${region}, ${country}`;
-
-                // ✅ Delay map load until modal is visible
-                setTimeout(() => {
-                    mapDiv.innerHTML = '';
-
-                    map = new google.maps.Map(mapDiv, {
-                        center: { lat: lat, lng: lon },
-                        zoom: 13,
-                        mapTypeId: 'roadmap'
-                    });
-
-                    const marker = new google.maps.Marker({
-                        position: { lat: lat, lng: lon },
-                        map: map,
-                        title: `${city}, ${region}, ${country}`
-                    });
-
-                    const infoWindow = new google.maps.InfoWindow({
-                        content: `<b>${ip}</b><br>${city}, ${region}, ${country}`
-                    });
-                    infoWindow.open(map, marker);
-
-                    google.maps.event.trigger(map, 'resize');
-                    map.setCenter({ lat: lat, lng: lon });
-                }, 300);
-
+                mapInfo.textContent = `Approximate Location (via IP): ${city}, ${region}, ${country}`;
+                renderMap(lat, lon, `${city}, ${region}, ${country}`);
             } catch (err) {
-                console.error(err);
                 spinner.classList.add('hidden');
                 mapInfo.textContent = "Unable to fetch location for this IP.";
+                console.error(err);
             }
+        }
+
+        // ✅ Render Google Map
+        function renderMap(lat, lon, title) {
+            const mapDiv = document.getElementById('map');
+            mapDiv.innerHTML = '';
+
+            map = new google.maps.Map(mapDiv, {
+                center: { lat: lat, lng: lon },
+                zoom: 14,
+                mapTypeId: 'roadmap'
+            });
+
+            const marker = new google.maps.Marker({
+                position: { lat: lat, lng: lon },
+                map: map,
+                title: title
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<b>${title}</b><br>Latitude: ${lat.toFixed(5)}<br>Longitude: ${lon.toFixed(5)}`
+            });
+            infoWindow.open(map, marker);
+
+            google.maps.event.trigger(map, 'resize');
+            map.setCenter({ lat: lat, lng: lon });
         }
 
         // Close modal
@@ -185,10 +206,6 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         });
-        function initMap() {
-  console.log("Google Maps API loaded");
-}
-
     </script>
 
 </x-layouts.app>
