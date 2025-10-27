@@ -80,7 +80,7 @@
 
     <!-- 🌍 Google Maps JS (Replace with your own API Key) -->
     <script async
-        src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&callback=initMap"></script>
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLyHOIoQ384JE_xD7KFf9ujJZp1O7Dkmw&callback=initMap"></script>
 
     <style>
         /* Fade animation for modal */
