@@ -4,7 +4,6 @@
         <h2 class="text-2xl font-bold mb-4">Monitoring Logs</h2>
 
         <div class="bg-white shadow rounded-lg overflow-hidden">
-            <!-- Responsive table wrapper -->
             <div class="overflow-x-auto">
                 <table class="min-w-full border text-sm">
                     <thead class="bg-gray-100 text-gray-700">
@@ -18,7 +17,6 @@
                     <tbody>
                         @forelse ($logs as $log)
                             @php
-                                // Extract IP address from message if not stored directly
                                 $ip = $log['ip'] ?? null;
                                 if (!$ip && preg_match('/IP:\s*([\d\.]+)/', $log['message'], $m)) {
                                     $ip = $m[1];
@@ -70,7 +68,6 @@
 
             <div id="map" class="w-full h-64 rounded-md border border-gray-300"></div>
 
-            <!-- Loading spinner -->
             <div id="loadingSpinner"
                 class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 hidden">
                 <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -78,12 +75,12 @@
         </div>
     </div>
 
-    <!-- 🌍 Google Maps JS (Replace with your own API Key) -->
+    <!-- 🌍 Google Maps JS -->
     <script async
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLyHOIoQ384JE_xD7KFf9ujJZp1O7Dkmw&callback=initMap"></script>
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLyHOIoQ384JE_xD7KFf9ujJZp1O7Dkmw&callback=initMap">
+    </script>
 
     <style>
-        /* Fade animation for modal */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -100,14 +97,12 @@
             animation: fadeIn 0.2s ease-in-out;
         }
 
-        /* Improve mobile view */
         @media (max-width: 640px) {
             table th,
             table td {
                 padding: 0.5rem 0.6rem;
                 font-size: 13px;
             }
-
             h2 {
                 font-size: 1.25rem;
             }
@@ -115,87 +110,80 @@
     </style>
 
     <script>
-    let map;
+        let map;
 
-    function initMap() {
-        // Placeholder required for Google Maps async loading
-    }
-
-    async function showMap(ip, timestamp) {
-        const modal = document.getElementById('mapModal');
-        const spinner = document.getElementById('loadingSpinner');
-        const mapInfo = document.getElementById('mapInfo');
-        const mapDiv = document.getElementById('map');
-
-        // Show modal and spinner
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        spinner.classList.remove('hidden');
-        mapInfo.textContent = `Fetching location for IP: ${ip} (${timestamp})`;
-
-        try {
-            // Fetch IP location data
-            const res = await fetch(`https://ipapi.co/${ip}/json/`);
-            const data = await res.json();
-
-            const lat = data.latitude;
-            const lon = data.longitude;
-            const city = data.city || 'Unknown';
-            const region = data.region || '';
-            const country = data.country_name || '';
-
-            spinner.classList.add('hidden');
-
-            if (!lat || !lon) {
-                mapInfo.textContent = `No location data available for IP: ${ip}`;
-                return;
-            }
-
-            mapInfo.textContent = `Approximate Location: ${city}, ${region}, ${country}`;
-
-            // ✅ Wait for modal to become visible before initializing map
-            setTimeout(() => {
-                mapDiv.innerHTML = ''; // reset
-
-                // Initialize map properly
-                map = new google.maps.Map(mapDiv, {
-                    center: { lat: lat, lng: lon },
-                    zoom: 13,
-                    mapTypeId: 'roadmap'
-                });
-
-                const marker = new google.maps.Marker({
-                    position: { lat: lat, lng: lon },
-                    map: map,
-                    title: `${city}, ${region}, ${country}`
-                });
-
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `<b>${ip}</b><br>${city}, ${region}, ${country}`
-                });
-                infoWindow.open(map, marker);
-
-                // ✅ Important fix: trigger resize event so tiles appear
-                google.maps.event.trigger(map, 'resize');
-                map.setCenter({ lat: lat, lng: lon });
-            }, 300); // wait for modal animation
-        } catch (err) {
-            console.error(err);
-            spinner.classList.add('hidden');
-            mapInfo.textContent = "Unable to fetch location for this IP.";
+        function initMap() {
+            // Placeholder for async loading
         }
-    }
 
-    // Close modal
-    document.getElementById('closeMap').addEventListener('click', () => {
-        const modal = document.getElementById('mapModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    });
-    navigator.geolocation.getCurrentPosition(pos => {
-    console.log("User actual location:", pos.coords.latitude, pos.coords.longitude);
-});
-</script>
+        async function showMap(ip, timestamp) {
+            const modal = document.getElementById('mapModal');
+            const spinner = document.getElementById('loadingSpinner');
+            const mapInfo = document.getElementById('mapInfo');
+            const mapDiv = document.getElementById('map');
 
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            spinner.classList.remove('hidden');
+            mapInfo.textContent = `Fetching location for IP: ${ip} (${timestamp})`;
+
+            try {
+                const res = await fetch(`https://ipapi.co/${ip}/json/`);
+                const data = await res.json();
+
+                const lat = data.latitude;
+                const lon = data.longitude;
+                const city = data.city || 'Unknown';
+                const region = data.region || '';
+                const country = data.country_name || '';
+
+                spinner.classList.add('hidden');
+
+                if (!lat || !lon) {
+                    mapInfo.textContent = `No location data available for IP: ${ip}`;
+                    return;
+                }
+
+                mapInfo.textContent = `Approximate Location: ${city}, ${region}, ${country}`;
+
+                // ✅ Delay map load until modal is visible
+                setTimeout(() => {
+                    mapDiv.innerHTML = '';
+
+                    map = new google.maps.Map(mapDiv, {
+                        center: { lat: lat, lng: lon },
+                        zoom: 13,
+                        mapTypeId: 'roadmap'
+                    });
+
+                    const marker = new google.maps.Marker({
+                        position: { lat: lat, lng: lon },
+                        map: map,
+                        title: `${city}, ${region}, ${country}`
+                    });
+
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `<b>${ip}</b><br>${city}, ${region}, ${country}`
+                    });
+                    infoWindow.open(map, marker);
+
+                    google.maps.event.trigger(map, 'resize');
+                    map.setCenter({ lat: lat, lng: lon });
+                }, 300);
+
+            } catch (err) {
+                console.error(err);
+                spinner.classList.add('hidden');
+                mapInfo.textContent = "Unable to fetch location for this IP.";
+            }
+        }
+
+        // Close modal
+        document.getElementById('closeMap').addEventListener('click', () => {
+            const modal = document.getElementById('mapModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+    </script>
 
 </x-layouts.app>
