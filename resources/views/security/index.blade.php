@@ -12,6 +12,7 @@
                             <th class="border px-4 py-2 text-left whitespace-nowrap">Timestamp</th>
                             <th class="border px-4 py-2 text-left whitespace-nowrap">Type</th>
                             <th class="border px-4 py-2 text-left whitespace-nowrap">Message</th>
+                            <th class="border px-4 py-2 text-center whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -23,8 +24,7 @@
                                     $ip = $m[1];
                                 }
                             @endphp
-                            <tr class="hover:bg-gray-50 cursor-pointer"
-                                onclick="showMap('{{ $ip }}', '{{ $log['timestamp'] ?? 'Unknown time' }}', '{{ addslashes($log['message']) }}')">
+                            <tr class="hover:bg-gray-50">
                                 <td class="border px-4 py-2 text-gray-800 text-sm">
                                     {{ $log['timestamp'] ?? 'N/A' }}
                                 </td>
@@ -34,10 +34,20 @@
                                 <td class="border px-4 py-2 text-gray-700 text-sm">
                                     {{ $log['message'] }}
                                 </td>
+                                <td class="border px-4 py-2 text-center">
+                                    @if ($ip)
+                                        <button onclick="showMap('{{ $ip }}', '{{ $log['timestamp'] ?? 'Unknown' }}')"
+                                            class="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600">
+                                            View on Map
+                                        </button>
+                                    @else
+                                        <span class="text-gray-400 text-xs">No IP</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center py-4 text-gray-500">
+                                <td colspan="4" class="text-center py-4 text-gray-500">
                                     No logs found.
                                 </td>
                             </tr>
@@ -68,9 +78,9 @@
         </div>
     </div>
 
-    <!-- 🌍 Leaflet.js -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- 🌍 Google Maps JS (Replace with your own API Key) -->
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&callback=initMap"></script>
 
     <style>
         /* Fade animation for modal */
@@ -105,12 +115,13 @@
     </style>
 
     <script>
-        async function showMap(ip, timestamp, message) {
-            if (!ip) {
-                alert("No IP address found for this log.");
-                return;
-            }
+        let map; // Google Map instance
 
+        function initMap() {
+            // Placeholder required for Google Maps API async load
+        }
+
+        async function showMap(ip, timestamp) {
             const modal = document.getElementById('mapModal');
             const spinner = document.getElementById('loadingSpinner');
             const mapInfo = document.getElementById('mapInfo');
@@ -123,6 +134,7 @@
             mapInfo.textContent = `Fetching location for IP: ${ip} (${timestamp})`;
 
             try {
+                // Fetch IP location data
                 const res = await fetch(`https://ipapi.co/${ip}/json/`);
                 const data = await res.json();
 
@@ -139,20 +151,29 @@
                     return;
                 }
 
-                // Reset map
+                mapInfo.textContent = `Approximate Location: ${city}, ${region}, ${country}`;
+
+                // Reset map div
                 mapDiv.innerHTML = '';
 
-                const map = L.map(mapDiv).setView([lat, lon], 10);
+                // Initialize Google Map
+                map = new google.maps.Map(mapDiv, {
+                    center: { lat: lat, lng: lon },
+                    zoom: 10
+                });
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
+                // Add Marker
+                const marker = new google.maps.Marker({
+                    position: { lat: lat, lng: lon },
+                    map: map,
+                    title: `${city}, ${region}, ${country}`
+                });
 
-                L.marker([lat, lon]).addTo(map)
-                    .bindPopup(`<b>${ip}</b><br>${city}, ${region}, ${country}`)
-                    .openPopup();
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<b>${ip}</b><br>${city}, ${region}, ${country}`
+                });
+                infoWindow.open(map, marker);
 
-                mapInfo.textContent = `Approximate Location: ${city}, ${region}, ${country}`;
             } catch (err) {
                 console.error(err);
                 spinner.classList.add('hidden');
