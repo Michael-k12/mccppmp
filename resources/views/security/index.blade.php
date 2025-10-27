@@ -35,7 +35,7 @@
                                 <td class="border px-4 py-2 text-center">
                                     @if ($ip)
                                         <button onclick="showMap('{{ $ip }}', '{{ $log['timestamp'] ?? 'Unknown' }}')"
-                                            class="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600">
+                                            class="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600 transition">
                                             View on Map
                                         </button>
                                     @else
@@ -56,55 +56,93 @@
         </div>
     </div>
 
-    <!-- 🗺️ Map Modal -->
+    <!-- 🗺️ Improved Map Modal -->
     <div id="mapModal"
-        class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 p-5 relative animate-fadeIn">
-            <button id="closeMap" class="absolute top-2 right-3 text-gray-600 hover:text-red-600 text-xl font-bold">
-                ✕
-            </button>
-            <h3 class="text-lg font-bold mb-2 text-gray-800">Login Location</h3>
-            <p id="mapInfo" class="text-sm text-gray-600 mb-3"></p>
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div
+            class="relative bg-white rounded-2xl shadow-2xl w-11/12 sm:w-4/5 md:w-2/3 lg:w-1/2 overflow-hidden animate-fadeIn border border-gray-200">
 
-            <div id="map" style="height: 400px; width: 100%;"></div>
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-500 text-white px-5 py-3">
+                <h3 class="text-lg font-semibold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 11c0 .552-.448 1-1 1s-1-.448-1-1 .448-1 1-1 1 .448 1 1zm0 0v7m0-7a4 4 0 114 4h-1a3 3 0 10-3-3v-1zm-4 8a9 9 0 1118 0 9 9 0 01-18 0z" />
+                    </svg>
+                    Login Location
+                </h3>
+                <button id="closeMap"
+                    class="text-white hover:text-gray-200 transition transform hover:scale-110 font-bold text-xl">
+                    ✕
+                </button>
+            </div>
 
-            <div id="loadingSpinner"
-                class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 hidden">
-                <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <!-- Modal Body -->
+            <div class="p-5 relative">
+                <p id="mapInfo" class="text-sm text-gray-600 mb-4 border-l-4 border-blue-500 pl-3 leading-relaxed">
+                    Fetching location details...
+                </p>
+
+                <div id="map" class="rounded-lg overflow-hidden border border-gray-200 shadow-inner"
+                    style="height: 400px; width: 100%;"></div>
+
+                <div id="loadingSpinner"
+                    class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm hidden">
+                    <div
+                        class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin drop-shadow-md">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-end bg-gray-50 px-5 py-3 border-t rounded-b-2xl">
+                <button id="closeMapFooter"
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition">
+                    Close
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- 🌍 Google Maps JS -->
-    <script async
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLyHOIoQ384JE_xD7KFf9ujJZp1O7Dkmw&callback=initMap">
-    </script>
 
     <style>
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: scale(0.95);
+                transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
-                transform: scale(1);
+                transform: translateY(0);
             }
         }
+
         .animate-fadeIn {
-            animation: fadeIn 0.2s ease-in-out;
+            animation: fadeIn 0.25s ease-out;
         }
+
         @media (max-width: 640px) {
             table th,
             table td {
                 padding: 0.5rem 0.6rem;
                 font-size: 13px;
             }
+
             h2 {
                 font-size: 1.25rem;
             }
+
+            #map {
+                height: 300px !important;
+            }
         }
     </style>
+
+    <!-- 🌍 Google Maps JS -->
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLyHOIoQ384JE_xD7KFf9ujJZp1O7Dkmw&callback=initMap">
+    </script>
 
     <script>
         let map;
@@ -117,14 +155,12 @@
             const modal = document.getElementById('mapModal');
             const spinner = document.getElementById('loadingSpinner');
             const mapInfo = document.getElementById('mapInfo');
-            const mapDiv = document.getElementById('map');
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             spinner.classList.remove('hidden');
             mapInfo.textContent = `Fetching location for IP: ${ip} (${timestamp})`;
 
-            // ✅ Try GPS first
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
@@ -133,7 +169,6 @@
                         const lon = position.coords.longitude;
 
                         mapInfo.textContent = `Exact GPS Location (via Browser): ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-
                         renderMap(lat, lon, "Your Actual Location");
                     },
                     async (error) => {
@@ -147,7 +182,6 @@
             }
         }
 
-        // ✅ Fallback to IP location if GPS denied
         async function fallbackToIP(ip, spinner, mapInfo) {
             try {
                 const res = await fetch(`https://ipapi.co/${ip}/json/`);
@@ -174,7 +208,6 @@
             }
         }
 
-        // ✅ Render Google Map
         function renderMap(lat, lon, title) {
             const mapDiv = document.getElementById('map');
             mapDiv.innerHTML = '';
@@ -200,12 +233,17 @@
             map.setCenter({ lat: lat, lng: lon });
         }
 
-        // Close modal
-        document.getElementById('closeMap').addEventListener('click', () => {
+        document.getElementById('closeMap').addEventListener('click', closeMapModal);
+        document.getElementById('closeMapFooter').addEventListener('click', closeMapModal);
+
+        function closeMapModal() {
             const modal = document.getElementById('mapModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        });
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex', 'opacity-0');
+            }, 200);
+        }
     </script>
 
 </x-layouts.app>
