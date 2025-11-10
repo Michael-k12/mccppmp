@@ -215,7 +215,7 @@
 
         <!-- Chart Section -->
         <div class="chart-section">
-            <h3>Total Cost by Department ({{ $selectedYear }})</h3>
+            <h3>Total Cost by Department {{ $selectedYear }}</h3>
             <canvas id="ppmpBarChart"></canvas>
         </div>
     </div>
