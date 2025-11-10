@@ -127,7 +127,7 @@
         canvas {
             width: 100% !important;
             height: auto !important;
-            max-height: 400px;
+            max-height: 200px;
         }
 
         /* Responsive text adjustments */
