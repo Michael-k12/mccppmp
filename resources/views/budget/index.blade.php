@@ -1,35 +1,35 @@
 <x-layouts.app :title="'Budget'">
 
     @push('head')
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     @endpush
 
     <div class="container mx-auto px-4 py-8">
 
         {{-- ✅ Page Header (Title Left, Logo Right, Buttons Below Logo) --}}
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-4 mb-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
             {{-- Left: Title --}}
             <h2 class="text-2xl font-bold text-gray-800">Previous Budgets</h2>
 
             {{-- Right: Logo + Buttons --}}
-            <div class="flex flex-col items-end gap-3">
+            <div class="flex flex-col items-end gap-3 w-full sm:w-auto">
                 {{-- Logo --}}
-                <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="h-20 w-80 mb-2">
+                <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="h-20 w-auto mb-2">
 
                 {{-- Buttons --}}
                 <div class="flex flex-wrap justify-end items-center gap-3">
                     {{-- Add Budget Button --}}
                     @if (!$activeBudget)
-                        <button onclick="openModal()" class="start-proposal-btn">
+                        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
                             ➕ Add Budget
                         </button>
                     @endif
 
-                    {{-- End Proposal Button (if active) --}}
+                    {{-- End Proposal Button --}}
                     @if ($activeBudget)
                         <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST">
                             @csrf
-                            <button type="button" onclick="confirmEndProposal()" class="end-proposal-btn">
+                            <button type="button" onclick="confirmEndProposal()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition">
                                 End Proposal
                             </button>
                         </form>
@@ -39,8 +39,7 @@
                     <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" id="deleteSelectedBtn"
-                            class="bg-red-500 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-600 transition hidden">
+                        <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition hidden">
                             Delete Selected
                         </button>
                     </form>
@@ -50,12 +49,10 @@
 
         {{-- ⚠️ Active Budget Warning --}}
         @if ($activeBudget)
-            <div
-                class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-5 py-4 rounded-xl mb-6 shadow-sm flex items-start sm:items-center gap-3">
+            <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-5 py-4 rounded-xl mb-6 shadow-sm flex items-start sm:items-center gap-3">
                 <span class="text-xl">⚠️</span>
                 <p class="text-sm md:text-base leading-snug">
-                    A proposal is currently active for
-                    <strong>{{ $activeBudget->year }}</strong>. Please end it before starting a new one.
+                    A proposal is currently active for <strong>{{ $activeBudget->year }}</strong>. Please end it before starting a new one.
                 </p>
             </div>
         @endif
@@ -77,8 +74,7 @@
                     @foreach ($budgets as $budget)
                         <tr class="border-b hover:bg-gray-50 transition">
                             <td class="px-5 py-3">
-                                <input type="checkbox" name="selected[]" value="{{ $budget->id }}"
-                                    class="budget-checkbox">
+                                <input type="checkbox" name="selected[]" value="{{ $budget->id }}" class="budget-checkbox">
                             </td>
                             <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
                             <td class="px-5 py-3 text-green-600 font-semibold">
@@ -86,11 +82,9 @@
                             </td>
                             <td class="px-5 py-3 text-center">
                                 @if (!$budget->is_ended)
-                                    <span
-                                        class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
                                 @else
-                                    <span
-                                        class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
+                                    <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
                                 @endif
                             </td>
                         </tr>
@@ -100,12 +94,9 @@
         </div>
 
         {{-- 🧾 Add Budget Modal --}}
-        <div id="budgetModal"
-            class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
-            <div
-                class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
-                <button onclick="closeModal()"
-                    class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
+            <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
 
                 <h3 class="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 text-center">Start Project Proposal</h3>
 
@@ -113,127 +104,29 @@
                     @csrf
                     <div>
                         <label for="milestone_date" class="block mb-2 font-medium text-gray-700">Year</label>
-                        <input type="number" name="milestone_date" id="milestone_date" class="modern-input" min="2000"
-                            max="2100" value="{{ now()->year }}" oninput="validateYear(this)" required>
+                        <input type="number" name="milestone_date" id="milestone_date" class="modern-input w-full" min="2000" max="2100" value="{{ now()->year }}" oninput="validateYear(this)" required>
                     </div>
 
                     <div>
                         <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
-                        <input type="text" name="amount" id="amount" class="modern-input" required
-                            oninput="formatNumberInput(this)">
+                        <input type="text" name="amount" id="amount" class="modern-input w-full" required oninput="formatNumberInput(this)">
                     </div>
 
-                    <button type="submit" class="save-budget-btn w-full">Save Budget</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full transition">Save Budget</button>
                 </form>
             </div>
         </div>
 
     </div>
 
-    {{-- 🎨 Styles --}}
-    <style>
-        .start-proposal-btn {
-            background: #10b981;
-            color: white;
-            padding: 9px 16px;
-            border-radius: 8px;
-            font-weight: 620;
-            transition: 0.2s;
-        }
-
-        .start-proposal-btn:hover {
-            background: #059669;
-            transform: scale(1.05);
-        }
-
-        .end-proposal-btn {
-            background: #ef4444;
-            color: white;
-            padding: 9px 16px;
-            border-radius: 8px;
-            font-weight: 620;
-            transition: 0.2s;
-        }
-
-        .end-proposal-btn:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
-
-        .save-budget-btn {
-            background: #2563eb;
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .save-budget-btn:hover {
-            background: #1e40af;
-            transform: scale(1.05);
-        }
-
-        .modern-input {
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            padding: 10px 14px;
-            width: 100%;
-            font-size: 15px;
-            background: #f9fafb;
-        }
-
-        .modern-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
-            background: white;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fadeIn {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @media (max-width: 640px) {
-            .flex-col {
-                flex-direction: column !important;
-            }
-
-            .start-proposal-btn,
-            .end-proposal-btn,
-            #deleteSelectedBtn {
-                width: 100%;
-            }
-
-            .flex-col.items-end {
-                align-items: flex-start !important;
-            }
-        }
-    </style>
-
     {{-- ⚙️ Scripts --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function openModal() {
-            document.getElementById('budgetModal').classList.remove('hidden');
-        }
+        // Modal Functions
+        function openModal() { document.getElementById('budgetModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('budgetModal').classList.add('hidden'); }
 
-        function closeModal() {
-            document.getElementById('budgetModal').classList.add('hidden');
-        }
-
+        // Confirm End Proposal
         function confirmEndProposal() {
             Swal.fire({
                 title: 'Are you sure?',
@@ -248,10 +141,12 @@
             });
         }
 
+        // Validate Year Input
         function validateYear(input) {
             if (input.value.length > 4) input.value = input.value.slice(0, 4);
         }
 
+        // Format Number Input
         function formatNumberInput(input) {
             let value = input.value.replace(/[^0-9.]/g, '');
             const parts = value.split('.');
@@ -260,10 +155,12 @@
             input.value = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (parts[1] ? '.' + parts[1] : '');
         }
 
+        // Remove commas before submitting
         document.getElementById('budgetForm').addEventListener('submit', function() {
             document.getElementById('amount').value = document.getElementById('amount').value.replace(/,/g, '');
         });
 
+        // Select All / Toggle Delete Button
         const selectAllCheckbox = document.getElementById('selectAll');
         const budgetCheckboxes = document.querySelectorAll('.budget-checkbox');
         const deleteBtn = document.getElementById('deleteSelectedBtn');
@@ -279,6 +176,7 @@
             deleteBtn.classList.toggle('hidden', !anyChecked);
         }
 
+        // Confirm Delete Selected
         document.getElementById('deleteSelectedForm').addEventListener('submit', function(e) {
             const anyChecked = Array.from(budgetCheckboxes).some(cb => cb.checked);
             if (!anyChecked) {
@@ -312,10 +210,17 @@
             }
         });
 
-        // SweetAlert Toast Notifications
+        // Toast Notifications
         document.addEventListener("DOMContentLoaded", function() {
             @if(session('success'))
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 2500 });
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: @json(session('success')),
+                    showConfirmButton: false,
+                    timer: 2500
+                });
             @endif
         });
     </script>
