@@ -6,9 +6,20 @@
 
     <div class="container mx-auto px-4 py-8">
 
-        {{-- ✅ Page Header (Title Left, Buttons Right) --}}
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        {{-- 💰 Previous Budgets Table --}}
+<div class="mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        {{-- Title on the left --}}
+        <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">
+            Previous Budgets
+        </h3>
 
+        {{-- Right side: logo + buttons below --}}
+        <div class="flex flex-col items-end gap-2">
+            {{-- Logo --}}
+            <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="h-16 w-auto mb-2">
+
+            {{-- Buttons --}}
             <div class="flex flex-wrap justify-end items-center gap-3 w-full sm:w-auto">
                 {{-- Add Budget Button --}}
                 @if (!$activeBudget)
@@ -38,61 +49,60 @@
                 </form>
             </div>
         </div>
+    </div>
 
-        {{-- ⚠️ Active Budget Warning --}}
-        @if ($activeBudget)
-            <div
-                class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-5 py-4 rounded-xl mb-6 shadow-sm flex items-start sm:items-center gap-3">
-                <span class="text-xl">⚠️</span>
-                <p class="text-sm md:text-base leading-snug">
-                    A proposal is currently active for
-                    <strong>{{ $activeBudget->year }}</strong>. Please end it before starting a new one.
-                </p>
-            </div>
-        @endif
-
-        {{-- 💰 Previous Budgets Table --}}
-        <div>
-            <h3 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">Previous Budgets</h3>
-
-            <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
-                <table class="w-full border-collapse min-w-[600px]">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th class="px-5 py-3 text-left text-sm">
-                                <input type="checkbox" id="selectAll">
-                            </th>
-                            <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
-                            <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
-                            <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($budgets as $budget)
-                            <tr class="border-b hover:bg-gray-50 transition">
-                                <td class="px-5 py-3">
-                                    <input type="checkbox" name="selected[]" value="{{ $budget->id }}"
-                                        class="budget-checkbox">
-                                </td>
-                                <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
-                                <td class="px-5 py-3 text-green-600 font-semibold">
-                                    ₱{{ number_format($budget->amount, 2) }}
-                                </td>
-                                <td class="px-5 py-3 text-center">
-                                    @if (!$budget->is_ended)
-                                        <span
-                                            class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
-                                    @else
-                                        <span
-                                            class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+    {{-- ⚠️ Active Budget Warning --}}
+    @if ($activeBudget)
+        <div
+            class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-5 py-4 rounded-xl mb-6 shadow-sm flex items-start sm:items-center gap-3">
+            <span class="text-xl">⚠️</span>
+            <p class="text-sm md:text-base leading-snug">
+                A proposal is currently active for
+                <strong>{{ $activeBudget->year }}</strong>. Please end it before starting a new one.
+            </p>
         </div>
+    @endif
+
+    {{-- Table --}}
+    <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
+        <table class="w-full border-collapse min-w-[600px]">
+            <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                    <th class="px-5 py-3 text-left text-sm">
+                        <input type="checkbox" id="selectAll">
+                    </th>
+                    <th class="px-5 py-3 text-left text-sm font-semibold">Year</th>
+                    <th class="px-5 py-3 text-left text-sm font-semibold">Budget Amount</th>
+                    <th class="px-5 py-3 text-center text-sm font-semibold">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($budgets as $budget)
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="px-5 py-3">
+                            <input type="checkbox" name="selected[]" value="{{ $budget->id }}"
+                                class="budget-checkbox">
+                        </td>
+                        <td class="px-5 py-3 text-gray-800 font-medium">{{ $budget->year }}</td>
+                        <td class="px-5 py-3 text-green-600 font-semibold">
+                            ₱{{ number_format($budget->amount, 2) }}
+                        </td>
+                        <td class="px-5 py-3 text-center">
+                            @if (!$budget->is_ended)
+                                <span
+                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Active</span>
+                            @else
+                                <span
+                                    class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">Ended</span>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
         {{-- 🧾 Add Budget Modal --}}
         <div id="budgetModal"
