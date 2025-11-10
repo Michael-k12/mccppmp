@@ -13,6 +13,26 @@
             padding: 1rem;
         }
 
+        /* Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .dashboard-logo {
+            height: 50px;
+            width: auto;
+        }
+
         /* Dashboard grid for cards */
         .dashboard-grid {
             display: grid;
@@ -36,18 +56,20 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .border-yellow {
+        /* Gradient card colors */
+        .card-yellow {
             background: linear-gradient(135deg, #000000, #FFD700); /* Black to gold */
-color: #ffffff; /* ensures text is readable */
-
+            color: #ffffff;
         }
 
-        .border-blue {
-            background: linear-gradient(135deg,rgb(51, 51, 51),rgb(2, 255, 200));
+        .card-blue {
+            background: linear-gradient(135deg, #4B4B4B, #FFD700); /* Dark gray to gold */
+            color: #ffffff;
         }
 
-        .border-green {
-           background: linear-gradient(135deg,rgb(51, 51, 51),rgb(2, 255, 200));
+        .card-green {
+            background: linear-gradient(135deg, #333333, #FFD700); /* Slightly darker gray to gold */
+            color: #ffffff;
         }
 
         .card-custom h3 {
@@ -126,6 +148,12 @@ color: #ffffff; /* ensures text is readable */
                 flex-direction: column;
                 align-items: flex-start;
             }
+
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -136,23 +164,37 @@ color: #ffffff; /* ensures text is readable */
             .card-custom p {
                 font-size: 1.3rem;
             }
+
+            .dashboard-header h2 {
+                font-size: 1.4rem;
+            }
+
+            .dashboard-logo {
+                height: 40px;
+            }
         }
     </style>
 
     <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h2>Principal Dashboard</h2>
+            <img src="{{ asset('path/to/logo.png') }}" alt="Logo" class="dashboard-logo">
+        </div>
+
         <!-- Top Stats -->
         <div class="dashboard-grid">
-            <div class="card-custom border-yellow">
+            <div class="card-custom card-yellow">
                 <h3>Submitted</h3>
                 <p>{{ $submittedCount ?? 0 }}</p>
             </div>
 
-            <div class="card-custom border-blue">
+            <div class="card-custom card-blue">
                 <h3>Budget</h3>
                 <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
             </div>
 
-            <div class="card-custom border-green">
+            <div class="card-custom card-green">
                 <h3>Approved</h3>
                 <p>{{ $approvedCount ?? 0 }}</p>
             </div>
