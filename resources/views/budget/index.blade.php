@@ -14,7 +14,7 @@
             {{-- Right: Logo + Buttons --}}
             <div class="flex flex-col items-end gap-3">
                 {{-- Logo --}}
-                <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="h-20 w-auto mb-2">
+                <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="h-20 w-80 mb-2">
 
                 {{-- Buttons --}}
                 <div class="flex flex-wrap justify-end items-center gap-3">
