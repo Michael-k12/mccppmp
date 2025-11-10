@@ -185,8 +185,9 @@
             <div class="filter-form">
                 {{-- Download PDF --}}
                 <form action="{{ route('ppmp.download.pdf', ['year' => $year]) }}" method="GET">
-    <button type="submit" class="btn btn-primary">Download PDF</button>
+    <button type="submit" class="print-button">Download PDF</button>
 </form>
+
 
 
                 {{-- Year Dropdown --}}

@@ -436,10 +436,14 @@ public function approved(Request $request)
         ->orderBy('year', 'desc')
         ->pluck('year');
 
-    // Default to the latest year if none is selected
-    if (!$year && $availableYears->count() > 0) {
-        $year = $availableYears->first();
-    }
+   // Default to the latest year if none is selected
+if (!$year && $availableYears->count() > 0) {
+    $year = $availableYears->first();
+}
+if (!$year) {
+    $year = now()->year;
+}
+
 
     $ppmps = Ppmp::where('status', 'Approved')
         ->when($year, fn($q) => $q->whereYear('milestone_date', $year))
