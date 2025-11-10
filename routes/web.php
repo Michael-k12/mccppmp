@@ -110,8 +110,9 @@ Route::delete('/ppmp/delete-year', [App\Http\Controllers\PpmpController::class, 
 Route::delete('/ppmp/delete-all', [App\Http\Controllers\PpmpController::class, 'deleteAll'])
     ->name('ppmp.deleteAll');
 
-Route::get('/ppmp/download-pdf/{year}', [App\Http\Controllers\PpmpController::class, 'downloadPdf'])
-     ->name('ppmp.download.pdf');
+Route::get('ppmp/download-pdf/{year}', [PpmpController::class, 'downloadPdf'])
+    ->name('ppmp.download.pdf');
+
 
      Route::middleware(['auth'])->group(function () {
     Route::get('/security', [SecurityMonitoringController::class, 'index'])->name('security.index');

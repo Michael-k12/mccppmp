@@ -417,7 +417,7 @@ public function batchApprove(Request $request)
 
 public function downloadPdf(Request $request, $year)
 {
-    $ppmps = PPMP::whereYear('milestone_date', $year)
+    $ppmps = Ppmp::whereYear('milestone_date', $year)
                 ->orderBy('classification')
                 ->get();
 
