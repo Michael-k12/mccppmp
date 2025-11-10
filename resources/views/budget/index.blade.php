@@ -6,7 +6,6 @@
 
     <div class="container mx-auto px-4 py-8">
 
-        {{-- ✅ Page Header (Title Left, Buttons Right) --}}
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
 
             <div class="flex flex-wrap justify-end items-center gap-3 w-full sm:w-auto">
