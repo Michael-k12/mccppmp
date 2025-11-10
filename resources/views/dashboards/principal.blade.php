@@ -1,8 +1,6 @@
 <x-layouts.app :title="__('Principal Dashboard')">
 
-@push('head')
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-@endpush
+
 
 <style>
     body {
@@ -173,4 +171,3 @@ new Chart(document.getElementById('ppmpBarChart'), {
 </script>
 
 </x-layouts.app>
-asd
