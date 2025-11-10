@@ -1,80 +1,100 @@
 <x-layouts.app :title="__('Principal Dashboard')">
 
 <style>
-    body {
-        background: #ffffff;
-        font-family: 'Poppins', sans-serif;
-    }
+/* ===== DASHBOARD GLOBAL STYLE ===== */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #f9fafc;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    font-family: 'Inter', sans-serif;
+}
 
-    .dashboard-container {
-        max-width: 1400px;
-        margin: auto;
-        padding: 2.5rem;
-    }
+/* ===== KPI ROW ===== */
+.kpi-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    justify-content: space-between;
+}
 
-    /* KPI CARDS */
-    .kpi-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-        margin-bottom: 2rem;
-    }
+.kpi-card {
+    flex: 1 1 calc(33% - 1rem);
+    background: linear-gradient(145deg, #ffffff, #f0f2f5);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
 
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+}
+
+.kpi-card h4 {
+    color: #374151;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.kpi-card p {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin: 0;
+}
+
+/* ===== FILTER ROW ===== */
+.filter-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+}
+
+.filter-row select {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-row select:hover {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ===== CHART BOX ===== */
+.chart-box {
+    background: #ffffff;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.chart-box h3 {
+    color: #1f2937;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-left: 4px solid #2563eb;
+    padding-left: 0.75rem;
+}
+
+@media (max-width: 768px) {
     .kpi-card {
-        background: linear-gradient(135deg, #545454, #ff7a00);
-        text-align: center;
-        padding: 2.2rem 1rem;
-        border-radius: 16px;
-        color: #fff;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        flex: 1 1 100%;
     }
-
-    .kpi-card h4 {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 500;
-        letter-spacing: .5px;
-    }
-
-    .kpi-card p {
-        margin-top: .4rem;
-        font-size: 2.4rem;
-        margin-bottom: 0;
-        font-weight: 700;
-    }
-
-    /* Year Filter */
-    .filter-row {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: -0.5rem;
-    }
-
-    .filter-row select {
-        padding: .7rem 1rem;
-        border-radius: 10px;
-        border: 1px solid #d1d5db;
-        background: #fff;
-        font-size: .95rem;
-        cursor: pointer;
-    }
-
-    /* Chart Section */
-    .chart-box {
-        background: white;
-        padding: 2rem;
-        border-radius: 18px;
-        box-shadow: 0 8px 22px rgba(0,0,0,0.05);
-        margin-top: 1.5rem;
-    }
-
-    .chart-box h3 {
-        text-align: center;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: #1f2937;
-    }
+}
 </style>
 
 <div class="dashboard-container">
@@ -88,12 +108,12 @@
 
         <div class="kpi-card">
             <h4>Approved</h4>
-            <p>{{ $approvedCount ?? 0 }}</p>
+            <p style="color:#16a34a;">{{ $approvedCount ?? 0 }}</p>
         </div>
 
         <div class="kpi-card">
             <h4>Allocated Budget</h4>
-            <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
+            <p style="color:#dc2626;">₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
         </div>
     </div>
 
@@ -118,23 +138,46 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-new Chart(document.getElementById('ppmpBarChart'), {
+const ctx = document.getElementById('ppmpBarChart').getContext('2d');
+
+new Chart(ctx, {
     type: 'bar',
     data: {
         labels: {!! json_encode($chartLabels) !!},
         datasets: [{
             label: '₱ Total Cost',
             data: {!! json_encode($chartData) !!},
-            backgroundColor: '#ff7a00',
-            borderRadius: 10,
-            barThickness: 35
+            backgroundColor: [
+                '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'
+            ],
+            borderRadius: 8,
+            barThickness: 40
         }]
     },
     options: {
-        plugins: { legend: { display: false }},
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return '₱' + context.parsed.y.toLocaleString();
+                    }
+                },
+                backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                titleFont: { weight: 'bold' },
+                cornerRadius: 6
+            }
+        },
         scales: {
             y: {
-                ticks: { callback: val => '₱' + val.toLocaleString() }
+                ticks: { callback: val => '₱' + val.toLocaleString() },
+                grid: { color: '#e5e7eb' }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#374151' }
             }
         }
     }
