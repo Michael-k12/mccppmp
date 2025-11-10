@@ -2,7 +2,10 @@
     <img src="{{ asset('logo/logo-mcc.png') }}" class="size-8" alt="Logo" />
 </div>
 <div class="ms-1 grid flex-1 text-start text-sm">
-    <span class="mb-0.5 truncate leading-tight font-semibold text-gray-800 dark:text-gray-900">
-        MADRIDEJOS PPMP
+    <span class="mb-0.5 leading-tight font-semibold text-gray-800 dark:text-gray-900">
+        MCC PROJECT<br>
+        PROCUREMENT<br>
+        MANAGEMENT<br>
+        SYSTEM
     </span>
 </div>
