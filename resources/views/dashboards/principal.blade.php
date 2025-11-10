@@ -37,7 +37,9 @@
         }
 
         .border-yellow {
-            background: linear-gradient(135deg,rgb(51, 51, 51),rgb(2, 255, 200));
+            background: linear-gradient(135deg, #000000, #FFD700); /* Black to gold */
+color: #ffffff; /* ensures text is readable */
+
         }
 
         .border-blue {
