@@ -6,155 +6,110 @@
     @endpush
 
     <style>
-        /* General container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
+    .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 1.5rem;
+        font-family: 'Inter', sans-serif;
+    }
 
-        /* Dashboard grid for cards */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
 
-        /* Card style */
-        .card-custom {
-            border-radius: 12px;
-            padding: 20px;
-            color: white;
-            text-align: center;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
+    /* Professional Cards */
+    .stat-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 1.8rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        transition: box-shadow .2s ease, transform .2s ease;
+    }
 
-        .card-custom:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
 
-        .border-yellow {
-            background-color: #f59e0b; /* amber-500 */
-        }
+    /* Accent line on top */
+    .stat-card.border-yellow { border-top: 6px solid #f59e0b; }
+    .stat-card.border-blue { border-top: 6px solid #3b82f6; }
+    .stat-card.border-green { border-top: 6px solid #22c55e; }
 
-        .border-blue {
-            background-color: #3b82f6; /* blue-500 */
-        }
+    .stat-card h3 {
+        font-size: 1rem;
+        color: #6b7280;
+        margin-bottom: .4rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
 
-        .border-green {
-            background-color: #22c55e; /* green-500 */
-        }
+    .stat-card p {
+        font-size: 2.1rem;
+        font-weight: 700;
+        margin: 0;
+        color: #111827;
+    }
 
-        .card-custom h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
+    /* Chart Section */
+    .chart-section {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1.8rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        margin-top: 1.5rem;
+    }
 
-        .card-custom p {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 0;
-            word-break: break-word;
-        }
+    .chart-section h3 {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        color: #111827;
+    }
 
-        /* Chart container */
-        .chart-section {
-            background-color: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            margin-top: 1.5rem;
-        }
+    /* Year selector */
+    .year-selector select {
+        padding: .6rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+    }
 
-        .chart-section h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
+    canvas {
+        width: 100% !important;
+        max-height: 420px;
+    }
+</style>
 
-        /* Year selector styling */
-        .year-selector {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .year-selector label {
-            font-weight: 500;
-        }
-
-        .year-selector select {
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        /* Chart responsiveness */
-        canvas {
-            width: 100% !important;
-            height: auto !important;
-            max-height: 400px;
-        }
-
-        /* Responsive text adjustments */
-        @media (max-width: 768px) {
-            .card-custom h3 {
-                font-size: 0.9rem;
-            }
-
-            .card-custom p {
-                font-size: 1.5rem;
-            }
-
-            .chart-section {
-                padding: 15px;
-            }
-
-            .year-selector {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 0.5rem;
-            }
-
-            .card-custom p {
-                font-size: 1.3rem;
-            }
-        }
-    </style>
 
     <div class="container">
         <!-- Top Stats -->
         <div class="dashboard-grid">
-            <div class="card-custom border-yellow">
-                <h3>Submitted</h3>
-                <p>{{ $submittedCount ?? 0 }}</p>
-            </div>
+    <div class="stat-card border-yellow">
+        <h3>Submitted</h3>
+        <p>{{ $submittedCount ?? 0 }}</p>
+    </div>
 
-            <div class="card-custom border-blue">
-                <h3>Budget</h3>
-                <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
-            </div>
+    <div class="stat-card border-blue">
+        <h3>Budget</h3>
+        <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
+    </div>
 
-            <div class="card-custom border-green">
-                <h3>Approved</h3>
-                <p>{{ $approvedCount ?? 0 }}</p>
-            </div>
-        </div>
+    <div class="stat-card border-green">
+        <h3>Approved</h3>
+        <p>{{ $approvedCount ?? 0 }}</p>
+    </div>
+</div>
 
         <!-- Year Filter -->
         <form method="GET" class="year-selector">
