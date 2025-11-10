@@ -6,45 +6,42 @@
 
     <div class="container mx-auto px-4 py-8">
 
-        {{-- ✅ Page Header (Title Left, Logo Right, Buttons Below Logo) --}}
-        <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+        {{-- ✅ Header: Title Left, Logo Right --}}
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
             {{-- Left: Title --}}
             <h2 class="text-2xl font-bold text-gray-800">Previous Budgets</h2>
 
-            {{-- Right: Logo + Buttons --}}
-            <div class="flex flex-col items-end gap-3 w-full sm:w-auto">
-                {{-- Logo --}}
-                <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="h-20 w-auto mb-2">
+            {{-- Right: Logo --}}
+            <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="h-20 w-auto">
+        </div>
 
-                {{-- Buttons --}}
-                <div class="flex flex-wrap justify-end items-center gap-3">
-                    {{-- Add Budget Button --}}
-                    @if (!$activeBudget)
-                        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
-                            ➕ Add Budget
-                        </button>
-                    @endif
+        {{-- ✅ Buttons Row --}}
+        <div class="flex flex-wrap justify-start sm:justify-end gap-3 mb-6">
+            {{-- Add Budget Button --}}
+            @if (!$activeBudget)
+                <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+                    ➕ Add Budget
+                </button>
+            @endif
 
-                    {{-- End Proposal Button --}}
-                    @if ($activeBudget)
-                        <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST">
-                            @csrf
-                            <button type="button" onclick="confirmEndProposal()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition">
-                                End Proposal
-                            </button>
-                        </form>
-                    @endif
+            {{-- End Proposal Button --}}
+            @if ($activeBudget)
+                <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST">
+                    @csrf
+                    <button type="button" onclick="confirmEndProposal()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition">
+                        End Proposal
+                    </button>
+                </form>
+            @endif
 
-                    {{-- Delete Selected Button --}}
-                    <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition hidden">
-                            Delete Selected
-                        </button>
-                    </form>
-                </div>
-            </div>
+            {{-- Delete Selected Button --}}
+            <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
+                @csrf
+                @method('DELETE')
+                <button type="submit" id="deleteSelectedBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition hidden">
+                    Delete Selected
+                </button>
+            </form>
         </div>
 
         {{-- ⚠️ Active Budget Warning --}}
