@@ -127,7 +127,7 @@
         canvas {
             width: 100% !important;
             height: auto !important;
-            max-height: 200px;
+            max-height: 250px;
         }
 
         /* Responsive text adjustments */
@@ -235,38 +235,40 @@
                     borderRadius: 5
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return '₱' + parseFloat(context.raw).toLocaleString();
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            font: { size: 12 },
-                            color: '#333'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '₱' + value.toLocaleString();
-                            },
-                            font: { size: 12 },
-                            color: '#333'
-                        }
-                    }
+           options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    return '₱' + parseFloat(context.raw).toLocaleString();
                 }
             }
+        }
+    },
+    scales: {
+        x: {
+            ticks: {
+                font: { size: 12 },
+                color: '#333'
+            }
+        },
+        y: {
+            beginAtZero: true,
+            ticks: {
+                callback: function(value) {
+                    return '₱' + value.toLocaleString();
+                },
+                font: { size: 12 },
+                color: '#333',
+                stepSize: Math.ceil(Math.max(...{!! json_encode($chartData) !!}) / 5)
+            }
+        }
+    }
+}
+
         });
     </script>
 
