@@ -63,12 +63,12 @@
         }
 
         .card-blue {
-            background: linear-gradient(135deg, #4B4B4B, #FFD700); /* Dark gray to gold */
+            background: linear-gradient(135deg, #000000, #512eb3ff); /* Black to gold */
             color: #ffffff;
         }
 
         .card-green {
-            background: linear-gradient(135deg, #333333, #FFD700); /* Slightly darker gray to gold */
+            background: linear-gradient(135deg, #000000, #512eb3ff); /* Black to gold */
             color: #ffffff;
         }
 
