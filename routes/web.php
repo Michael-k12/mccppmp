@@ -65,7 +65,6 @@ Route::post('/ppmp/update-quantities/{department}', [PpmpController::class, 'upd
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/ppmp/export-pdf', [PdfExportController::class, 'export'])->name('ppmp.export.pdf');
-Route::get('/ppmp/download', [PdfExportController::class, 'download'])->name('ppmp.download.pdf');
 Route::get('/ppmp/bsit', [PpmpController::class, 'bsit'])->name('ppmp.bsit');
 Route::get('/ppmp/bsba', [PpmpController::class, 'bsba'])->name('ppmp.bsba');
 Route::get('/ppmp/bshm', [PpmpController::class, 'bshm'])->name('ppmp.bshm');
