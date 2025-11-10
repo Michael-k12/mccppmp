@@ -36,17 +36,21 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .border-yellow {
-            background-color: #f59e0b; /* amber-500 */
-        }
+        .card-yellow {
+    background: linear-gradient(135deg, rgb(51, 51, 51), #f59e0b); /* amber gradient */
+    color: #ffffff;
+}
 
-        .border-blue {
-            background-color: #3b82f6; /* blue-500 */
-        }
+.card-blue {
+    background: linear-gradient(135deg, rgb(51, 51, 51), #3b82f6); /* blue gradient */
+    color: #ffffff;
+}
 
-        .border-green {
-            background-color: #22c55e; /* green-500 */
-        }
+.card-green {
+    background: linear-gradient(135deg, rgb(51, 51, 51), #22c55e); /* green gradient */
+    color: #ffffff;
+}
+
 
         .card-custom h3 {
             font-size: 1rem;
@@ -139,22 +143,21 @@
 
     <div class="container">
         <!-- Top Stats -->
-        <div class="dashboard-grid">
-            <div class="card-custom border-yellow">
-                <h3>Submitted</h3>
-                <p>{{ $submittedCount ?? 0 }}</p>
-            </div>
+        <div class="card-custom card-yellow">
+    <h3>Submitted</h3>
+    <p>{{ $submittedCount ?? 0 }}</p>
+</div>
 
-            <div class="card-custom border-blue">
-                <h3>Budget</h3>
-                <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
-            </div>
+<div class="card-custom card-blue">
+    <h3>Budget</h3>
+    <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
+</div>
 
-            <div class="card-custom border-green">
-                <h3>Approved</h3>
-                <p>{{ $approvedCount ?? 0 }}</p>
-            </div>
-        </div>
+<div class="card-custom card-green">
+    <h3>Approved</h3>
+    <p>{{ $approvedCount ?? 0 }}</p>
+</div>
+
 
         <!-- Year Filter -->
         <form method="GET" class="year-selector">
