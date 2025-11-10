@@ -1,244 +1,176 @@
 <x-layouts.app :title="__('Principal Dashboard')">
 
 <style>
-    /* VARIABLES: Define once, use everywhere */
-    :root {
-        --color-primary: #0056b3; /* Darker Royal Blue */
-        --color-secondary: #00bcd4; /* Accent Teal/Cyan */
-        --color-text-dark: #212529;
-        --color-text-muted: #6c757d;
-        --color-background: #f8f9fa; /* Lighter background */
-        --color-card-bg: #ffffff;
-        --shadow-elevation-1: 0 4px 16px rgba(0, 0, 0, 0.06);
-        --shadow-elevation-2: 0 8px 25px rgba(0, 0, 0, 0.1);
-    }
-
     body {
-        background: var(--color-background);
-        font-family: 'Inter', sans-serif; /* Using a more modern font for professionalism */
-        color: var(--color-text-dark);
+        background: #eef2f7;
+        font-family: 'Poppins', sans-serif;
     }
 
     .dashboard-container {
-        max-width: 1400px; /* Slightly wider */
+        max-width: 1400px;
         margin: 0 auto;
-        padding: 3rem 2rem; /* More generous padding */
+        padding: 2.5rem 1rem;
     }
 
-    /* HEADER STYLING */
-    .dashboard-header {
-        margin-bottom: 2.5rem;
-        border-bottom: 1px solid #e9ecef;
-        padding-bottom: 1.5rem;
-    }
-
-    .dashboard-header h1 {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--color-primary);
-        margin: 0;
-    }
-
-    /* KPI ROW */
+    /* KPI CARDS ROW */
     .kpi-row {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 2rem; /* Increased gap */
-        margin-bottom: 3.5rem;
+        gap: 2rem;
+        margin-bottom: 3rem;
     }
 
     .kpi-card {
-        background: var(--color-card-bg);
-        border-radius: 12px;
-        padding: 2rem;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        border-left: 5px solid var(--color-primary); /* Primary Accent */
-        box-shadow: var(--shadow-elevation-1);
-        position: relative; /* For the subtle icon */
+        position: relative;
+        background: linear-gradient(135deg, #0057ff, #00c6ff);
+        color: #fff;
+        border-radius: 16px;
+        padding: 2rem 2rem 2rem 3rem;
         overflow: hidden;
-    }
-
-    .kpi-card::before {
-        content: '';
-        position: absolute;
-        top: -30px;
-        right: -30px;
-        width: 100px;
-        height: 100px;
-        background: rgba(0, 86, 179, 0.05); /* Very faint primary background */
-        border-radius: 50%;
-        z-index: 0;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: default;
     }
 
     .kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-elevation-2);
-        border-left-color: var(--color-secondary); /* Accent color on hover */
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0, 87, 255, 0.3);
+    }
+
+    .kpi-card .icon {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 3rem;
+        opacity: 0.2;
     }
 
     .kpi-card h4 {
-        color: var(--color-text-muted); /* Muted label */
-        margin-bottom: .6rem;
-        font-size: 0.9rem;
+        font-size: 1.1rem;
         font-weight: 600;
+        margin-bottom: 0.5rem;
         text-transform: uppercase;
-        letter-spacing: .5px;
-        position: relative;
-        z-index: 1;
+        letter-spacing: 0.5px;
     }
 
     .kpi-card p {
+        font-size: 2rem;
+        font-weight: 700;
         margin: 0;
-        font-size: 2.2rem; /* Larger value */
-        font-weight: 800;
-        color: var(--color-primary);
-        position: relative;
-        z-index: 1;
-    }
-    
-    .kpi-card:nth-child(2) p { color: #28a745; } /* Green for 'Approved' */
-    .kpi-card:nth-child(3) p { color: #ffc107; } /* Yellow/Orange for 'Budget' */
-
-    /* FILTER & CHART CONTAINER */
-    .content-area {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 2rem;
     }
 
     /* YEAR FILTER */
     .filter-row {
-        display: flex;
-        justify-content: flex-end; /* Align to the right */
-        margin-bottom: 2rem;
+        text-align: right;
+        margin-bottom: 2.5rem;
     }
 
     .filter-row select {
-        padding: .75rem 1.25rem;
-        border-radius: 10px;
-        border: 2px solid #e0e0e0;
-        background: var(--color-card-bg);
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        border: 1px solid #ced4da;
+        background: #ffffff;
         font-size: 1rem;
-        font-weight: 500;
-        color: var(--color-text-dark);
         cursor: pointer;
-        transition: .3s;
-        min-width: 150px;
+        transition: 0.25s;
     }
 
-    .filter-row select:focus,
     .filter-row select:hover {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
-        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.15);
     }
 
     /* CHART CONTAINER */
     .chart-box {
-        background: var(--color-card-bg);
-        border-radius: 12px;
+        background: #fff;
+        border-radius: 16px;
         padding: 2.5rem;
-        box-shadow: var(--shadow-elevation-1);
-        border-top: 4px solid var(--color-secondary); /* Use the secondary color for a different accent */
+        box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+        border-top: 6px solid #007bff;
     }
 
     .chart-box h3 {
-        margin-bottom: 2rem;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--color-primary);
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #e9ecef;
+        margin-bottom: 1.8rem;
+        font-size: 1.35rem;
+        font-weight: 600;
+        color: #00244a;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 992px) {
+        .kpi-row {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
+
 <div class="dashboard-container">
 
-    <div class="dashboard-header">
-        <h1>📊 Principal Dashboard Overview</h1>
-    </div>
-
+    <!-- KPI CARDS -->
     <div class="kpi-row">
         <div class="kpi-card">
+            <div class="icon">📄</div>
             <h4>Submitted PPMPs</h4>
             <p>{{ $submittedCount ?? 0 }}</p>
         </div>
 
         <div class="kpi-card">
+            <div class="icon">✅</div>
             <h4>Approved PPMPs</h4>
             <p>{{ $approvedCount ?? 0 }}</p>
         </div>
 
         <div class="kpi-card">
+            <div class="icon">💰</div>
             <h4>Allocated Budget</h4>
             <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
         </div>
     </div>
 
-    <div class="content-area">
-        <form method="GET" class="filter-row">
-            <select name="year" onchange="this.form.submit()">
-                @foreach ($years as $year)
-                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
-                        Fiscal Year {{ $year }}
-                    </option>
-                @endforeach
-            </select>
-        </form>
+    <!-- YEAR FILTER -->
+    <form method="GET" class="filter-row">
+        <select name="year" onchange="this.form.submit()">
+            @foreach ($years as $year)
+                <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                    {{ $year }}
+                </option>
+            @endforeach
+        </select>
+    </form>
 
-        <div class="chart-box">
-            <h3>Total PPMP Cost by Department ({{ $selectedYear }})</h3>
-            <canvas id="ppmpBarChart"></canvas>
-        </div>
+    <!-- CHART -->
+    <div class="chart-box">
+        <h3>Total Cost by Department ({{ $selectedYear }})</h3>
+        <canvas id="ppmpBarChart"></canvas>
     </div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-new Chart(document.getElementById('ppmpBarChart'), {
+const ctx = document.getElementById('ppmpBarChart');
+new Chart(ctx, {
     type: 'bar',
     data: {
         labels: {!! json_encode($chartLabels) !!},
         datasets: [{
             label: '₱ Total Cost',
             data: {!! json_encode($chartData) !!},
-            /* Update to match the new secondary accent color for professionalism */
-            backgroundColor: '#00bcd4', 
-            borderRadius: 6,
-            barPercentage: 0.7, /* Gives more space between bars */
-            categoryPercentage: 0.8
+            backgroundColor: '#007bff',
+            borderRadius: 10,
+            barThickness: 40
         }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: true,
         plugins: { 
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        if (context.parsed.y !== null) {
-                            label += '₱' + context.parsed.y.toLocaleString();
-                        }
-                        return label;
-                    }
-                }
-            }
+            legend: { display: false }
         },
         scales: {
+            y: {
+                ticks: { callback: val => '₱' + val.toLocaleString() },
+                grid: { color: '#e0e0e0' }
+            },
             x: {
                 grid: { display: false }
-            },
-            y: {
-                beginAtZero: true,
-                ticks: { 
-                    callback: val => '₱' + val.toLocaleString() 
-                },
-                grid: { color: '#e9ecef' } /* Lighter grid lines */
             }
         }
     }
