@@ -222,54 +222,57 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const barCtx = document.getElementById('ppmpBarChart').getContext('2d');
+        const chartData = {!! json_encode($chartData) !!};
 
-        new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: {!! json_encode($chartLabels) !!},
-                datasets: [{
-                    label: 'Total Cost (₱)',
-                    data: {!! json_encode($chartData) !!},
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 5
-                }]
+const barCtx = document.getElementById('ppmpBarChart').getContext('2d');
+
+new Chart(barCtx, {
+    type: 'bar',
+    data: {
+        labels: {!! json_encode($chartLabels) !!},
+        datasets: [{
+            label: 'Total Cost (₱)',
+            data: chartData,
+            backgroundColor: '#3b82f6',
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return '₱' + parseFloat(context.raw).toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    font: { size: 12 },
+                    color: '#333'
+                }
             },
-           options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: { display: false },
-        tooltip: {
-            callbacks: {
-                label: function(context) {
-                    return '₱' + parseFloat(context.raw).toLocaleString();
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    display: chartData.some(v => v > 0), // hide ticks if all values are 0
+                    callback: function(value) {
+                        return '₱' + value.toLocaleString();
+                    },
+                    font: { size: 12 },
+                    color: '#333',
+                    stepSize: chartData.some(v => v > 0) ? Math.ceil(Math.max(...chartData)/5) : undefined
                 }
             }
         }
-    },
-    scales: {
-        x: {
-            ticks: {
-                font: { size: 12 },
-                color: '#333'
-            }
-        },
-        y: {
-            beginAtZero: true,
-            ticks: {
-                callback: function(value) {
-                    return '₱' + value.toLocaleString();
-                },
-                font: { size: 12 },
-                color: '#333',
-                stepSize: Math.ceil(Math.max(...{!! json_encode($chartData) !!}) / 5)
-            }
-        }
     }
-}
+});
 
-        });
     </script>
 
 </x-layouts.app>
