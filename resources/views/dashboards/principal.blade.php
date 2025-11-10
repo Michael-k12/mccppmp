@@ -1,141 +1,228 @@
 <x-layouts.app :title="__('Principal Dashboard')">
 
-<div class="min-h-screen bg-gray-50 font-sans antialiased">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Prevent zooming -->
+    @push('head')
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    @endpush
 
-        <header class="mb-10">
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
-                📊 Financial Oversight Dashboard
-            </h1>
-            <p class="text-lg text-gray-500 mt-1">Review PPMP status and budget allocation for the current period.</p>
-        </header>
+    <style>
+        /* General container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
 
-        <div class="grid grid-cols-1 gap-7 sm:grid-cols-3 mb-12">
+        /* Dashboard grid for cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
 
-            <div class="bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5">
-                <div class="p-6 border-l-4 border-blue-500">
-                    <p class="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                        Submitted PPMPs
-                    </p>
-                    <p class="mt-2 text-4xl font-extrabold text-gray-900">
-                        {{ $submittedCount ?? 0 }}
-                    </p>
-                    <p class="text-sm text-blue-500 mt-1">Total count awaiting action</p>
-                </div>
+        /* Card style */
+        .card-custom {
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .border-yellow {
+            background-color: #f59e0b; /* amber-500 */
+        }
+
+        .border-blue {
+            background-color: #3b82f6; /* blue-500 */
+        }
+
+        .border-green {
+            background-color: #22c55e; /* green-500 */
+        }
+
+        .card-custom h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-custom p {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0;
+            word-break: break-word;
+        }
+
+        /* Chart container */
+        .chart-section {
+            background-color: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-top: 1.5rem;
+        }
+
+        .chart-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Year selector styling */
+        .year-selector {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .year-selector label {
+            font-weight: 500;
+        }
+
+        .year-selector select {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Chart responsiveness */
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 400px;
+        }
+
+        /* Responsive text adjustments */
+        @media (max-width: 768px) {
+            .card-custom h3 {
+                font-size: 0.9rem;
+            }
+
+            .card-custom p {
+                font-size: 1.5rem;
+            }
+
+            .chart-section {
+                padding: 15px;
+            }
+
+            .year-selector {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .card-custom p {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+
+    <div class="container">
+        <!-- Top Stats -->
+        <div class="dashboard-grid">
+            <div class="card-custom border-yellow">
+                <h3>Submitted</h3>
+                <p>{{ $submittedCount ?? 0 }}</p>
             </div>
 
-            <div class="bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5">
-                <div class="p-6 border-l-4 border-green-500">
-                    <p class="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                        Approved PPMPs
-                    </p>
-                    <p class="mt-2 text-4xl font-extrabold text-gray-900">
-                        {{ $approvedCount ?? 0 }}
-                    </p>
-                    <p class="text-sm text-green-500 mt-1">Ready for Procurement</p>
-                </div>
+            <div class="card-custom border-blue">
+                <h3>Budget</h3>
+                <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
             </div>
 
-            <div class="bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5">
-                <div class="p-6 border-l-4 border-indigo-500">
-                    <p class="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                        Allocated Budget
-                    </p>
-                    <p class="mt-2 text-4xl font-extrabold text-gray-900">
-                        <span class="text-2xl font-bold align-top mr-1">₱</span>{{ number_format($latestBudget->amount ?? 0, 2) }}
-                    </p>
-                    <p class="text-sm text-indigo-500 mt-1">Current Fiscal Year Limit</p>
-                </div>
+            <div class="card-custom border-green">
+                <h3>Approved</h3>
+                <p>{{ $approvedCount ?? 0 }}</p>
             </div>
         </div>
 
-        <form method="GET" class="flex justify-end mb-8">
-            <label for="year-select" class="text-sm font-medium text-gray-700 mr-3 self-center hidden sm:block">Filter by Year:</label>
-            <select name="year" id="year-select" onchange="this.form.submit()"
-                class="block pl-4 pr-10 py-2 text-base font-medium border-gray-300 rounded-lg shadow-sm
-                       focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out
-                       hover:border-gray-400 cursor-pointer w-full sm:w-auto"
-            >
+        <!-- Year Filter -->
+        <form method="GET" class="year-selector">
+            <label for="year">Select Year:</label>
+            <select name="year" id="year" onchange="this.form.submit()">
                 @foreach ($years as $year)
                     <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
-                        Fiscal Year {{ $year }}
+                        {{ $year }}
                     </option>
                 @endforeach
             </select>
         </form>
 
-        <div class="bg-white rounded-xl shadow-lg p-6 lg:p-8 border border-gray-100">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-100">
-                Total PPMP Cost by Department <span class="text-base font-normal text-gray-500">({{ $selectedYear }})</span>
-            </h3>
-            <div class="h-96">
-                <canvas id="ppmpBarChart"></canvas>
-            </div>
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <h3>Total Cost by Department ({{ $selectedYear }})</h3>
+            <canvas id="ppmpBarChart"></canvas>
         </div>
-
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Consistent color mapping for Chart.js
-    const chartColor = '#3b82f6'; // blue-500
-    const gridColor = '#f3f4f6';    // gray-100
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const barCtx = document.getElementById('ppmpBarChart').getContext('2d');
 
-    new Chart(document.getElementById('ppmpBarChart'), {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode($chartLabels) !!},
-            datasets: [{
-                label: '₱ Total Cost',
-                data: {!! json_encode($chartData) !!},
-                backgroundColor: chartColor,
-                hoverBackgroundColor: '#2563eb', // Darker blue on hover
-                borderRadius: 6,
-                barPercentage: 0.7,
-                categoryPercentage: 0.8
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                    titleFont: { size: 14, weight: 'bold' },
-                    bodyFont: { size: 14 },
-                    padding: 12,
-                    displayColors: false, // Cleaner look without color square
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (context.parsed.y !== null) {
-                                label = '₱' + context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($chartLabels) !!},
+                datasets: [{
+                    label: 'Total Cost (₱)',
+                    data: {!! json_encode($chartData) !!},
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₱' + parseFloat(context.raw).toLocaleString();
                             }
-                            return label;
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            font: { size: 12 },
+                            color: '#333'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            },
+                            font: { size: 12 },
+                            color: '#333'
                         }
                     }
                 }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: '#6b7280' } // gray-500
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: val => '₱' + val.toLocaleString('en-US', { notation: 'compact', compactDisplay: 'short' }), // Use compact notation (e.g., 1M) for professional charts
-                        color: '#6b7280' // gray-500
-                    },
-                    grid: {
-                        color: gridColor
-                    }
-                }
             }
-        }
-    });
-</script>
+        });
+    </script>
 
-</x-layouts.app>
+</x-layouts.app> THE DESIGN MAKE IT PROFESSIONAL
