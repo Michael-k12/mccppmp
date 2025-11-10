@@ -29,7 +29,7 @@
         }
 
         .dashboard-logo {
-            height: 50px;
+            height: 80px;
             width: auto;
         }
 
