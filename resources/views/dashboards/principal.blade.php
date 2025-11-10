@@ -179,7 +179,8 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
             <h2>Principal Dashboard</h2>
-            <img src="{{ asset('path/to/logo.png') }}" alt="Logo" class="dashboard-logo">
+            <img src="{{ asset('logo/logo-mcc.png') }}" alt="Logo" class="dashboard-logo">
+
         </div>
 
         <!-- Top Stats -->
