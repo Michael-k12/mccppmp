@@ -1,180 +1,136 @@
 <x-layouts.app :title="__('Principal Dashboard')">
 
-<style>
-    body {
-        background: #eef2f7;
-        font-family: 'Poppins', sans-serif;
-    }
+<div class="min-h-screen bg-gray-50 font-sans antialiased">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    .dashboard-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2.5rem 1rem;
-    }
+        <header class="mb-8 border-b pb-4 border-gray-200">
+            <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">
+                📊 Principal Dashboard Overview
+            </h1>
+        </header>
 
-    /* KPI CARDS ROW */
-    .kpi-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-10">
 
-    .kpi-card {
-        position: relative;
-        background: linear-gradient(135deg, #0057ff, #00c6ff);
-        color: #fff;
-        border-radius: 16px;
-        padding: 2rem 2rem 2rem 3rem;
-        overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
-        cursor: default;
-    }
+            <div class="bg-white overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition duration-300 ease-in-out border-l-4 border-blue-600">
+                <div class="p-6">
+                    <p class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                        Submitted PPMPs
+                    </p>
+                    <p class="mt-1 text-4xl font-bold text-blue-600">
+                        {{ $submittedCount ?? 0 }}
+                    </p>
+                </div>
+            </div>
 
-    .kpi-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 30px rgba(0, 87, 255, 0.3);
-    }
+            <div class="bg-white overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition duration-300 ease-in-out border-l-4 border-green-500">
+                <div class="p-6">
+                    <p class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                        Approved PPMPs
+                    </p>
+                    <p class="mt-1 text-4xl font-bold text-green-500">
+                        {{ $approvedCount ?? 0 }}
+                    </p>
+                </div>
+            </div>
 
-    .kpi-card .icon {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 3rem;
-        opacity: 0.2;
-    }
-
-    .kpi-card h4 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .kpi-card p {
-        font-size: 2rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
-    /* YEAR FILTER */
-    .filter-row {
-        text-align: right;
-        margin-bottom: 2.5rem;
-    }
-
-    .filter-row select {
-        padding: 0.6rem 1.2rem;
-        border-radius: 12px;
-        border: 1px solid #ced4da;
-        background: #ffffff;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: 0.25s;
-    }
-
-    .filter-row select:hover {
-        border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0,123,255,0.15);
-    }
-
-    /* CHART CONTAINER */
-    .chart-box {
-        background: #fff;
-        border-radius: 16px;
-        padding: 2.5rem;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-        border-top: 6px solid #007bff;
-    }
-
-    .chart-box h3 {
-        margin-bottom: 1.8rem;
-        font-size: 1.35rem;
-        font-weight: 600;
-        color: #00244a;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 992px) {
-        .kpi-row {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<div class="dashboard-container">
-
-    <!-- KPI CARDS -->
-    <div class="kpi-row">
-        <div class="kpi-card">
-            <div class="icon">📄</div>
-            <h4>Submitted PPMPs</h4>
-            <p>{{ $submittedCount ?? 0 }}</p>
+            <div class="bg-white overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition duration-300 ease-in-out border-l-4 border-yellow-500">
+                <div class="p-6">
+                    <p class="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                        Allocated Budget
+                    </p>
+                    <p class="mt-1 text-4xl font-bold text-yellow-600">
+                        ₱{{ number_format($latestBudget->amount ?? 0, 2) }}
+                    </p>
+                </div>
+            </div>
         </div>
 
-        <div class="kpi-card">
-            <div class="icon">✅</div>
-            <h4>Approved PPMPs</h4>
-            <p>{{ $approvedCount ?? 0 }}</p>
+        <form method="GET" class="flex justify-end mb-8">
+            <label for="year-select" class="sr-only">Select Fiscal Year</label>
+            <select name="year" id="year-select" onchange="this.form.submit()"
+                class="block w-full sm:w-auto pl-4 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg shadow-sm transition duration-150 ease-in-out"
+            >
+                @foreach ($years as $year)
+                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
+                        Fiscal Year {{ $year }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 lg:p-8 border-t-4 border-blue-600">
+            <h3 class="text-xl font-bold text-gray-700 mb-6 pb-3 border-b border-gray-100">
+                Total PPMP Cost by Department ({{ $selectedYear }})
+            </h3>
+            <div class="h-96"> <canvas id="ppmpBarChart"></canvas>
+            </div>
         </div>
 
-        <div class="kpi-card">
-            <div class="icon">💰</div>
-            <h4>Allocated Budget</h4>
-            <p>₱{{ number_format($latestBudget->amount ?? 0, 2) }}</p>
-        </div>
     </div>
-
-    <!-- YEAR FILTER -->
-    <form method="GET" class="filter-row">
-        <select name="year" onchange="this.form.submit()">
-            @foreach ($years as $year)
-                <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
-                    {{ $year }}
-                </option>
-            @endforeach
-        </select>
-    </form>
-
-    <!-- CHART -->
-    <div class="chart-box">
-        <h3>Total Cost by Department ({{ $selectedYear }})</h3>
-        <canvas id="ppmpBarChart"></canvas>
-    </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const ctx = document.getElementById('ppmpBarChart');
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: {!! json_encode($chartLabels) !!},
-        datasets: [{
-            label: '₱ Total Cost',
-            data: {!! json_encode($chartData) !!},
-            backgroundColor: '#007bff',
-            borderRadius: 10,
-            barThickness: 40
-        }]
-    },
-    options: {
-        plugins: { 
-            legend: { display: false }
+    // Define Tailwind colors for Chart.js
+    const primaryColor = '#2563eb'; // blue-600
+    const gridColor = '#e5e7eb';    // gray-200
+
+    new Chart(document.getElementById('ppmpBarChart'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($chartLabels) !!},
+            datasets: [{
+                label: '₱ Total Cost',
+                data: {!! json_encode($chartData) !!},
+                backgroundColor: primaryColor,
+                borderColor: primaryColor,
+                borderWidth: 1,
+                borderRadius: 4, // Slightly rounded bars
+                barPercentage: 0.8,
+                categoryPercentage: 0.7
+            }]
         },
-        scales: {
-            y: {
-                ticks: { callback: val => '₱' + val.toLocaleString() },
-                grid: { color: '#e0e0e0' }
+        options: {
+            maintainAspectRatio: false, // Allows the chart to fill the container
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(17, 24, 39, 0.9)', // gray-900 with transparency
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 14 },
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += '₱' + context.parsed.y.toLocaleString();
+                            }
+                            return label;
+                        }
+                    }
+                }
             },
-            x: {
-                grid: { display: false }
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#4b5563' } // gray-600
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: val => '₱' + val.toLocaleString(),
+                        color: '#4b5563' // gray-600
+                    },
+                    grid: {
+                        color: gridColor
+                    }
+                }
             }
         }
-    }
-});
+    });
 </script>
 
 </x-layouts.app>
