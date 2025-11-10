@@ -63,8 +63,8 @@
 
         /* Chart container */
         .chart-section {
-            background-color: #fff;
-            border: 1px solid #e5e7eb;
+            background-color: #58b69eff;
+            border: 1px solid #000000ff;
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
