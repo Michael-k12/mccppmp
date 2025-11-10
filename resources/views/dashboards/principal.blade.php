@@ -225,4 +225,4 @@
         });
     </script>
 
-</x-layouts.app> THE DESIGN MAKE IT PROFESSIONAL
+</x-layouts.app>
