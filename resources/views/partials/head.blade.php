@@ -3,7 +3,7 @@
 
 <title>{{ $title ?? config('Procurement') }}</title>
 
-<link rel="icon" href="/yes.jpg" type="image/jpeg" sizes="any">
+<link rel="icon" href="/" type="image/jpeg" sizes="any">
 <link rel="apple-touch-icon" href="/yes.jpg">
 
 <link rel="preconnect" href="https://fonts.bunny.net">
