@@ -58,7 +58,7 @@
 
         /* Gradient card colors */
         .card-yellow {
-            background: linear-gradient(135deg, #000000, #FFD700); /* Black to gold */
+            background: linear-gradient(135deg, #000000, #512eb3ff); /* Black to gold */
             color: #ffffff;
         }
 
