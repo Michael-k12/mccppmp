@@ -27,7 +27,7 @@
         {{-- Add Budget Button --}}
         @if (!$activeBudget)
             <button onclick="openModal()" class="start-proposal-btn">
-                ➕ Add Budget
+             Add Budget
             </button>
         @endif
 
