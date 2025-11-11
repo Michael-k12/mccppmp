@@ -31,7 +31,7 @@
 
     <div class="container mx-auto px-4 py-6">
         <div class="header-row">
-            <h1>Manage Items</h1>
+            <h1>Manage Directoy of Items</h1>
             <button class="add-button" onclick="openAddModal()">+ Add Item</button>
         </div>
 
