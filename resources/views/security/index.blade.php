@@ -71,7 +71,7 @@
     </style>
 
     {{-- Scripts --}}
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLyHOIoQ384JE_xD7KFf9ujJZp1O7Dkmw"></script>
     <script>
         let map, ipMarker, gpsMarker;
 
