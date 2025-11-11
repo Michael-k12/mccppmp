@@ -17,41 +17,42 @@
             </div>
         @endif
 
-        {{-- 💰 Unified Header: Title + Buttons --}}
-        <div class="bg-white shadow-lg rounded-xl border border-gray-200 px-6 py-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <!-- Title -->
-            <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">Previous Budgets</h3>
+       {{-- 💰 Unified Header: Title (Left) + Buttons (Right) --}}
+<div class="bg-white shadow-lg rounded-xl border border-gray-200 px-6 py-4 mb-6 flex justify-between items-center">
+    <!-- Title on the left -->
+    <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">Previous Budgets</h3>
 
-            <!-- Buttons -->
-            <div class="flex flex-wrap justify-end items-center gap-3 w-full sm:w-auto">
-                {{-- Add Budget Button --}}
-                @if (!$activeBudget)
-                    <button onclick="openModal()" class="start-proposal-btn">
-                        ➕ Add Budget
-                    </button>
-                @endif
+    <!-- Buttons on the right -->
+    <div class="flex flex-wrap justify-end items-center gap-3">
+        {{-- Add Budget Button --}}
+        @if (!$activeBudget)
+            <button onclick="openModal()" class="start-proposal-btn">
+                ➕ Add Budget
+            </button>
+        @endif
 
-                {{-- End Proposal Button --}}
-                @if ($activeBudget)
-                    <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST">
-                        @csrf
-                        <button type="button" onclick="confirmEndProposal()" class="end-proposal-btn">
-                            End Proposal
-                        </button>
-                    </form>
-                @endif
+        {{-- End Proposal Button --}}
+        @if ($activeBudget)
+            <form id="endProposalForm" action="{{ route('budget.end', $activeBudget->id) }}" method="POST">
+                @csrf
+                <button type="button" onclick="confirmEndProposal()" class="end-proposal-btn">
+                    End Proposal
+                </button>
+            </form>
+        @endif
 
-                {{-- Delete Selected Button --}}
-                <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" id="deleteSelectedBtn"
-                        class="bg-red-500 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-600 transition hidden">
-                        Delete Selected
-                    </button>
-                </form>
-            </div>
-        </div>
+        {{-- Delete Selected Button --}}
+        <form id="deleteSelectedForm" method="POST" action="{{ route('budget.deleteSelected') }}">
+            @csrf
+            @method('DELETE')
+            <button type="submit" id="deleteSelectedBtn"
+                class="bg-red-500 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-600 transition hidden">
+                Delete Selected
+            </button>
+        </form>
+    </div>
+</div>
+
 
         {{-- 💻 Previous Budgets Table --}}
         <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-x-auto">
