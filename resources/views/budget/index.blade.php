@@ -17,10 +17,12 @@
             </div>
         @endif
 
-        {{-- 💰 Previous Budgets Header + Buttons --}}
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        {{-- 💰 Unified Header: Title + Buttons --}}
+        <div class="bg-white shadow-lg rounded-xl border border-gray-200 px-6 py-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Title -->
             <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">Previous Budgets</h3>
 
+            <!-- Buttons -->
             <div class="flex flex-wrap justify-end items-center gap-3 w-full sm:w-auto">
                 {{-- Add Budget Button --}}
                 @if (!$activeBudget)
@@ -88,30 +90,31 @@
             </table>
         </div>
 
-        {{-- 🧾 Add Budget Modal --}}
-      <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center z-50 px-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
-        <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        {{-- 🧾 Add Budget Modal (No black overlay) --}}
+        <div id="budgetModal" class="hidden fixed inset-0 flex items-center justify-center z-50 px-4">
+            <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn border border-gray-200">
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
 
-        <h3 class="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 text-center">Start Project Proposal</h3>
+                <h3 class="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 text-center">Start Project Proposal</h3>
 
-        <form id="budgetForm" action="{{ route('budget.store') }}" method="POST" class="space-y-6">
-            @csrf
-            <div>
-                <label for="milestone_date" class="block mb-2 font-medium text-gray-700">Year</label>
-                <input type="number" name="milestone_date" id="milestone_date" class="modern-input" min="2000" max="2100" value="{{ now()->year }}" oninput="validateYear(this)" required>
+                <form id="budgetForm" action="{{ route('budget.store') }}" method="POST" class="space-y-6">
+                    @csrf
+                    <div>
+                        <label for="milestone_date" class="block mb-2 font-medium text-gray-700">Year</label>
+                        <input type="number" name="milestone_date" id="milestone_date" class="modern-input" min="2000" max="2100" value="{{ now()->year }}" oninput="validateYear(this)" required>
+                    </div>
+
+                    <div>
+                        <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
+                        <input type="text" name="amount" id="amount" class="modern-input" required oninput="formatNumberInput(this)">
+                    </div>
+
+                    <button type="submit" class="save-budget-btn w-full">Save Budget</button>
+                </form>
             </div>
+        </div>
 
-            <div>
-                <label for="amount" class="block mb-2 font-medium text-gray-700">Budget Amount</label>
-                <input type="text" name="amount" id="amount" class="modern-input" required oninput="formatNumberInput(this)">
-            </div>
-
-            <button type="submit" class="save-budget-btn w-full">Save Budget</button>
-        </form>
     </div>
-</div>
-
 
     {{-- 🎨 Styles --}}
     <style>
