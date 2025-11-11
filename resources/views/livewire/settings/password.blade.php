@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Livewire\Volt\Component;
 
@@ -19,15 +18,26 @@ new class extends Component {
         try {
             $validated = $this->validate([
                 'current_password' => ['required', 'string', 'current_password'],
-                'password' => ['required', 'string', Password::defaults(), 'confirmed'],
+                'password' => [
+                    'required',
+                    'string',
+                    'confirmed',
+                    // ✅ Custom Password Rule:
+                    // Must start uppercase, follow with lowercase & numbers only,
+                    // No symbols, minimum 12 chars.
+                    'regex:/^(?=.{12,}$)(?=.*[a-z])(?=.*\d)[A-Z][a-z\d]+$/',
+                ],
+            ], [
+                // ✅ Custom error message to guide user clearly
+                'password.regex' => 'Password must start with an uppercase letter, contain lowercase letters and numbers only, no symbols, and be at least 12 characters.',
             ]);
         } catch (ValidationException $e) {
             $this->reset('current_password', 'password', 'password_confirmation');
-
             throw $e;
         }
 
         Auth::user()->update([
+            // ✅ Argon2id hashing will apply automatically
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -35,12 +45,13 @@ new class extends Component {
 
         $this->dispatch('password-updated');
     }
-}; ?>
+};
+?>
 
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <x-settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
+    <x-settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a strong and secure password')">
         <form wire:submit="updatePassword" class="mt-6 space-y-6">
             <flux:input
                 wire:model="current_password"
@@ -63,6 +74,14 @@ new class extends Component {
                 required
                 autocomplete="new-password"
             />
+
+            <p class="text-sm text-gray-600">
+                <strong>Password Requirements:</strong><br>
+                - Must start with an <strong>UPPERCASE</strong> letter<br>
+                - Contains <strong>lowercase</strong> letters and <strong>numbers</strong> only<br>
+                - <strong>No symbols allowed</strong><br>
+                - Minimum length: <strong>12 characters</strong>
+            </p>
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
