@@ -3,7 +3,7 @@
 
     <!-- Filter Form -->
     <form method="GET" action="{{ route('ppmp.bsit') }}" class="mb-4 inline-block">
-        <label for="year" class="text-sm font-medium">Archive:</label>
+        <label for="year" class="text-sm font-medium">Select:</label>
         <select name="year" id="year" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 text-sm ml-2">
             <option value=""> All Years </option>
             @foreach ($availableYears as $year)
