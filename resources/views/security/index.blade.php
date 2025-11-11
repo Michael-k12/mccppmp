@@ -47,7 +47,7 @@
                     <div id="map" style="height: 400px;" class="rounded-lg border border-gray-200 shadow-sm"></div>
                 </div>
                 <div class="flex flex-col justify-center p-2 bg-gray-50 rounded-lg border border-gray-200">
-                    <p id="mapInfo" class="text-gray-700 text-sm leading-relaxed"></p>
+                    <p id="mapInfo" class="text-gray-700 text-sm leading-relaxed">Fetching location...</p>
                 </div>
             </div>
         </div>
@@ -62,6 +62,11 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(10px); }
         }
 
         @media (max-width: 640px) {
@@ -81,7 +86,7 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            mapInfo.innerHTML = "Fetching location...";
+            mapInfo.innerHTML = "Fetching location..."; // Show loading message
 
             // Initialize map centered at Philippines
             map = new google.maps.Map(document.getElementById('map'), {
@@ -90,11 +95,16 @@
             });
 
             let ipData = null;
-            try {
-                const res = await fetch(`https://ipapi.co/${ip}/json/`);
-                ipData = await res.json();
-            } catch (err) {
-                console.error("IP fetch failed:", err);
+            if (ip && ip !== '') {
+                try {
+                    const res = await fetch(https://ipapi.co/${ip}/json/);
+                    ipData = await res.json();
+                } catch (err) {
+                    console.error("IP fetch failed:", err);
+                    mapInfo.innerHTML = "Unable to fetch IP location data.";
+                }
+            } else {
+                mapInfo.innerHTML = "IP address not available.";
             }
 
             // Plot IP location
@@ -103,7 +113,7 @@
                 ipMarker = new google.maps.Marker({
                     position: ipPos,
                     map,
-                    title: `Approximate IP Location: ${ipData.city}`,
+                    title: Approximate IP Location: ${ipData.city},
                     icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
                 });
                 map.setCenter(ipPos);
@@ -132,15 +142,21 @@
                             <b>Timestamp:</b> ${timestamp}<br>
                             <b>Message:</b> ${message}<br><br>
                             <b style="color:red;">Exact GPS:</b> ${gpsPos.lat.toFixed(5)}, ${gpsPos.lng.toFixed(5)}<br>
-                            <b style="color:blue;">Approx. IP Location:</b> ${ipData?.city || 'Unknown'}, ${ipData?.region || ''}, ${ipData?.country_name || ''}
+                            <b style="color:blue;">Approx. IP Location:</b> ${ipData?.city || 'Unknown'}, ${ipData?.region || ''}, ${ipData?.country_name || ''}<br>
+                            <br><b>Device Info:</b> ${navigator.userAgent}
+                            <br><a href="https://www.google.com/maps?q=${gpsPos.lat},${gpsPos.lng}" target="_blank" class="text-blue-500">View on Google Maps</a>
                         `;
                     },
                     (error) => {
+                        let errorMessage = "An error occurred.";
+                        if (error.code === error.PERMISSION_DENIED) {
+                            errorMessage = "Geolocation permission denied.";
+                        }
                         mapInfo.innerHTML = `
                             <b>Timestamp:</b> ${timestamp}<br>
                             <b>Message:</b> ${message}<br><br>
                             <b style="color:blue;">Approx. IP Location:</b> ${ipData?.city || 'Unknown'}, ${ipData?.region || ''}, ${ipData?.country_name || ''}<br>
-                            (Exact GPS unavailable)
+                            <b style="color:red;">GPS unavailable:</b> ${errorMessage}
                         `;
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -156,12 +172,16 @@
 
         function closeMapModal() {
             const modal = document.getElementById('mapModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            modal.classList.add('fade-out');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('fade-out');
+                modal.classList.remove('flex');
+            }, 300);
 
             // Remove markers
-            if(ipMarker) ipMarker.setMap(null);
-            if(gpsMarker) gpsMarker.setMap(null);
+            if (ipMarker) ipMarker.setMap(null);
+            if (gpsMarker) gpsMarker.setMap(null);
         }
     </script>
 </x-layouts.app>
