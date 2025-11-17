@@ -7,7 +7,7 @@ Your One-Time Password for login is:
 {{ $otp }}
 @endcomponent
 
-This OTP is valid for **5 minutes**. Do not share it with anyone.
+This OTP is valid for **2 minutes**. Do not share it with anyone.
 
 Thanks,<br>
 {{ config('app.name') }}
