@@ -428,6 +428,10 @@ document.addEventListener("DOMContentLoaded", function () {
     closeAfterSelect: true,
     selectOnTab: true,
     hideSelected: true,
+    onType: function() {
+    this.close();
+}
+
     onBlur: function() {
         this.close();
     }
@@ -439,6 +443,10 @@ new TomSelect("#unit", {
     closeAfterSelect: true,
     selectOnTab: true,
     hideSelected: true,
+    onType: function() {
+    this.close();
+}
+
     onBlur: function() {
         this.close();
     }
