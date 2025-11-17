@@ -84,11 +84,20 @@ Route::get('/ppmp/bshm/download', [PpmpController::class, 'downloadBshm'])->name
 Route::get('/ppmp/library/download', [PpmpController::class, 'downloadLibrary'])->name('ppmp.library.download');
 Route::get('/ppmp/nurse/download', [PpmpController::class, 'downloadNurse'])->name('ppmp.nurse.download');
 
-Route::get('/manage-users', [UserController::class, 'index'])->name('users.index');
-Route::get('/manage-users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-Route::put('/manage-users/{user}', [UserController::class, 'update'])->name('users.update');
-Route::delete('/manage-users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::middleware('auth')->group(function () {
+
+    Route::get('/manage-users', [UserController::class, 'index'])->name('users.index');
+
+    Route::get('/manage-users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+
+    Route::put('/manage-users/{user}', [UserController::class, 'update'])->name('users.update');
+
+    Route::delete('/manage-users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+
+});
+
 
 Route::get('/add-items', [ItemController::class, 'index'])->name('items.index');
 Route::post('/add-items', [ItemController::class, 'store'])->name('items.store');
