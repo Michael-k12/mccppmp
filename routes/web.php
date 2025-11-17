@@ -16,7 +16,7 @@ use App\Http\Controllers\SecurityMonitoringController;
 
 
 Route::get('/', function () {
-    return redirect()->route('register');
+    return redirect()->route('login');
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
