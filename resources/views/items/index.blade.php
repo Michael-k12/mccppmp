@@ -59,12 +59,17 @@
                                 onclick="openEditModal({{ $item->id }}, '{{ $item->classification }}', '{{ $item->description }}', '{{ $item->unit }}', '{{ $item->price }}')">
                                 Update
                             </button>
-                            <form action="{{ route('items.destroy', $item->id) }}" method="POST" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="delete-btn" onclick="confirmDelete({{ $item->id }})">Delete</button>
+                            <form id="delete-form-{{ $item->id }}" 
+      action="{{ route('items.destroy', $item->id) }}" 
+      method="POST" 
+      class="inline">
+    @csrf
+    @method('DELETE')
+    <button type="button" class="delete-btn" onclick="confirmDelete({{ $item->id }})">
+        Delete
+    </button>
+</form>
 
-                            </form>
                         </td>
                     </tr>
                     @endforeach
@@ -365,5 +370,22 @@
                 document.querySelectorAll('.dropdown-list').forEach(dl => dl.style.display = 'none');
             }
         });
+        function confirmDelete(id) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This item will be permanently deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Submit the delete form
+            document.getElementById('delete-form-' + id).submit();
+        }
+    });
+}
+
     </script>
 </x-layouts.app>
