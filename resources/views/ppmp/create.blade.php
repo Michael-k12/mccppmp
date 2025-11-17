@@ -177,15 +177,16 @@ th { background-color: #f9fafb; font-weight: bold; }
         </div>
     </div>
 
-    <div class="table-container">
-    <table class="min-w-full border-collapse">
+    <div class="table-wrapper">
+    <table id="itemTable">
+
         <thead>
             <tr>
-                <th class="px-4 py-2 border">Classification</th>
-                <th class="px-4 py-2 border">Description</th>
-                <th class="px-4 py-2 border">Unit</th>
-                <th class="px-4 py-2 border">Price</th>
-                <th class="px-4 py-2 border">Action</th>
+                <th>Classification</th>
+                <th>Description</th>
+                <th>Unit</th>
+                <th>Price</th>
+                <th style="width: 80px;">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -202,7 +203,6 @@ th { background-color: #f9fafb; font-weight: bold; }
             @endforeach
         </tbody>
     </table>
-</div>
 @else
     <div class="bg-red-100 border border-red-300 text-red-800 p-6 rounded text-center">
         <strong>Project Proposal has ended.</strong><br>
