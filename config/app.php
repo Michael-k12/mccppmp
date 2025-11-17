@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Procuremnet'),
+    'name' => env('APP_NAME', 'Project Procurement Management System'),
 
     /*
     |--------------------------------------------------------------------------
