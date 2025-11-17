@@ -159,6 +159,21 @@
             gap: 10px;
             margin-bottom: 20px;
         }
+        /* ✅ Sticky Header (Title + Add Button) */
+.header-row {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: white;
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
         .header-row h1 {
             font-size: 24px;
             font-weight: bold;
@@ -320,6 +335,10 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .container {
+    padding-top: 20px;
+}
+
     </style>
 
     <script>
