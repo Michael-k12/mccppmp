@@ -162,6 +162,85 @@ th { background-color: #f9fafb; font-weight: bold; }
 }
 .modal-footer { text-align: right; }
 .close { cursor: pointer; font-size: 20px; }
+/* ✅ Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .modal.hidden {
+            display: none;
+        }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .modal-content input {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .submit-btn {
+            background-color: #22c55e;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .cancel-btn {
+            background-color: #e5e7eb;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* ✅ Dropdown */
+        .dropdown-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            border: 1px solid #ccc;
+            background: white;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .dropdown-list div {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .dropdown-list div:hover {
+            background-color: #f0f0f0;
+        }
+
 </style>
 
 <div class="container">
@@ -279,78 +358,95 @@ th { background-color: #f9fafb; font-weight: bold; }
     </div>
 </div>
 
-<!-- Add New Item Modal -->
-<div id="addItemModal" class="modal">
-    <div class="modal-content">
-        <h2>Add New Item</h2>
-        <form method="POST" action="{{ route('items.store') }}">
-            @csrf
-            <!-- Classification Dropdown -->
-            <label>Classification</label>
-            <select id="classification" name="classification" placeholder="Select or type classification" required>
-                <option value="">Select Classification</option>
-                <option value="Office Supplies">Office Supplies</option>
-                <option value="Equipment">Equipment</option>
-                <option value="Furniture">Furniture</option>
-                <option value="IT Equipment">IT Equipment</option>
-                <option value="Other">Other</option>
-            </select>
+{{-- ✅ Add Item Modal --}}
+    <div id="addItemModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Add New Item</h2>
+            <form method="POST" action="{{ route('items.store') }}">
+                @csrf
+                <div class="dropdown-wrapper">
+                    <input type="text" name="classification" placeholder="Classification" autocomplete="off"
+                        spellcheck="false" required onfocus="showDropdown(this, 'classification-list')"
+                        oninput="filterDropdown(this, 'classification-list')">
+                    <div id="classification-list" class="dropdown-list"></div>
+                </div>
 
-            <!-- Description (free text) -->
-            <label>Description</label>
-            <input type="text" name="description" placeholder="General Description" required autocomplete="off">
+                <div class="dropdown-wrapper">
+                    <input type="text" name="description" placeholder="General Description" autocomplete="off"
+                        spellcheck="false" required onfocus="showDropdown(this, 'description-list')"
+                        oninput="filterDropdown(this, 'description-list')">
+                    <div id="description-list" class="dropdown-list"></div>
+                </div>
 
-            <!-- Unit Dropdown -->
-            <label>Unit</label>
-            <select id="unit" name="unit" placeholder="Select or type unit" required>
-                <option value="">Select Unit</option>
-                <option value="pcs">pcs</option>
-                <option value="box">box</option>
-                <option value="set">set</option>
-                <option value="ream">ream</option>
-                <option value="unit">unit</option>
-                <option value="roll">roll</option>
-                <option value="pack">pack</option>
-                <option value="bottle">bottle</option>
-                <option value="gallon">gallon</option>
-                <option value="piece">piece</option>
-                <option value="pair">pair</option>
-                <option value="kit">kit</option>
-                <option value="case">case</option>
-                <option value="bag">bag</option>
-            </select>
+                <div class="dropdown-wrapper">
+                    <input type="text" name="unit" placeholder="Unit" autocomplete="off" spellcheck="false"
+                        required onfocus="showDropdown(this, 'unit-list')"
+                        oninput="filterDropdown(this, 'unit-list')">
+                    <div id="unit-list" class="dropdown-list"></div>
+                </div>
 
-            <!-- Price -->
-            <label>Price</label>
-            <input type="number" step="0.01" name="price" placeholder="Price" required autocomplete="off">
+                <input type="number" step="0.01" name="price" placeholder="Price" required>
 
-            <div class="modal-footer">
-                <button type="button" class="btn" style="background-color: #6b7280;" onclick="closeAddModal()">Cancel</button>
-                <button type="submit" class="btn">Add</button>
-            </div>
-        </form>
+                <div class="modal-actions">
+                    <button type="submit" class="submit-btn">Add</button>
+                    <button type="button" class="cancel-btn" onclick="closeAddModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
+
 
 <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
 <script>
-function openModal(id, description, classification, unit, price) {
-    document.getElementById('modal_description').value = description;
-    document.getElementById('modal_classification').value = classification;
-    document.getElementById('modal_unit').value = unit;
-    document.getElementById('modal_price').value = price;
-    document.getElementById('modal_quantity').value = '';
-    document.getElementById('modal_budget').value = '';
-    document.getElementById('modal_procurement').value = '';
-    document.getElementById('modal_milestone_date').value = localStorage.getItem('selectedMonth') || '';
-    document.getElementById('addModal').style.display = 'block';
-}
+function openAddModal() {
+            document.getElementById('addItemModal').classList.remove('hidden');
+        }
+        function closeAddModal() {
+            document.getElementById('addItemModal').classList.add('hidden');
+        }
+        function openEditModal(id, classification, description, unit, price) {
+            const form = document.getElementById('editForm');
+            form.action = `/items/${id}`;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-classification').value = classification;
+            document.getElementById('edit-description').value = description;
+            document.getElementById('edit-unit').value = unit;
+            document.getElementById('edit-price').value = price;
+            document.getElementById('editItemModal').classList.remove('hidden');
+        }
+        function closeEditModal() {
+            document.getElementById('editItemModal').classList.add('hidden');
+        }
 
-function closeModal() {
-    document.getElementById('addModal').style.display = 'none';
-}
+        // Dropdown logic
+        const options = {
+            classification: ["Office Supplies", "IT Equipment", "Furniture", "Cleaning Materials"],
+            description: ["Ballpen", "Laptop", "Office Chair", "Printer Ink"],
+            unit: ["pcs", "box", "set", "ream", "sets", "unit", "roll", "pack", "bottle", "gallon", "piece", "pair", "kit", "case", "bag"]
+        };
+        function showDropdown(input, listId) {
+            filterDropdown(input, listId);
+        }
+        function filterDropdown(input, listId) {
+            const list = document.getElementById(listId);
+            const field = listId.split('-')[0];
+            const value = input.value.toLowerCase();
+            const filtered = options[field].filter(opt => opt.toLowerCase().includes(value));
+            list.innerHTML = filtered.map(opt => `<div onclick="selectOption('${opt.replace(/'/g, "\\'")}', '${input.name}')">${opt}</div>`).join('');
+            list.style.display = filtered.length ? 'block' : 'none';
+        }
+        function selectOption(value, fieldName) {
+            const input = document.querySelector(`input[name="${fieldName}"]`);
+            input.value = value;
+            document.querySelectorAll('.dropdown-list').forEach(dl => dl.style.display = 'none');
+        }
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-wrapper')) {
+                document.querySelectorAll('.dropdown-list').forEach(dl => dl.style.display = 'none');
+            }
+        });
 
 function calculateBudget() {
     const quantity = parseFloat(document.getElementById('modal_quantity').value) || 0;
