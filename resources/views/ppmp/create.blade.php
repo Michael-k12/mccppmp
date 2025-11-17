@@ -67,6 +67,30 @@ h2 {
 .dots-loader span:nth-child(2) { animation-delay: 0.2s; }
 .dots-loader span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { to { transform: translateY(-5px); opacity: 0.5; } }
+/* Make the table area scroll */
+.table-wrapper {
+    max-height: 65vh;        /* scroll area height */
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+/* Ensure header row stays fixed visually */
+.header-row {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding-top: 10px;
+    z-index: 50;
+}
+
+/* Optional: Add shadow when scrolling */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #c7c7c7;
+    border-radius: 5px;
+}
 
 table {
     width: 100%;
@@ -142,8 +166,9 @@ th { background-color: #f9fafb; font-weight: bold; }
         </div>
     </div>
 
-    <!-- Item Table -->
+    <div class="table-wrapper">
     <table id="itemTable">
+
         <thead>
             <tr>
                 <th>Classification</th>
@@ -174,6 +199,9 @@ th { background-color: #f9fafb; font-weight: bold; }
     </div>
 @endif
 </div>
+    </table>
+</div>
+
 
 <!-- Add to PPMP Modal -->
 <div id="addModal" class="modal">
