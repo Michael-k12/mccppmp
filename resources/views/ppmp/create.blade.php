@@ -285,9 +285,43 @@ th { background-color: #f9fafb; font-weight: bold; }
         <h2>Add New Item</h2>
         <form method="POST" action="{{ route('items.store') }}">
             @csrf
-            <input id="classification" name="classification" placeholder="Classification" required autocomplete="off">
+            <!-- Classification Dropdown -->
+            <label>Classification</label>
+            <select id="classification" name="classification" placeholder="Select or type classification" required>
+                <option value="">Select Classification</option>
+                <option value="Office Supplies">Office Supplies</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Furniture">Furniture</option>
+                <option value="IT Equipment">IT Equipment</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <!-- Description (free text) -->
+            <label>Description</label>
             <input type="text" name="description" placeholder="General Description" required autocomplete="off">
-            <input id="unit" name="unit" placeholder="Unit" required autocomplete="off">
+
+            <!-- Unit Dropdown -->
+            <label>Unit</label>
+            <select id="unit" name="unit" placeholder="Select or type unit" required>
+                <option value="">Select Unit</option>
+                <option value="pcs">pcs</option>
+                <option value="box">box</option>
+                <option value="set">set</option>
+                <option value="ream">ream</option>
+                <option value="unit">unit</option>
+                <option value="roll">roll</option>
+                <option value="pack">pack</option>
+                <option value="bottle">bottle</option>
+                <option value="gallon">gallon</option>
+                <option value="piece">piece</option>
+                <option value="pair">pair</option>
+                <option value="kit">kit</option>
+                <option value="case">case</option>
+                <option value="bag">bag</option>
+            </select>
+
+            <!-- Price -->
+            <label>Price</label>
             <input type="number" step="0.01" name="price" placeholder="Price" required autocomplete="off">
 
             <div class="modal-footer">
@@ -409,49 +443,28 @@ window.onclick = function(event) {
     if (event.target === document.getElementById("addItemModal")) closeAddModal();
 };
 
-document.addEventListener("DOMContentLoaded", function () {
+
+
+   document.addEventListener("DOMContentLoaded", function () {
+    // Classification
     new TomSelect("#classification", {
         create: true,
+        persist: false,
         sortField: { field: "text", direction: "asc" },
-        options: [
-            {value: "Office Supplies", text: "Office Supplies"},
-            {value: "Equipment", text: "Equipment"},
-            {value: "Furniture", text: "Furniture"},
-            {value: "IT Equipment", text: "IT Equipment"},
-            {value: "Other", text: "Other"}
-        ]
+        closeAfterSelect: true,
+        selectOnTab: true,
+        hideSelected: true,
     });
 
-    new TomSelect("#classification", {
-    create: true,
-    persist: false,
-    closeAfterSelect: true,
-    selectOnTab: true,
-    hideSelected: true,
-    onType: function() {
-    this.close();
-}
-
-    onBlur: function() {
-        this.close();
-    }
-});
-
-new TomSelect("#unit", {
-    create: true,
-    persist: false,
-    closeAfterSelect: true,
-    selectOnTab: true,
-    hideSelected: true,
-    onType: function() {
-    this.close();
-}
-
-    onBlur: function() {
-        this.close();
-    }
-});
-
+    // Unit
+    new TomSelect("#unit", {
+        create: true,
+        persist: false,
+        sortField: { field: "text", direction: "asc" },
+        closeAfterSelect: true,
+        selectOnTab: true,
+        hideSelected: true,
+    });
 });
 </script>
 </x-layouts.app>
