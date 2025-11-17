@@ -422,20 +422,28 @@ document.addEventListener("DOMContentLoaded", function () {
         ]
     });
 
-    new TomSelect("#unit", {
-        create: true,
-        sortField: { field: "text", direction: "asc" },
-        options: [
-            {value: "pcs", text: "pcs"},
-            {value: "box", text: "box"},
-            {value: "ream", text: "ream"},
-            {value: "set", text: "set"},
-            {value: "unit", text: "unit"},
-            {value: "pack", text: "pack"},
-            {value: "lot", text: "lot"},
-            {value: "roll", text: "roll"}
-        ]
-    });
+    new TomSelect("#classification", {
+    create: true,
+    persist: false,
+    closeAfterSelect: true,
+    selectOnTab: true,
+    hideSelected: true,
+    onBlur: function() {
+        this.close();
+    }
+});
+
+new TomSelect("#unit", {
+    create: true,
+    persist: false,
+    closeAfterSelect: true,
+    selectOnTab: true,
+    hideSelected: true,
+    onBlur: function() {
+        this.close();
+    }
+});
+
 });
 </script>
 </x-layouts.app>
