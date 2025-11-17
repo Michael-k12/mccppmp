@@ -67,41 +67,6 @@ h2 {
 .dots-loader span:nth-child(2) { animation-delay: 0.2s; }
 .dots-loader span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { to { transform: translateY(-5px); opacity: 0.5; } }
-/* Make the table area scroll */
-.table-wrapper {
-    max-height: 65vh;        /* scroll area height */
-    overflow-y: auto;
-    margin-top: 10px;
-}
-
-/* Ensure header row stays fixed visually */
-.header-row {
-    position: sticky;
-    top: 0;
-    background: #fff;
-    padding-top: 10px;
-    z-index: 50;
-}
-
-/* Optional: Add shadow when scrolling */
-.table-wrapper::-webkit-scrollbar {
-    width: 8px;
-}
-.table-wrapper::-webkit-scrollbar-thumb {
-    background: #c7c7c7;
-    border-radius: 5px;
-}
-.table-container {
-    max-height: 350px; /* or any height you want */
-    overflow-y: auto;
-}
-
-table thead tr th {
-    position: sticky;
-    top: 0;
-    background: #ffffff; /* keeps it readable */
-    z-index: 10;
-}
 
 table {
     width: 100%;
@@ -177,9 +142,8 @@ th { background-color: #f9fafb; font-weight: bold; }
         </div>
     </div>
 
-    <div class="table-wrapper">
+    <!-- Item Table -->
     <table id="itemTable">
-
         <thead>
             <tr>
                 <th>Classification</th>
@@ -210,9 +174,6 @@ th { background-color: #f9fafb; font-weight: bold; }
     </div>
 @endif
 </div>
-    </table>
-</div>
-
 
 <!-- Add to PPMP Modal -->
 <div id="addModal" class="modal">
@@ -422,32 +383,20 @@ document.addEventListener("DOMContentLoaded", function () {
         ]
     });
 
-    new TomSelect("#classification", {
-    create: true,
-    persist: false,
-    closeAfterSelect: true,
-    selectOnTab: true,
-    hideSelected: true,
-    onBlur: function() {
-        this.close();
-    }
-});
-
-new TomSelect("#unit", {
-    create: true,
-    persist: false,
-    closeAfterSelect: true,
-    selectOnTab: true,
-    hideSelected: true,
-    onType: function() {
-    this.close();
-}
-
-    onBlur: function() {
-        this.close();
-    }
-});
-
+    new TomSelect("#unit", {
+        create: true,
+        sortField: { field: "text", direction: "asc" },
+        options: [
+            {value: "pcs", text: "pcs"},
+            {value: "box", text: "box"},
+            {value: "ream", text: "ream"},
+            {value: "set", text: "set"},
+            {value: "unit", text: "unit"},
+            {value: "pack", text: "pack"},
+            {value: "lot", text: "lot"},
+            {value: "roll", text: "roll"}
+        ]
+    });
 });
 </script>
 </x-layouts.app>
