@@ -258,7 +258,7 @@ new #[Layout('components.layouts.auth')] class extends Component
         :title="'Log in to your account'" 
         :description="'Enter your email and password below to log in'" 
     />
-s
+
     <!-- Normal login -->
     @if(!$showOtpForm)
         <form wire:submit.prevent="login" class="flex flex-col gap-4">
