@@ -62,7 +62,8 @@
                             <form action="{{ route('items.destroy', $item->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button onclick="return confirm('Delete this item?')" class="delete-btn">Delete</button>
+                                <button type="button" class="delete-btn" onclick="confirmDelete({{ $item->id }})">Delete</button>
+
                             </form>
                         </td>
                     </tr>
