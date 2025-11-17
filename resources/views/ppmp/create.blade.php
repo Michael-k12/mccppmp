@@ -447,6 +447,9 @@ function openAddModal() {
                 document.querySelectorAll('.dropdown-list').forEach(dl => dl.style.display = 'none');
             }
         });
+function closeModal() {
+    document.getElementById('addModal').style.display = 'none';
+}
 
 function calculateBudget() {
     const quantity = parseFloat(document.getElementById('modal_quantity').value) || 0;
