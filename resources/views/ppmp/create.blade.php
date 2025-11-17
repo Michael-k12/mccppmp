@@ -93,59 +93,40 @@ th { background-color: #f9fafb; font-weight: bold; }
 }
 .btn:hover { background-color: #1d4ed8; }
 
-/* ✅ Modal */
-        .modal {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-        .modal.hidden {
-            display: none;
-        }
-        .modal-content {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 420px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            animation: fadeIn 0.2s ease-in-out;
-        }
-        .modal-content input {
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .submit-btn {
-            background-color: #22c55e;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .cancel-btn {
-            background-color: #e5e7eb;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 99;
+    padding-top: 60px;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background-color: #fff;
+    margin: auto;
+    padding: 20px;
+    width: 400px;
+    border-radius: 8px;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+.modal input, .modal select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+.modal-footer { text-align: right; }
+.close { cursor: pointer; font-size: 20px; }
 </style>
 
 <div class="container">
